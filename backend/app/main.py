@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from .database import Base, engine
 
 # Import routers
-from .routes import cards, balls, packs, boxes, auth
+from .routes import cards #, balls, packs, boxes, auth
 
 # Create all tables in the database
 Base.metadata.create_all(bind=engine)
