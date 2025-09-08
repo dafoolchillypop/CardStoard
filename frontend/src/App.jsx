@@ -1,13 +1,17 @@
 import React from 'react';
-import CardList from './components/CardList';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import NavBar from './components/NavBar';
+import Home from './pages/Home';
+import Admin from './pages/Admin';
 
-function App() {
-  return (
-    <div>
-      <h1>Baseball Memorabilia</h1>
-      <CardList />
-    </div>
-  );
-}
+const App = () => (
+  <Router>
+    <NavBar />
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/admin" element={<Admin />} />
+    </Routes>
+  </Router>
+);
 
 export default App;

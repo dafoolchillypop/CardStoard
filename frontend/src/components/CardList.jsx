@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { getCards } from '../services/api';
+import api from '../api/api';
 
-function CardList() {
+const CardList = () => {
   const [cards, setCards] = useState([]);
+
   useEffect(() => {
-    getCards().then(setCards);
+    api.get('/cards/').then(res => setCards(res.data));
   }, []);
+
   return (
     <div>
-      <h2>Cards</h2>
+      <h2>Baseball Cards</h2>
       <ul>
         {cards.map(card => (
-          <li key={card.id}>{card.year} - {card.player}</li>
+          <li key={card.id}>{card.player_name} - {card.team} ({card.year})</li>
         ))}
       </ul>
     </div>
   );
-}
+};
+
 export default CardList;
