@@ -1,20 +1,29 @@
+# backend/Dockerfile
+
+# Use official Python slim image
 FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /code
 
-# Copy requirements
-COPY ./requirements.txt /code/requirements.txt
+# Install system dependencies for dockerize and other tools
+RUN apt-get update && apt-get install -y \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
-RUN pip install --no-cache-dir --upgrade pip
+# Install dockerize
+RUN curl -L https://github.com/jwilder/dockerize/releases/download/v0.9.2/dockerize-linux-amd64-v0.9.2.tar.gz \
+    | tar -C /usr/local/bin -xz
+
+# Copy Python dependencies
+COPY requirements.txt .
+
+# Install Python dependencies, including python-multipart
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app code
-COPY ./app /code/app
+# Copy application code
+COPY . .
 
-# Expose port
-EXPOSE 8000
-
-# Default command
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Default command: wait for DB, then start Uvicorn
+CMD ["sh", "-c", "dockerize -wait tcp://db:5432 -timeout 60s uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
