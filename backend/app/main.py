@@ -1,18 +1,24 @@
 from fastapi import FastAPI
-from .models import base
-from .routes import cards
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "postgresql://postgres:postgres@db:5432/memorabilia"
+# Import database Base and engine
+from .database import Base, engine
 
-engine = create_engine(DATABASE_URL)
+# Import routers
+from .routes import cards, balls, packs, boxes, auth
 
-base.Base.metadata.create_all(bind=engine)
+# Create all tables in the database
+Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Baseball Memorabilia API")
+# Initialize FastAPI app
+app = FastAPI(
+    title="CardStoard",
+    description="API backend for managing baseball cards, packs, boxes, and autographed balls.",
+    version="1.0.0"
+)
+
+# Include routers
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(cards.router, prefix="/cards", tags=["Cards"])
-
-
-from fastapi.staticfiles import StaticFiles
-app.mount("/uploaded_images", StaticFiles(directory="./uploaded_images"), name="images")
+app.include_router(balls.router, prefix="/balls", tags=["Balls"])
+app.include_router(packs.router, prefix="/packs", tags=["Packs"])
+app.include_router(boxes.router, prefix="/boxes", tags=["Boxes"])
