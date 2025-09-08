@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 import os
 from ..models import card as models
 from ..schemas import card as schemas
-from ..main import SessionLocal
+from ..database import SessionLocal, get_db
 
 router = APIRouter()
 
