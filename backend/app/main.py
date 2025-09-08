@@ -16,6 +16,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 # Include routers
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(cards.router, prefix="/cards", tags=["Cards"])
