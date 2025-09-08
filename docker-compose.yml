@@ -3,7 +3,7 @@ version: "3.9"
 services:
   backend:
     build: ./backend
-    container_name: baseball_backend
+    container_name: stoarback
     ports:
       - "8000:8000"
     volumes:
@@ -16,7 +16,7 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: baseball_frontend
+    container_name: stoarfront
     ports:
       - "3000:3000"
     volumes:
@@ -29,7 +29,7 @@ services:
 
   db:
     image: postgres:15
-    container_name: baseball_db
+    container_name: stoardb
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
