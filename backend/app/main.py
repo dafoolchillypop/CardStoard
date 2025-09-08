@@ -21,8 +21,8 @@ def health():
     return {"status": "ok"}
 
 # Include routers
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+#app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(cards.router, prefix="/cards", tags=["Cards"])
-app.include_router(balls.router, prefix="/balls", tags=["Balls"])
-app.include_router(packs.router, prefix="/packs", tags=["Packs"])
-app.include_router(boxes.router, prefix="/boxes", tags=["Boxes"])
+#app.include_router(balls.router, prefix="/balls", tags=["Balls"])
+#app.include_router(packs.router, prefix="/packs", tags=["Packs"])
+#app.include_router(boxes.router, prefix="/boxes", tags=["Boxes"])
