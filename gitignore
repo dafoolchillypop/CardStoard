@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+.env.local
+
+# Node
+node_modules/
+build/
+dist/
+
+# Docker
+*.log
+*.pid
+*.sock
+
+# Images/uploads
+backend/app/uploaded_images/
+
