@@ -1,87 +1,141 @@
 /* index.css */
 
-/* Global body styling */
+/* Global body styling (background image applied in index.jsx) */
 body {
-  font-size: 18px;              /* larger font size */
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
   color: #222;
-  background-size: cover;       /* background image handled in index.jsx */
-  background-position: center;
-  background-attachment: fixed;
+  font-size: 18px;
+  background: #f7f7f7;  /* light gray background */
 }
 
 /* Container to overlay on background */
 .container {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 30px;
-  background: rgba(255, 255, 255, 0.85); /* semi-transparent white */
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 56px auto;
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.92); /* a bit more opaque for clarity */
   border-radius: 12px;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 /* Headings */
 h1 {
-  font-size: 36px;              /* large title font */
-  text-align: center;           /* centered title */
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: darkred;
+  font-size: 44px;              /* bigger, centered title */
+  text-align: center;
+  margin: 0 0 24px 0;
+  color: #9b1c1c;               /* rich baseball red */
+  letter-spacing: 0.5px;
 }
 
 h2, h3 {
-  color: darkred;
-  margin: 15px 0;
+  color: #9b1c1c;
+  margin: 18px 0 12px;
 }
 
-/* Navigation links */
-a {
-  display: inline-block;
-  margin: 10px 15px;
-  padding: 6px 12px;
+/* Navigation button group on Home */
+.nav-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+/* Links styled as prominent buttons */
+a.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  padding: 12px 18px;
+  font-size: 18px;
+  font-weight: 700;
   text-decoration: none;
-  color: navy;
-  font-weight: bold;
-  border: 1px solid navy;
-  border-radius: 5px;
-  transition: background 0.3s, color 0.3s;
+  color: #0b3c7a;               /* navy text */
+  border: 2px solid #0b3c7a;
+  border-radius: 10px;
+  background: #ffffff;
+  transition: transform 0.05s, background 0.2s, color 0.2s;
 }
 
-a:hover {
-  background: navy;
-  color: white;
+a.nav-btn:hover {
+  background: #0b3c7a;
+  color: #ffffff;
+}
+
+a.nav-btn:active {
+  transform: translateY(1px);
 }
 
 /* Forms */
 form {
   margin: 20px auto;
-  max-width: 400px;
+  max-width: 520px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  gap: 12px;
+}
+
+/* Labels */
+label {
+  font-weight: bold;
+  color: #333;
 }
 
 /* Inputs and buttons */
 input, button {
   font-size: 16px;
-  margin: 8px 0;
-  padding: 10px;
+  padding: 12px;
   width: 100%;
   box-sizing: border-box;
-  border-radius: 5px;
-  border: 1px solid #aaa;
+  border-radius: 8px;
+  border: 1px solid #bdbdbd;
+  background: #fff;
 }
 
 button {
-  background: darkred;
+  background: #9b1c1c;
   color: white;
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background 0.2s, transform 0.05s;
 }
 
 button:hover {
-  background: #a00000;
+  background: #821717;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th, td {
+  border: 1px solid #e0e0e0;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+th {
+  background: #f7f7f7;
+  color: #333;
+}
+
+/* Inline control bar in list */
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
 }

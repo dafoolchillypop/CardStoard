@@ -1,19 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import Home from "./pages/Home";
-import AddCard from "./pages/AddCard";
-import ListCards from "./pages/ListCards";
-import UpdateCard from "./pages/UpdateCard";
-import DeleteCard from "./pages/DeleteCard";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./index.css";
 
-// Import the background image
-import bgImage from "./assets/baseball-bg.png";
-
-// Apply background dynamically
-document.body.style.background = `url(${bgImage}) no-repeat center center fixed`;
-document.body.style.backgroundSize = "cover";
+// Pages
+import Home from "./pages/Home.jsx";
+import AddCard from "./pages/AddCard.jsx";
+import ListCards from "./pages/ListCards.jsx";
+import UpdateCard from "./pages/UpdateCard.jsx";
+import DeleteCard from "./pages/DeleteCard.jsx";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

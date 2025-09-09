@@ -1,20 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-function Home() {
+export default function Home() {
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Card Stoard Collectors System</h1>
-      <div style={{ marginTop: "20px" }}>
-        <Link to="/cards">
-          <button style={{ marginRight: "10px" }}>List Cards</button>
-        </Link>
-        <Link to="/add-card">
-          <button>Add Card</button>
-        </Link>
+    <div className="container">
+      <h1>Baseball Memorabilia Inventory</h1>
+      <div className="nav-group">
+        <Link className="nav-btn" to="/list">List Cards</Link>
+        <Link className="nav-btn" to="/add">Add Card</Link>
+        <Link className="nav-btn" to="/update">Update Card</Link>
+        <Link className="nav-btn" to="/delete">Delete Card</Link>
       </div>
     </div>
   );
 }
-
-export default Home;

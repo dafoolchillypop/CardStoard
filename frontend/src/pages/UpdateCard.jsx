@@ -2,69 +2,51 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-function UpdateCard() {
+export default function UpdateCard() {
   const [id, setId] = useState("");
-  const [player, setPlayer] = useState("");
+  const [player_name, setPlayerName] = useState("");
+  const [team, setTeam] = useState("");
   const [year, setYear] = useState("");
   const [brand, setBrand] = useState("");
+  const [rookie, setRookie] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    axios
-      .put(`http://host.docker.internal:8000/cards/${id}`, {
-        player,
-        year: parseInt(year),
-        brand,
-      })
-      .then((response) => {
-        alert("Card updated successfully!");
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.error("Error updating card:", error);
-      });
+    axios.put(`http://host.docker.internal:8000/cards/${id}`, {
+      player_name,
+      team,
+      year,
+      brand,
+      rookie
+    })
+    .then(() => alert("Card updated successfully!"))
+    .catch((err) => console.error(err));
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2 style={{ color: "#003366" }}>Update Card</h2>
+    <div className="container">
+      <div style={{ marginBottom: "10px" }}>
+        <Link className="nav-btn" to="/">Back to Home</Link>
+        <Link className="nav-btn" to="/list">List Cards</Link>
+      </div>
+      <h2>Update Card</h2>
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Card ID"
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-          required
-        />
-        <br />
-        <input
-          type="text"
-          placeholder="Player Name"
-          value={player}
-          onChange={(e) => setPlayer(e.target.value)}
-        />
-        <br />
-        <input
-          type="text"
-          placeholder="Year"
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
-        />
-        <br />
-        <input
-          type="text"
-          placeholder="Brand"
-          value={brand}
-          onChange={(e) => setBrand(e.target.value)}
-        />
-        <br />
+        <label>Card ID</label>
+        <input value={id} onChange={(e) => setId(e.target.value)} required />
+        <label>Player Name</label>
+        <input value={player_name} onChange={(e) => setPlayerName(e.target.value)} />
+        <label>Team</label>
+        <input value={team} onChange={(e) => setTeam(e.target.value)} />
+        <label>Year</label>
+        <input type="number" value={year} onChange={(e) => setYear(e.target.value)} />
+        <label>Brand</label>
+        <input value={brand} onChange={(e) => setBrand(e.target.value)} />
+        <label>
+          <input type="checkbox" checked={rookie} onChange={(e) => setRookie(e.target.checked)} />
+          &nbsp;Rookie
+        </label>
         <button type="submit">Update</button>
       </form>
-      <br />
-      <Link to="/">⬅ Back to Home</Link>
     </div>
   );
 }
-
-export default UpdateCard;

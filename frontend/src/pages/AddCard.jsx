@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-function AddCard() {
+export default function AddCard() {
   const [form, setForm] = useState({
     player_name: "",
     team: "",
@@ -12,82 +12,49 @@ function AddCard() {
   });
   const navigate = useNavigate();
 
-  // Handle form input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm({
-      ...form,
-      [name]: type === "checkbox" ? checked : value,
-    });
+    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
   };
 
-  // Submit form to backend
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios
-      .post("http://host.docker.internal:8000/cards/", form)
-      .then(() => navigate("/cards")) // Redirect to list after success
+    axios.post("http://host.docker.internal:8000/cards/", form)
+      .then(() => navigate("/list"))
       .catch((err) => console.error(err));
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="container">
+      <div style={{ marginBottom: "10px" }}>
+        <Link className="nav-btn" to="/">Back to Home</Link>
+      </div>
       <h2>Add a Card</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Player Name:</label>
-          <input
-            type="text"
-            name="player_name"
-            value={form.player_name}
-            onChange={handleChange}
-            required
-          />
+          <label>Player Name</label>
+          <input name="player_name" value={form.player_name} onChange={handleChange} required />
         </div>
         <div>
-          <label>Team:</label>
-          <input
-            type="text"
-            name="team"
-            value={form.team}
-            onChange={handleChange}
-          />
+          <label>Team</label>
+          <input name="team" value={form.team} onChange={handleChange} />
         </div>
         <div>
-          <label>Year:</label>
-          <input
-            type="number"
-            name="year"
-            value={form.year}
-            onChange={handleChange}
-          />
+          <label>Year</label>
+          <input type="number" name="year" value={form.year} onChange={handleChange} />
         </div>
         <div>
-          <label>Brand:</label>
-          <input
-            type="text"
-            name="brand"
-            value={form.brand}
-            onChange={handleChange}
-          />
+          <label>Brand</label>
+          <input name="brand" value={form.brand} onChange={handleChange} />
         </div>
         <div>
           <label>
-            Rookie:
-            <input
-              type="checkbox"
-              name="rookie"
-              checked={form.rookie}
-              onChange={handleChange}
-            />
+            <input type="checkbox" name="rookie" checked={form.rookie} onChange={handleChange} />
+            &nbsp;Rookie
           </label>
         </div>
-        <button type="submit" style={{ marginTop: "10px" }}>
-          Add Card
-        </button>
+        <button type="submit">Add Card</button>
       </form>
     </div>
   );
 }
-
-export default AddCard;
