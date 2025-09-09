@@ -1,28 +1,41 @@
 from fastapi import FastAPI
-
-# Import database Base and engine
-from .database import Base, engine
-
-# Import routers
+from fastapi.middleware.cors import CORSMiddleware
+from .database import engine, Base
 from .routes import cards #, balls, packs, boxes, auth
 
-# Create all tables in the database
+# Create database tables (if not exist)
 Base.metadata.create_all(bind=engine)
 
-# Initialize FastAPI app
-app = FastAPI(
-    title="CardStoard",
-    description="API backend for managing baseball cards, packs, boxes, and autographed balls.",
-    version="1.0.0"
+app = FastAPI(title="Baseball Memorabilia Inventory")
+
+# ---------------------------
+# CORS Configuration
+# ---------------------------
+origins = [
+    "http://localhost:3000",           # Browser during development
+    "http://host.docker.internal:3000" # Frontend container
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow GET, POST, PUT, DELETE, OPTIONS
+    allow_headers=["*"],
 )
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
-
+# ---------------------------
 # Include routers
-#app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(cards.router, prefix="/cards", tags=["Cards"])
-#app.include_router(balls.router, prefix="/balls", tags=["Balls"])
-#app.include_router(packs.router, prefix="/packs", tags=["Packs"])
-#app.include_router(boxes.router, prefix="/boxes", tags=["Boxes"])
+# ---------------------------
+app.include_router(cards.router, prefix="/cards", tags=["cards"])
+#app.include_router(balls.router, prefix="/balls", tags=["balls"])
+#app.include_router(packs.router, prefix="/packs", tags=["packs"])
+#app.include_router(boxes.router, prefix="/boxes", tags=["boxes"])
+#app.include_router(auth.router, prefix="/auth", tags=["auth"])
+
+# ---------------------------
+# Health check endpoint
+# ---------------------------
+@app.get("/health", tags=["health"])
+def health_check():
+    return {"status": "ok"}
