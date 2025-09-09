@@ -1,12 +1,52 @@
-/* Tailwind base import */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
-/* You can add any custom styles below */
 body {
-  font-family: sans-serif;
-  background-color: #f8fafc;
+  font-family: Arial, sans-serif;
+  background: url('/baseball-bg.png') no-repeat center center fixed;
+  background-size: cover;
   margin: 0;
   padding: 0;
+  font-size: 18px;
+}
+
+h1, h2 {
+  text-align: center;
+  color: darkred;
+}
+
+nav {
+  margin: 20px;
+  text-align: center;
+}
+
+nav a {
+  margin: 0 15px;
+  text-decoration: none;
+  color: navy;
+  font-weight: bold;
+}
+
+form {
+  margin: 20px auto;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+form input {
+  margin-bottom: 10px;
+  padding: 8px;
+  font-size: 16px;
+}
+
+form button {
+  padding: 10px;
+  font-size: 16px;
+  background-color: darkred;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+form button:hover {
+  background-color: navy;
 }
