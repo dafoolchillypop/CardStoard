@@ -1,17 +1,19 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import NavBar from './components/NavBar';
-import Home from './pages/Home';
-import Admin from './pages/Admin';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import CardList from "./pages/CardList";
+import AddCard from "./pages/AddCard";
 
-const App = () => (
-  <Router>
-    <NavBar />
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/admin" element={<Admin />} />
-    </Routes>
-  </Router>
-);
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/cards" element={<CardList />} />
+        <Route path="/add-card" element={<AddCard />} />
+      </Routes>
+    </Router>
+  );
+}
 
 export default App;
