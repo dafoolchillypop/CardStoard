@@ -6,10 +6,21 @@ export default function DeleteCard() {
   const [id, setId] = useState("");
 
   const handleDelete = () => {
-    axios.delete(`http://host.docker.internal:8000/cards/${id}`)
-      .then(() => alert("Card deleted successfully!"))
-      .catch((err) => console.error(err));
-  };
+  if (!id) {
+    alert("Please enter a Card ID first.");
+    return;
+  }
+  if (!window.confirm(`Permanently delete card #${id}? This cannot be undone.`)) return;
+
+  axios
+    .delete(`http://host.docker.internal:8000/cards/${id}`)
+    .then(() => alert("Card deleted."))
+    .catch((error) => {
+      console.error("Error deleting card:", error);
+      alert("Failed to delete card. See console for details.");
+    });
+};
+
 
   return (
     <div className="container">

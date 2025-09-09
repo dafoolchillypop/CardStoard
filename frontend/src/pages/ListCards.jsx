@@ -44,10 +44,18 @@ export default function ListCards() {
   };
 
   const deleteCard = (id) => {
-    axios.delete(`http://host.docker.internal:8000/cards/${id}`)
-      .then(() => fetchCards())
-      .catch((err) => console.error(err));
-  };
+  if (!window.confirm("Delete this card? This cannot be undone.")) return;
+  axios
+    .delete(`http://host.docker.internal:8000/cards/${id}`)
+    .then(() => {
+      fetchCards();
+      alert("Card deleted.");
+    })
+    .catch((err) => {
+      console.error(err);
+      alert("Failed to delete card. See console for details.");
+    });
+};
 
   return (
     <div className="container">
