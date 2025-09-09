@@ -1,52 +1,87 @@
+/* index.css */
 
+/* Global body styling */
 body {
-  font-family: Arial, sans-serif;
-  background: url("/baseball-bg.png") no-repeat center center fixed;
-  background-size: cover;
+  font-size: 18px;              /* larger font size */
   margin: 0;
   padding: 0;
-  font-size: 18px;
+  font-family: Arial, sans-serif;
+  color: #222;
+  background-size: cover;       /* background image handled in index.jsx */
+  background-position: center;
+  background-attachment: fixed;
 }
 
-h1, h2 {
-  text-align: center;
+/* Container to overlay on background */
+.container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.85); /* semi-transparent white */
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Headings */
+h1 {
+  font-size: 36px;              /* large title font */
+  text-align: center;           /* centered title */
+  margin-top: 0;
+  margin-bottom: 20px;
   color: darkred;
 }
 
-nav {
-  margin: 20px;
-  text-align: center;
+h2, h3 {
+  color: darkred;
+  margin: 15px 0;
 }
 
-nav a {
-  margin: 0 15px;
+/* Navigation links */
+a {
+  display: inline-block;
+  margin: 10px 15px;
+  padding: 6px 12px;
   text-decoration: none;
   color: navy;
   font-weight: bold;
+  border: 1px solid navy;
+  border-radius: 5px;
+  transition: background 0.3s, color 0.3s;
 }
 
+a:hover {
+  background: navy;
+  color: white;
+}
+
+/* Forms */
 form {
   margin: 20px auto;
-  width: 300px;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
 }
 
-form input {
-  margin-bottom: 10px;
-  padding: 8px;
+/* Inputs and buttons */
+input, button {
   font-size: 16px;
-}
-
-form button {
+  margin: 8px 0;
   padding: 10px;
-  font-size: 16px;
-  background-color: darkred;
-  color: white;
-  border: none;
-  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 5px;
+  border: 1px solid #aaa;
 }
 
-form button:hover {
-  background-color: navy;
+button {
+  background: darkred;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #a00000;
 }
