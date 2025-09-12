@@ -9,6 +9,7 @@ import AddCard from "./pages/AddCard.jsx";
 import ListCards from "./pages/ListCards.jsx";
 import UpdateCard from "./pages/UpdateCard.jsx";
 import DeleteCard from "./pages/DeleteCard.jsx";
+import Admin from "./pages/Admin.jsx";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -19,6 +20,7 @@ root.render(
       <Route path="/list" element={<ListCards />} />
       <Route path="/update" element={<UpdateCard />} />
       <Route path="/delete" element={<DeleteCard />} />
+      <Route path="/admin" element={<Admin />} />
     </Routes>
   </Router>
 );

@@ -10,6 +10,7 @@ export default function HomePage() {
         <Link to="/list">List Cards</Link>
         <Link to="/update">Update Card</Link>
         <Link to="/delete">Delete Card</Link>
+        <Link to="/admin">Admin</Link>
       </nav>
     </div>
   );
