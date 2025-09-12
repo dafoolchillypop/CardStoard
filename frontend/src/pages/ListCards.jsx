@@ -28,10 +28,10 @@ export default function ListCards() {
                 <th>Year</th>
                 <th>Brand</th>
                 <th>#</th>
-                <th>Rookie</th>
-                <th>Grade</th>
-                <th>Book</th>
-                <th>Actions</th>
+                <th className="rookie-col">Rookie</th>
+                <th className="grade-col">Grade</th>
+                <th className="book-col">Book</th>
+                <th className="action-col">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -76,13 +76,13 @@ export default function ListCards() {
                       </span>);})()}
                   </td>
 
-                    {/* ✅ Value badges centered */}
+                    {/* ✅ Book badges centered */}
                     <td className="book-col">
-                      {card.value_high && (<span className="value-badge value-high">{card.value_high}</span>)}
-                      {card.value_high_mid && (<span className="value-badge value-highmid">{card.value_high_mid}</span>)}
-                      {card.value_mid && (<span className="value-badge value-mid">{card.value_mid}</span>)}
-                      {card.value_low_mid && (<span className="value-badge value-lowmid">{card.value_low_mid}</span>)}
-                      {card.value_low && (<span className="value-badge value-low">{card.value_low}</span>)}
+                      {card.book_high && (<span className="book-badge book-high">{card.book_high}</span>)}
+                      {card.book_high_mid && (<span className="book-badge book-highmid">{card.book_high_mid}</span>)}
+                      {card.book_mid && (<span className="book-badge book-mid">{card.book_mid}</span>)}
+                      {card.book_low_mid && (<span className="book-badge book-lowmid">{card.book_low_mid}</span>)}
+                      {card.book_low && (<span className="book-badge book-low">{card.book_low}</span>)}
                     </td>
 
                     {/* ✅ Actions centered */}

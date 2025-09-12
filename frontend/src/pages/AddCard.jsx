@@ -11,11 +11,11 @@ export default function AddCard() {
     card_number: "",
     rookie: 0,
     grade: "",
-    value_high: "",
-    value_high_mid: "",
-    value_mid: "",
-    value_low_mid: "",
-    value_low: ""
+    book_high: "",
+    book_high_mid: "",
+    book_mid: "",
+    book_low_mid: "",
+    book_low: ""
   });
 
   const [cardMakes, setCardMakes] = useState([]);
@@ -49,11 +49,11 @@ export default function AddCard() {
           card_number: "",
           rookie: 0,
           grade: "",
-          value_high: "",
-          value_high_mid: "",
-          value_mid: "",
-          value_low_mid: "",
-          value_low: ""
+          book_high: "",
+          book_high_mid: "",
+          book_mid: "",
+          book_low_mid: "",
+          book_low: ""
         });
       })
       .catch(err => console.error(err));
@@ -137,8 +137,8 @@ export default function AddCard() {
         <input
           type="number"
           step="0.01"
-          name="value_high"
-          value={card.value_high}
+          name="book_high"
+          value={card.book_high}
           onChange={handleChange}
         />
 
@@ -146,8 +146,8 @@ export default function AddCard() {
         <input
           type="number"
           step="0.01"
-          name="value_high_mid"
-          value={card.value_high_mid}
+          name="book_high_mid"
+          value={card.book_high_mid}
           onChange={handleChange}
         />
 
@@ -155,8 +155,8 @@ export default function AddCard() {
         <input
           type="number"
           step="0.01"
-          name="value_mid"
-          value={card.value_mid}
+          name="book_mid"
+          value={card.book_mid}
           onChange={handleChange}
         />
 
@@ -164,8 +164,8 @@ export default function AddCard() {
         <input
           type="number"
           step="0.01"
-          name="value_low_mid"
-          value={card.value_low_mid}
+          name="book_low_mid"
+          value={card.book_low_mid}
           onChange={handleChange}
         />
 
@@ -173,8 +173,8 @@ export default function AddCard() {
         <input
           type="number"
           step="0.01"
-          name="value_low"
-          value={card.value_low}
+          name="book_low"
+          value={card.book_low}
           onChange={handleChange}
         />
 

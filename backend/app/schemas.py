@@ -10,11 +10,11 @@ class CardBase(BaseModel):
     rookie: Optional[bool] = False
     grade: Optional[str] = None
 
-    value_high: Optional[float] = None
-    value_high_mid: Optional[float] = None
-    value_mid: Optional[float] = None
-    value_low_mid: Optional[float] = None
-    value_low: Optional[float] = None
+    book_high: Optional[float] = None
+    book_high_mid: Optional[float] = None
+    book_mid: Optional[float] = None
+    book_low_mid: Optional[float] = None
+    book_low: Optional[float] = None
 
 class CardCreate(CardBase):
     pass

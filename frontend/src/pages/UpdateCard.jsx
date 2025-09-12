@@ -120,8 +120,8 @@ export default function UpdateCard() {
         <input
           type="number"
           step="0.01"
-          name="value_high"
-          value={card.value_high}
+          name="book_high"
+          value={card.book_high}
           onChange={handleChange}
         />
 
@@ -129,8 +129,8 @@ export default function UpdateCard() {
         <input
           type="number"
           step="0.01"
-          name="value_high_mid"
-          value={card.value_high_mid}
+          name="book_high_mid"
+          value={card.book_high_mid}
           onChange={handleChange}
         />
 
@@ -138,8 +138,8 @@ export default function UpdateCard() {
         <input
           type="number"
           step="0.01"
-          name="value_mid"
-          value={card.value_mid}
+          name="book_mid"
+          value={card.book_mid}
           onChange={handleChange}
         />
 
@@ -147,8 +147,8 @@ export default function UpdateCard() {
         <input
           type="number"
           step="0.01"
-          name="value_low_mid"
-          value={card.value_low_mid}
+          name="book_low_mid"
+          value={card.book_low_mid}
           onChange={handleChange}
         />
 
@@ -156,8 +156,8 @@ export default function UpdateCard() {
         <input
           type="number"
           step="0.01"
-          name="value_low"
-          value={card.value_low}
+          name="book_low"
+          value={card.book_low}
           onChange={handleChange}
         />
 

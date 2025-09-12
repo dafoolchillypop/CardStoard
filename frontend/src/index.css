@@ -170,6 +170,7 @@ th, td {
 th {
   background: #f7f7f7;
   color: #333;
+  font-size: 20px;
 }
 
 /* Inline control bar in list */
@@ -242,19 +243,34 @@ th {
   border-bottom: 1px solid #eee;
 }
 
-/* Center Rookie and Grade columns */
-.card-section td.rookie-col,
-.card-section td.grade-col,
-.card-section td.book-col,
+/* Center Actions columns */
 .card-section td.actions-col {
   text-align: center;
+  width: 80px;
 }
+
+/* Shrink and center rookie, grade, and values columns */
+.card-section td.rookie-col {
+  width: 25px;   /* adjust as needed */
+  text-align: center;
+}
+
+.card-section td.grade-col {
+  width: 25px;
+  text-align: center;
+}
+
+.card-section td.book-col {
+  width: 25px;  /* wide enough for badges in a row */
+  text-align: center;
+}
+
 
 .badge {
   display: inline-block;
   padding: 4px 8px;
   border-radius: 12px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: bold;
   margin-right: 6px;
   color: white;
@@ -316,27 +332,27 @@ th {
   margin: 0 auto;
 }
 
-.value-badge {
+.book-badge {
   display: inline-block;
   padding: 2px 6px;
   border-radius: 10px;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 500;
   margin-right: 4px;
   color: white;
 }
 
-.value-low    { background-color: #14532d; }
-.value-lowmid { background-color: #166534; }
-.value-mid     { background-color: #15803d; }
-.value-highmid  { background-color: #16a34a; }
-.value-high     { background-color: #22c55e; }
+.book-low     { background-color: #14532d; }
+.book-lowmid  { background-color: #166534; }
+.book-mid     { background-color: #15803d; }
+.book-highmid { background-color: #16a34a; }
+.book-high    { background-color: #22c55e; }
 
 .rookie-badge {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 12px;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: bold;
   background-color: #ffd700; /* gold */
   color: #000;
@@ -354,7 +370,7 @@ th {
   display: inline-block;
   padding: 4px 8px;
   border-radius: 12px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: bold;
   margin-right: 6px;
   color: white;

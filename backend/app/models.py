@@ -14,11 +14,11 @@ class Card(Base):
     rookie = Column(Boolean, default=False)
     grade = Column(String, nullable=True)
 
-    value_high = Column(Float, nullable=True)
-    value_high_mid = Column(Float, nullable=True)
-    value_mid = Column(Float, nullable=True)
-    value_low_mid = Column(Float, nullable=True)
-    value_low = Column(Float, nullable=True)
+    book_high = Column(Float, nullable=True)
+    book_high_mid = Column(Float, nullable=True)
+    book_mid = Column(Float, nullable=True)
+    book_low_mid = Column(Float, nullable=True)
+    book_low = Column(Float, nullable=True)
 
 class GlobalSettings(Base):
     __tablename__ = "global_settings"
