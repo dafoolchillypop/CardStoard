@@ -280,3 +280,14 @@ th {
 .nav-btn:hover {
   background: #0056b3;
 }
+
+.logo-slot {
+  margin-bottom: 20px;
+}
+
+.logo-slot img {
+  width: 100px;   /* Adjust as needed */
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
