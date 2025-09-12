@@ -31,7 +31,7 @@ class Card(CardBase):
 class GlobalSettingsBase(BaseModel):
     app_name: Optional[str] = "CardStoard"
     card_makes: Optional[List[str]] = []
-    card_grades: Optional[List[int]] = []
+    card_grades: Optional[List[float]] = []
 
     rookie_factor: Optional[float] = 1.00
     auto_factor: Optional[float] = 1.00

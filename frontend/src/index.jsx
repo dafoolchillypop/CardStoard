@@ -1,25 +1,30 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import "./index.css";
 
-// Pages
-import Home from "./pages/Home.jsx";
-import AddCard from "./pages/AddCard.jsx";
-import ListCards from "./pages/ListCards.jsx";
-import UpdateCard from "./pages/UpdateCard.jsx";
-import DeleteCard from "./pages/DeleteCard.jsx";
-import Admin from "./pages/Admin.jsx";
+import App from "./App";
+import AddCard from "./pages/AddCard";
+import ListCards from "./pages/ListCards";
+import UpdateCard from "./pages/UpdateCard";
+import DeleteCard from "./pages/DeleteCard";
+import Admin from "./pages/Admin";
+
+import "./index.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <Router>
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/add" element={<AddCard />} />
-      <Route path="/list" element={<ListCards />} />
-      <Route path="/update" element={<UpdateCard />} />
-      <Route path="/delete" element={<DeleteCard />} />
+      {/* ✅ Home */}
+      <Route path="/" element={<App />} />
+
+      {/* ✅ Card management */}
+      <Route path="/add-card" element={<AddCard />} />
+      <Route path="/list-cards" element={<ListCards />} />
+      <Route path="/update-card/:id" element={<UpdateCard />} />
+      <Route path="/delete-card/:id" element={<DeleteCard />} />
+
+      {/* ✅ Admin settings */}
       <Route path="/admin" element={<Admin />} />
     </Routes>
   </Router>

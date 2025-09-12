@@ -1,19 +1,15 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import CardList from "./pages/CardList";
-import AddCard from "./pages/AddCard";
+import { Link } from "react-router-dom";
 
-function App() {
+export default function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/cards" element={<CardList />} />
-        <Route path="/add-card" element={<AddCard />} />
-      </Routes>
-    </Router>
+    <div className="home-container">
+      <h1 className="home-title">CardStoard</h1>
+      <nav className="home-nav">
+        <Link className="nav-btn" to="/add-card">Add Card</Link>
+        <Link className="nav-btn" to="/list-cards">List Cards</Link>
+        <Link className="nav-btn" to="/admin">Admin</Link>
+      </nav>
+    </div>
   );
 }
-
-export default App;

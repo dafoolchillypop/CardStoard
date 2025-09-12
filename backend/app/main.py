@@ -13,8 +13,9 @@ app = FastAPI(title="CardStoard")
 # CORS Configuration
 # ---------------------------
 origins = [
-    "http://localhost:3000",           # Browser during development
-    "http://host.docker.internal:3000" # Frontend container
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://host.docker.internal:3000"
 ]
 
 app.add_middleware(
@@ -41,30 +42,3 @@ app.include_router(settings.router)
 @app.get("/health", tags=["health"])
 def health_check():
     return {"status": "ok"}
-
-# ---------------------------
-# Global Settings
-# ---------------------------
-class GlobalSettings(Base):
-    __tablename__ = "global_settings"
-
-    id = Column(Integer, primary_key=True, index=True)
-
-    app_name = Column(String, default="CardStoard")
-    card_makes = Column(JSON, default=["Bowman","Donruss","Fleer","Topps"])      # store as JSON array
-    card_grades = Column(JSON, default=["3.0","1.5","1.0","0.8","0.4","0.2"])     # store as JSON array
-
-    rookie_factor = Column(Float, default=1.00)
-    auto_factor = Column(Float, default=1.00)
-    mtgrade_factor = Column(Float, default=1.00)
-    exgrade_factor = Column(Float, default=1.00)
-    vggrade_factor = Column(Float, default=1.00)
-    gdgrade_factor = Column(Float, default=1.00)
-    frgrade_factor = Column(Float, default=1.00)
-    prgrade_factor = Column(Float, default=1.00)
-
-    vintage_era_year = Column(Integer, default=1965)
-    modern_era_year = Column(Integer, default=1980)
-
-    vintage_era_factor = Column(Float, default=1.00)
-    modern_era_factor = Column(Float, default=1.00)

@@ -10,6 +10,7 @@ export default function Home() {
         <Link className="nav-btn" to="/add">Add Card</Link>
         <Link className="nav-btn" to="/update">Update Card</Link>
         <Link className="nav-btn" to="/delete">Delete Card</Link>
+        <Link className="nav-btn" to="/admin">Admin</Link>
       </div>
     </div>
   );
