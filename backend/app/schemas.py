@@ -1,23 +1,29 @@
 from pydantic import BaseModel
+from typing import Optional
 
-
-# 🔹 Base schema (shared properties)
 class CardBase(BaseModel):
-    player_name: str
-    team: str | None = None
-    year: int | None = None
-    brand: str | None = None
-    rookie: bool | None = False
+    first_name: str
+    last_name: str
+    year: Optional[int] = None
+    brand: Optional[str] = None
+    card_number: Optional[str] = None
+    rookie: Optional[bool] = False
+    grade: Optional[str] = None
 
+    value_high: Optional[float] = None
+    value_high_mid: Optional[float] = None
+    value_mid: Optional[float] = None
+    value_low_mid: Optional[float] = None
+    value_low: Optional[float] = None
 
-# 🔹 Schema for creating a new card
 class CardCreate(CardBase):
     pass
 
+class CardUpdate(CardBase):
+    pass
 
-# 🔹 Schema for reading a card (includes id)
 class Card(CardBase):
     id: int
 
     class Config:
-        from_attributes = True  # replaces orm_mode in Pydantic v2
+        from_attributes = True

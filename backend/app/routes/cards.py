@@ -1,65 +1,57 @@
-from typing import List
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from .. import models, schemas
 from ..database import get_db
 
 router = APIRouter(
-    # Leave prefix out here if you include router with prefix in main.py.
-    # If you prefer to include the prefix inside this file, change paths below to "/cards" and omit prefix in main.py.
-    # We'll assume main.py does: app.include_router(cards.router, prefix="/cards", tags=["Cards"])
-    tags=["Cards"],
+    prefix="/cards",
+    tags=["cards"],
 )
 
-
-@router.get("/", response_model=List[schemas.Card])
-def list_cards(db: Session = Depends(get_db)):
-    """List all cards"""
-    return db.query(models.Card).all()
-
-
-@router.post("/", response_model=schemas.Card, status_code=status.HTTP_201_CREATED)
+# Create a card
+@router.post("/", response_model=schemas.Card)
 def create_card(card: schemas.CardCreate, db: Session = Depends(get_db)):
-    """Create a new card"""
-    # Support Pydantic v2 (.model_dump) and v1 (.dict)
-    card_data = card.model_dump() if hasattr(card, "model_dump") else card.dict()
-    db_card = models.Card(**card_data)
+    db_card = models.Card(**card.dict())
     db.add(db_card)
     db.commit()
     db.refresh(db_card)
     return db_card
 
+# List all cards
+@router.get("/", response_model=list[schemas.Card])
+def read_cards(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    cards = db.query(models.Card).offset(skip).limit(limit).all()
+    return cards
 
+# Read one card
+@router.get("/{card_id}", response_model=schemas.Card)
+def read_card(card_id: int, db: Session = Depends(get_db)):
+    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
+    return card
+
+# Update a card
 @router.put("/{card_id}", response_model=schemas.Card)
-def update_card(card_id: int, updated_card: schemas.CardCreate, db: Session = Depends(get_db)):
-    """Update an existing card"""
-    db_card = db.query(models.Card).filter(models.Card.id == card_id).first()
-    if not db_card:
+def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends(get_db)):
+    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    if not card:
         raise HTTPException(status_code=404, detail="Card not found")
 
-    updated_data = (
-        updated_card.model_dump()
-        if hasattr(updated_card, "model_dump")
-        else updated_card.dict()
-    )
-
-    for key, value in updated_data.items():
-        setattr(db_card, key, value)
+    for field, value in updated.dict(exclude_unset=True).items():
+        setattr(card, field, value)
 
     db.commit()
-    db.refresh(db_card)
-    return db_card
+    db.refresh(card)
+    return card
 
-
-@router.delete("/{card_id}", status_code=status.HTTP_200_OK)
+# Delete a card
+@router.delete("/{card_id}")
 def delete_card(card_id: int, db: Session = Depends(get_db)):
-    """Delete a card"""
-    db_card = db.query(models.Card).filter(models.Card.id == card_id).first()
-    if not db_card:
+    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    if not card:
         raise HTTPException(status_code=404, detail="Card not found")
 
-    db.delete(db_card)
+    db.delete(card)
     db.commit()
-    return {"detail": "Card deleted"}
+    return {"ok": True, "message": "Card deleted"}
