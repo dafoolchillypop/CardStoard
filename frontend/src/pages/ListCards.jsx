@@ -19,49 +19,82 @@ export default function ListCards() {
       {cards.length === 0 ? (
         <p>No cards found.</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>First</th>
-              <th>Last</th>
-              <th>Year</th>
-              <th>Brand</th>
-              <th>#</th>
-              <th>Rookie</th>
-              <th>Grade</th>
-              <th>Book</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {cards.map(card => (
-              <tr key={card.id}>
-                <td>{card.first_name}</td>
-                <td>{card.last_name}</td>
-                <td>{card.year}</td>
-                <td>
-                  {card.brand && (
-                    <span className="badge badge-brand">{card.brand}</span>
-                  )}
-                </td>
-                <td>{card.card_number}</td>
-                <td>{card.rookie === 1 ? "Yes" : "No"}</td>
-                <td>
-                  {card.grade && (
-                    <span className="badge badge-grade">{card.grade}</span>
-                  )}
-                </td>
-                <td>
-                  {card.value_high}|{card.value_high_mid}|{card.value_mid}|{card.value_low_mid}|{card.value_low}
-                </td>
-                <td>
-                  <Link to={`/update-card/${card.id}`} className="nav-btn">Update</Link>{" "}
-                  <Link to={`/delete-card/${card.id}`} className="nav-btn">Delete</Link>
-                </td>
+        <div className="card-section">
+          <table>
+            <thead>
+              <tr>
+                <th>First</th>
+                <th>Last</th>
+                <th>Year</th>
+                <th>Brand</th>
+                <th>#</th>
+                <th>Rookie</th>
+                <th>Grade</th>
+                <th>Book</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {cards.map(card => (
+                <tr key={card.id}>
+                  <td>{card.first_name}</td>
+                  <td>{card.last_name}</td>
+                  <td>{card.year}</td>
+                  <td>
+                    {card.brand && (
+                      <span className="badge badge-brand">{card.brand}</span>
+                    )}
+                  </td>
+                  <td>{card.card_number}
+                  </td>
+
+                  {/* ✅ Rookie centered */}
+                  <td className="rookie-col">
+                    {Number(card.rookie) === 1 && (
+                      <span className="rookie-badge">⭐</span>
+                    )}
+                  </td>
+
+                  {/* ✅ Grade centered */}
+                  <td className="grade-col">
+                    {card.grade && (() => {
+                      const g = parseFloat(card.grade);
+                      let gradeClass = "grade-unknown";
+
+                      if (!isNaN(g)) {
+                        if (g === 3) gradeClass = "grade-mt";
+                        else if (g === 1.5) gradeClass = "grade-ex";
+                        else if (g === 1) gradeClass = "grade-vg";
+                        else if (g === 0.8) gradeClass = "grade-gd";
+                        else if (g === 0.4) gradeClass = "grade-fr";
+                        else gradeClass = "grade-pr";
+                      }
+
+                    return (
+                      <span className={`badge badge-grade ${gradeClass}`}>
+                        {card.grade}
+                      </span>);})()}
+                  </td>
+
+                    {/* ✅ Value badges centered */}
+                    <td className="book-col">
+                      {card.value_high && (<span className="value-badge value-high">{card.value_high}</span>)}
+                      {card.value_high_mid && (<span className="value-badge value-highmid">{card.value_high_mid}</span>)}
+                      {card.value_mid && (<span className="value-badge value-mid">{card.value_mid}</span>)}
+                      {card.value_low_mid && (<span className="value-badge value-lowmid">{card.value_low_mid}</span>)}
+                      {card.value_low && (<span className="value-badge value-low">{card.value_low}</span>)}
+                    </td>
+
+                    {/* ✅ Actions centered */}
+                    <td className="actions-col">
+                      <Link to={`/update-card/${card.id}`} className="nav-btn">Update</Link>{" "}
+                      <Link to={`/delete-card/${card.id}`} className="nav-btn">Delete</Link>
+                    </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

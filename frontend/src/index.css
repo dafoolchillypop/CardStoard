@@ -21,6 +21,7 @@ body {
   border-radius: 12px;
   box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.25);
 }
+
 /* Chips components */
 .chips-container {
   display: flex;
@@ -226,6 +227,29 @@ th {
   padding-bottom: 6px;
 }
 
+.card-section table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.card-section th {
+  text-align: center;
+}
+
+.card-section td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+/* Center Rookie and Grade columns */
+.card-section td.rookie-col,
+.card-section td.grade-col,
+.card-section td.book-col,
+.card-section td.actions-col {
+  text-align: center;
+}
+
 .badge {
   display: inline-block;
   padding: 4px 8px;
@@ -291,3 +315,54 @@ th {
   display: block;
   margin: 0 auto;
 }
+
+.value-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-right: 4px;
+  color: white;
+}
+
+.value-low    { background-color: #14532d; }
+.value-lowmid { background-color: #166534; }
+.value-mid     { background-color: #15803d; }
+.value-highmid  { background-color: #16a34a; }
+.value-high     { background-color: #22c55e; }
+
+.rookie-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  background-color: #ffd700; /* gold */
+  color: #000;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-weight: 500;
+}
+
+.badge-grade {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-right: 6px;
+  color: white;
+}
+
+.grade-mt { background-color: #9333ea; }
+.grade-ex { background-color: #2563eb; }
+.grade-vg { background-color: #5bc0de; }
+.grade-gd { background-color: #f97316; }
+.grade-fr { background-color: #dc2626; }
+.grade-pr { background-color: #777; }

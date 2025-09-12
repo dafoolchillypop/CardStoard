@@ -92,13 +92,15 @@ export default function UpdateCard() {
           onChange={handleChange}
         />
 
-        <label>Rookie (0 or 1)</label>
+        <label className="checkbox-label">
         <input
-          type="number"
+          type="checkbox"
           name="rookie"
-          value={card.rookie}
-          onChange={handleChange}
+          checked={Number(card.rookie) === 1}
+          onChange={(e) => setCard({ ...card, rookie: e.target.checked ? 1 : 0 })}
         />
+        Rookie
+        </label>
 
         {/* ✅ Grade dropdown from settings */}
         <label>Grade</label>
