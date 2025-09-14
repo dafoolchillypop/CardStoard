@@ -4,10 +4,12 @@ from .database import engine, Base
 from .routes import cards, settings #, balls, packs, boxes, auth
 from sqlalchemy import Column, Integer, String, Float, JSON
 
-# Create database tables (if not exist)
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI(title="CardStoard")
+
+@app.on_event("startup")
+def on_startup():
+    # Create tables once the app is starting and DB is available
+    Base.metadata.create_all(bind=engine)
 
 # ---------------------------
 # CORS Configuration

@@ -10,16 +10,69 @@ body {
   background: #f7f7f7;  /* light gray background */
 }
 
-/* Container to overlay on background */
+/* Full-width container */
 .container {
-  position: relative;
-  z-index: 1;
-  max-width: 900px;
-  margin: 56px auto;
-  padding: 32px;
-  background: rgba(255, 255, 255, 0.92); /* a bit more opaque for clarity */
-  border-radius: 12px;
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.25);
+  display: block;       /* ✅ no flex centering — let content fill width */
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Header bar spans full width */
+.header-line {
+  display: flex;
+  justify-content: space-between; /* ✅ title left, count right */
+  align-items: center;
+  width: 100%;                    /* ✅ full width of browser */
+  padding: 0.5rem 1rem;            /* some spacing left/right */
+  margin-bottom: 0.5rem;
+  box-sizing: border-box;
+}
+
+/* Shadow box should also be full width */
+.card-section {
+  background: #fff;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  width: 100%;        /* ✅ stretch across page */
+  box-sizing: border-box;
+}
+
+/* Make table fill its container */
+.table-scroll {
+  overflow-x: auto;
+  width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;  /* ✅ stretch full width */
+  table-layout: fixed
+}
+
+.paging-controls {
+  text-align: center;    /* ✅ center horizontally */
+  margin: 0.5rem 0;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.paging-controls select {
+  margin: 0 0.5rem;      /* ✅ space around dropdown */
+}
+
+th, td {
+  border: 1px solid #e0e0e0;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+th {
+  background: #f7f7f7;
+  color: #333;
+  font-size: 20px;
 }
 
 /* Chips components */
@@ -84,23 +137,6 @@ h2, h3 {
   margin-top: 8px;
 }
 
-/* Links styled as prominent buttons */
-a.nav-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 180px;
-  padding: 12px 18px;
-  font-size: 18px;
-  font-weight: 700;
-  text-decoration: none;
-  color: #0b3c7a;               /* navy text */
-  border: 2px solid #0b3c7a;
-  border-radius: 10px;
-  background: #ffffff;
-  transition: transform 0.05s, background 0.2s, color 0.2s;
-}
-
 a.nav-btn:hover {
   background: #0b3c7a;
   color: #ffffff;
@@ -152,27 +188,6 @@ button:active {
   transform: translateY(1px);
 }
 
-/* Tables */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-th, td {
-  border: 1px solid #e0e0e0;
-  padding: 10px 12px;
-  text-align: left;
-}
-
-th {
-  background: #f7f7f7;
-  color: #333;
-  font-size: 20px;
-}
-
 /* Inline control bar in list */
 .actions {
   display: flex;
@@ -210,15 +225,6 @@ th {
   border-radius: 6px;
 }
 
-.card-section {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 16px 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-}
-
 .card-section h3 {
   margin-top: 0;
   margin-bottom: 12px;
@@ -251,20 +257,19 @@ th {
 
 /* Shrink and center rookie, grade, and values columns */
 .card-section td.rookie-col {
-  width: 25px;   /* adjust as needed */
+  width: 150px;   /* adjust as needed */
   text-align: center;
 }
 
 .card-section td.grade-col {
-  width: 25px;
+  width: 150px;
   text-align: center;
 }
 
 .card-section td.book-col {
-  width: 25px;  /* wide enough for badges in a row */
+  width: 250px;  /* wide enough for badges in a row */
   text-align: center;
 }
-
 
 .badge {
   display: inline-block;
@@ -307,18 +312,17 @@ th {
 }
 
 .nav-btn {
-  background: #007bff;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 16px;
-  font-weight: 500;
-  transition: background 0.2s ease;
+  background: none;
+  border: none;
+  color: #007bff;   /* Bootstrap-style link blue */
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
 }
 
 .nav-btn:hover {
-  background: #0056b3;
+  color: #0056b3;
 }
 
 .logo-slot {
@@ -382,3 +386,52 @@ th {
 .grade-gd { background-color: #f97316; }
 .grade-fr { background-color: #dc2626; }
 .grade-pr { background-color: #777; }
+
+/* Market Factor Badges */
+.badge-market {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #fff;  /* white text for contrast */
+  min-width: 45px;
+  text-align: center;
+}
+
+/* Shades of gray depending on factor value */
+.badge-market-high {
+  background-color: #999; /* darkest gray for lowest factors */
+}
+
+.badge-market-mid {
+  background-color: #666;
+}
+
+.badge-market-low {
+  background-color: #333; /* lightest gray for higher factors */
+}
+
+.market-factor-col {
+  text-align: center;
+}
+
+td.year-col {
+  text-align: center;
+  vertical-align: middle;
+  width: 150px;
+  max-width: 150px;
+  white-space: nowrap;
+}
+
+/* Force brand and card number to be centered */
+td.fname-col, td.lname-col,
+td.brand-col, th.brand-col,
+td.card-number-col, th.card-number-col {
+  text-align: center;
+  vertical-align: middle;
+  width: 150px;
+  max-width: 150px;
+  white-space: nowrap;
+}
+
