@@ -152,9 +152,8 @@ export default function ListCards() {
                   <th className="rookie-col" style={{ textAlign: "center", width: 70 }}>Rookie</th>
                   <th className="grade-col" style={{ textAlign: "center", width: 90 }}>Grade</th>
                   <th className="book-col" style={{ textAlign: "center", minWidth: 220 }}>Book</th>
-                  <th className="market-factor-col" style={{ textAlign: "center", width: 130 }}>
-                    Market Factor
-                  </th>
+                  <th className="market-factor-col" style={{ textAlign: "center", width: 130 }}>Market Factor</th>
+                  <th className="card-value-col" style={{ textAlign: "center", width: 130 }}>Card Value</th>
                   <th className="action-col actions-col" style={{ textAlign: "center", width: 140 }}>
                     Actions
                   </th>
@@ -253,6 +252,43 @@ export default function ListCards() {
                             );
                           }
                           return null;
+                        })()}
+                      </td>
+
+                      {/* Card Value */}
+                      <td className="value-col" style={{ textAlign: "center" }}>
+                        {settings && (() => {
+                          const books = [
+                            parseFloat(card.book_high) || 0,
+                            parseFloat(card.book_high_mid) || 0,
+                            parseFloat(card.book_mid) || 0,
+                            parseFloat(card.book_low_mid) || 0,
+                            parseFloat(card.book_low) || 0,
+                          ];
+
+                          const avgBook = books.reduce((a, b) => a + b, 0) / books.length;
+                          const g = parseFloat(card.grade) || 0;
+
+                          // Market factor logic (same as before)
+                          let factor = null;
+                          const isRookie = card.rookie === "*" || card.rookie === "1" || Number(card.rookie) === 1;
+
+                          if (g === 3 && isRookie) factor = settings.auto_factor;
+                          else if (g === 3) factor = settings.mtgrade_factor;
+                          else if (isRookie) factor = settings.rookie_factor;
+                          else if (g === 1.5) factor = settings.exgrade_factor;
+                          else if (g === 1) factor = settings.vggrade_factor;
+                          else if (g === 0.8) factor = settings.gdgrade_factor;
+                          else if (g === 0.4) factor = settings.frgrade_factor;
+                          else if (g === 0.2) factor = settings.prgrade_factor;
+
+                          const cardValue = factor !== null ? avgBook * g * factor : null;
+
+                          return cardValue !== null ? (
+                            <span className="badge badge-value">
+                              {cardValue.toFixed(2)}
+                            </span>
+                          ) : null;
                         })()}
                       </td>
 

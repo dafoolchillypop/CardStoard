@@ -31,8 +31,12 @@ export default function Admin() {
 
   return (
     <div className="container">
-      <Link className="nav-btn" to="/">Back to Home</Link>
-      <h2>Admin Settings</h2>
+      {/* Centered Back to Home link */}
+      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+        <Link className="nav-btn" to="/">Back to Home</Link>
+      </div>
+      
+      <h2 className="page-header">Admin Settings</h2>
 
       <form className="settings-form" onSubmit={handleSubmit}>
         {/* General Settings */}

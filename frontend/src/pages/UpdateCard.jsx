@@ -43,8 +43,12 @@ export default function UpdateCard() {
 
   return (
     <div className="container">
-      <Link className="nav-btn" to="/">Back to Home</Link>
-      <h2>Update Card</h2>
+      {/* Centered Back to Home link */}
+      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+        <Link className="nav-btn" to="/">Back to Home</Link>
+      </div>
+      
+      <h2 className="page-header">Update Card</h2>
 
       <form onSubmit={handleSubmit}>
         <label>First Name</label>

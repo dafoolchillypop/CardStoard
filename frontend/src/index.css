@@ -29,6 +29,12 @@ body {
   box-sizing: border-box;
 }
 
+.page-header {
+  text-align: center;
+  font-size: 2rem;   /* larger size for emphasis */
+  margin-bottom: 1.5rem;
+  color: #333;       /* darker text for readability */
+}
 /* Shadow box should also be full width */
 .card-section {
   background: #fff;
@@ -435,3 +441,25 @@ td.card-number-col, th.card-number-col {
   white-space: nowrap;
 }
 
+td.card-value-col {
+  text-align: center;
+  vertical-align: middle;
+  width: 150px;
+  max-width: 150px;
+  white-space: nowrap;
+}
+
+.badge-value {
+  display: inline-block;
+
+  background-color: #2c7; /* medium green */
+  color: white;
+  padding: 8px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-align: center;
+  min-width: 45px;
+}
+  min-width: 45px;
+  text-align: center;
