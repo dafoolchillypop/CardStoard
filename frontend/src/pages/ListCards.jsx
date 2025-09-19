@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import CardImages from "../components/CardImages"
 
 export default function ListCards() {
   const [cards, setCards] = useState([]);
@@ -9,6 +10,8 @@ export default function ListCards() {
   const [limit, setLimit] = useState(25);
   const [total, setTotal] = useState(0);
   const [settings, setSettings] = useState(null);
+  const [selectedCard, setSelectedCard] = useState(null);
+
 
   // Load count once
   useEffect(() => {
@@ -307,13 +310,12 @@ export default function ListCards() {
 
                       <td className="image-col" style={{ textAlign: "center" }}>
                         {card.front_image ? (
-                          <a href={`http://host.docker.internal:8000${card.front_image}`} target="_blank" rel="noopener noreferrer">
-                            <img
-                              src={`http://host.docker.internal:8000${card.front_image}`}
-                              alt="Front"
-                              style={{ width: "50px", height: "auto", cursor: "pointer" }}
-                            />
-                          </a>
+                          <img
+                            src={`http://host.docker.internal:8000${card.front_image}`}
+                            alt="Front"
+                            style={{ width: "50px", height: "auto", cursor: "pointer" }}
+                            onClick={() => setSelectedCard(card)}
+                          />
                         ) : (
                           <span style={{ color: "#aaa" }}>No Image</span>
                         )}
@@ -334,6 +336,9 @@ export default function ListCards() {
           {/* Bottom paging */}
           <PagingBlock />
         </div>
+      )}
+      {selectedCard && (
+        <CardImages card={selectedCard} onClose={() => setSelectedCard(null)} />
       )}
     </div>
   );
