@@ -20,6 +20,10 @@ class Card(Base):
     book_low_mid = Column(Float, nullable=True)
     book_low = Column(Float, nullable=True)
 
+    # Photos
+    front_image = Column(String, nullable=True)  
+    back_image = Column(String, nullable=True)  
+
 class GlobalSettings(Base):
     __tablename__ = "global_settings"
 

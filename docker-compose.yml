@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   backend:
     build: ./backend
@@ -8,11 +6,13 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/code
+      - ./backend/app/static/cards:/code/app/static/cards
     depends_on:
-      - db
+      stoardb:
+        condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
-    command: sh -c "dockerize -wait tcp://db:5432 -timeout 30s uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+      - DATABASE_URL=postgresql://postgres:postgres@stoardb:5432/cardstoardb
+    command: sh -c "dockerize -wait tcp://stoardb:5432 -timeout 120s uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
   frontend:
     build: ./frontend
@@ -27,17 +27,22 @@ services:
     depends_on:
       - backend
 
-  db:
+  stoardb:   # ✅ match the service name everywhere
     image: postgres:15
     container_name: stoardb
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_DB: cardstoardb   # ✅ auto-create your DB
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck: # ✅ address timing issues with db startup dependancy
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   postgres_data:

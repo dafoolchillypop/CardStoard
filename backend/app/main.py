@@ -1,10 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from .database import engine, Base
 from .routes import cards, settings #, balls, packs, boxes, auth
 from sqlalchemy import Column, Integer, String, Float, JSON
 
 app = FastAPI(title="CardStoard")
+
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.on_event("startup")
 def on_startup():

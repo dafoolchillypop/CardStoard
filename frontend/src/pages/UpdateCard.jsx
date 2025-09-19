@@ -39,6 +39,28 @@ export default function UpdateCard() {
       .catch(err => console.error(err));
   };
 
+  const handleFileUpload = async (e, type) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const url = `http://host.docker.internal:8000/cards/${card.id}/upload-${type}`;
+    const res = await axios.post(url, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    // ✅ Update local state with the new image path
+    setCard((prev) => ({
+      ...prev,
+      [`${type}_image`]: res.data[`${type}_image`],
+    }));
+  } catch (err) {
+    console.error("Error uploading file:", err);
+  }
+};
+
   if (!card) return <p>Loading...</p>;
 
   return (
@@ -164,6 +186,15 @@ export default function UpdateCard() {
           value={card.book_low}
           onChange={handleChange}
         />
+        
+        <div>
+          <label>Front Image</label>
+          <input type="file" onChange={(e) => handleFileUpload(e, "front")} />
+        </div>
+        <div>
+        <label>Back Image</label>
+        <input type="file" onChange={(e) => handleFileUpload(e, "back")} />
+        </div>
 
         <button type="submit">Update Card</button>
       </form>

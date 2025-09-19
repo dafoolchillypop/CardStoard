@@ -15,6 +15,8 @@ class CardBase(BaseModel):
     book_mid: Optional[float] = None
     book_low_mid: Optional[float] = None
     book_low: Optional[float] = None
+    front_image: str | None = None
+    back_image: str | None = None
 
 class CardCreate(CardBase):
     pass

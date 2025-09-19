@@ -154,6 +154,7 @@ export default function ListCards() {
                   <th className="book-col" style={{ textAlign: "center", minWidth: 220 }}>Book</th>
                   <th className="market-factor-col" style={{ textAlign: "center", width: 130 }}>Market Factor</th>
                   <th className="card-value-col" style={{ textAlign: "center", width: 130 }}>Card Value</th>
+                  <th className="card-images-col" style={{ textAlign: "center", width: 140 }}>Images</th>                  
                   <th className="action-col actions-col" style={{ textAlign: "center", width: 140 }}>
                     Actions
                   </th>
@@ -284,12 +285,38 @@ export default function ListCards() {
 
                           const cardValue = factor !== null ? avgBook * g * factor : null;
 
-                          return cardValue !== null ? (
-                            <span className="badge badge-value">
-                              {cardValue.toFixed(2)}
+                          if (cardValue !== null) {
+                            // Round to nearest dollar
+                            const rounded = Math.round(cardValue);
+
+                            // Pick shade of green based on value
+                            let valueClass = "value-low";
+                            if (rounded >= 500) valueClass = "value-high";
+                            else if (rounded >= 200) valueClass = "value-mid";
+                            else if (rounded >= 50) valueClass = "value-lowmid";
+
+                            return (
+                            <span className={`badge badge-value ${valueClass}`}>
+                              ${rounded}
                             </span>
-                          ) : null;
+                            );
+                          }
+                          return null;
                         })()}
+                      </td>
+
+                      <td className="image-col" style={{ textAlign: "center" }}>
+                        {card.front_image ? (
+                          <a href={`http://host.docker.internal:8000${card.front_image}`} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={`http://host.docker.internal:8000${card.front_image}`}
+                              alt="Front"
+                              style={{ width: "50px", height: "auto", cursor: "pointer" }}
+                            />
+                          </a>
+                        ) : (
+                          <span style={{ color: "#aaa" }}>No Image</span>
+                        )}
                       </td>
 
                       {/* Actions */}

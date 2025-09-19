@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Database URL — adjust username/password/db/host/port as needed
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@db:5432/cardstoardb"
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@stoardb:5432/cardstoardb"
 
 # Create SQLAlchemy engine
 engine = create_engine(SQLALCHEMY_DATABASE_URL)

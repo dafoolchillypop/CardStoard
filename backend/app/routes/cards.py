@@ -1,6 +1,7 @@
 # Standard library
 import csv
 import io
+import shutil, os
 
 # Third-party
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
@@ -11,6 +12,48 @@ from .. import models, schemas
 from ..database import get_db
 
 router = APIRouter(prefix="/cards", tags=["cards"])
+
+# Photo upload location
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+UPLOAD_DIR = os.path.join(BASE_DIR, "static", "cards")
+os.makedirs(UPLOAD_DIR, exist_ok=True)   # ✅ ensure dir exists
+
+
+# Card Photos
+
+@router.post("/{card_id}/upload-front")
+def upload_front(card_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
+
+    filename = f"card_{card_id}_front_{file.filename}"
+    filepath = os.path.join(UPLOAD_DIR, filename)
+
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    card.front_image = f"/static/cards/{filename}"
+    db.commit()
+    db.refresh(card)
+    return {"message": "Front image uploaded", "front_image": card.front_image}
+
+@router.post("/{card_id}/upload-back")
+def upload_back(card_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
+
+    filename = f"card_{card_id}_back_{file.filename}"
+    filepath = os.path.join(UPLOAD_DIR, filename)
+
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    card.back_image = f"/static/cards/{filename}"
+    db.commit()
+    db.refresh(card)
+    return {"message": "Back image uploaded", "back_image": card.back_image}
 
 # Import cards
 @router.post("/import-csv")

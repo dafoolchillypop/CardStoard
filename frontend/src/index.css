@@ -431,7 +431,15 @@ td.year-col {
 }
 
 /* Force brand and card number to be centered */
-td.fname-col, td.lname-col,
+td.fname-col, td.lname-col {
+  font-weight: bold;
+  text-align: center;
+  vertical-align: middle;
+  width: 150px;
+  max-width: 150px;
+  white-space: nowrap;
+}
+
 td.brand-col, th.brand-col,
 td.card-number-col, th.card-number-col {
   text-align: center;
@@ -450,16 +458,27 @@ td.card-value-col {
 }
 
 .badge-value {
-  display: inline-block;
-
-  background-color: #2c7; /* medium green */
   color: white;
-  padding: 8px 8px;
+  padding: 3px 6px;
   border-radius: 4px;
   font-size: 0.85rem;
   font-weight: bold;
-  text-align: center;
-  min-width: 45px;
 }
-  min-width: 45px;
-  text-align: center;
+
+/* Shades of green */
+.value-high {
+  background-color: #8fce00; /* bright/light green */
+  color: #1b5e20;
+}
+
+.value-mid {
+  background-color: #4caf50; /* medium green */
+}
+
+.value-lowmid {
+  background-color: #2e7d32; /* darker green */
+}
+
+.value-low {
+  background-color: #1b5e20; /* darkest green */
+}
