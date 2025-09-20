@@ -10,7 +10,7 @@ export default function App() {
       </div>
 
       <h1 className="home-title">CardStoard</h1>
-      <p className="home-subtitle">Inventory and Valuation System</p>
+      <p className="home-subtitle">Collection Inventory and Valuation System</p>
 
       <nav className="home-nav">
         <Link className="nav-btn" to="/add-card">➕ Add Card</Link>

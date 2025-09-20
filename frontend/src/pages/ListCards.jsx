@@ -11,7 +11,10 @@ export default function ListCards() {
   const [total, setTotal] = useState(0);
   const [settings, setSettings] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
-
+  const [showFilter, setShowFilter] = useState(false);
+  const [lastNameFilter, setLastNameFilter] = useState("");
+  const [brandFilter, setBrandFilter] = useState("");
+  const [sortConfig, setSortConfig] = React.useState({ key: null, direction: "asc"});
 
   // Load count once
   useEffect(() => {
@@ -38,10 +41,12 @@ export default function ListCards() {
   useEffect(() => {
     const fetchCards = async () => {
       try {
-        const skip = page * limit;
-        const res = await axios.get(
-          `http://host.docker.internal:8000/cards/?skip=${skip}&limit=${limit}`
-        );
+        const skip = page * (limit === "all" ? total : limit);
+        const url =
+          limit === "all"
+            ? `http://host.docker.internal:8000/cards/?skip=0&limit=${total}`
+            : `http://host.docker.internal:8000/cards/?skip=${skip}&limit=${limit}`;
+        const res = await axios.get(url);
         setCards(res.data);
       } catch (err) {
         console.error("Error fetching cards:", err);
@@ -51,10 +56,16 @@ export default function ListCards() {
   }, [page, limit]);
 
   const handleLimitChange = (e) => {
-    setLimit(parseInt(e.target.value, 10));
-    setPage(0); // reset to first page when limit changes
+    const value = e.target.value;
+    if (value === "all") {
+      setLimit("all");
+      setPage(0);
+    } else {
+      setLimit(parseInt(value, 10));
+      setPage(0);
+    }
   };
-
+  
   const nextPage = () => {
     if ((page + 1) * limit < total) setPage((prev) => prev + 1);
   };
@@ -63,11 +74,12 @@ export default function ListCards() {
     setPage((prev) => Math.max(prev - 1, 0));
   };
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = limit === "all" ? 1 : Math.ceil(total / limit);
 
   // Reusable centered paging + limit control block
   const PagingBlock = () => (
     <div className="paging-controls" style={{ textAlign: "center", margin: "0.75rem 0", width: "100%" }}>
+      {limit !== "all" && (
       <span
         onClick={prevPage}
         style={{
@@ -81,6 +93,7 @@ export default function ListCards() {
       >
         {"<"}
       </span>
+      )}
 
       <label style={{ fontSize: "0.95rem" }}>
         Show{" "}
@@ -89,10 +102,12 @@ export default function ListCards() {
           <option value={25}>25</option>
           <option value={50}>50</option>
           <option value={100}>100</option>
+          <option value="all">All</option>
         </select>{" "}
         per page
       </label>
 
+      {limit !== "all" && (
       <span
         onClick={nextPage}
         style={{
@@ -106,10 +121,109 @@ export default function ListCards() {
       >
         {">"}
       </span>
+      )}
     </div>
   );
+  
+  const getMarketFactor = (card, settings) => {
+    if (!settings) return 1; // fallback
 
-  return (
+    const g = parseFloat(card.grade);
+    const isRookie =
+      card.rookie === "*" || card.rookie === "1" || Number(card.rookie) === 1;
+
+    if (g === 3 && isRookie) return settings.auto_factor;
+    else if (g === 3) return settings.mtgrade_factor;
+    else if (isRookie) return settings.rookie_factor;
+    else if (g === 1.5) return settings.exgrade_factor;
+    else if (g === 1) return settings.vggrade_factor;
+    else if (g === 0.8) return settings.gdgrade_factor;
+    else if (g === 0.4) return settings.frgrade_factor;
+    else if (g === 0.2) return settings.prgrade_factor;
+
+    return 1; // default
+  };
+
+  // Filtering: Last Name
+  const filteredCards = cards.filter((card) => {
+    const matchesLastName = lastNameFilter
+      ? card.last_name?.toLowerCase().includes(lastNameFilter.toLowerCase())
+      : true;
+
+    const matchesBrand = brandFilter
+      ? card.brand?.toLowerCase().includes(brandFilter.toLowerCase())
+      : true;
+
+    return matchesLastName && matchesBrand;
+  });
+
+  const sortedCards = React.useMemo(() => {
+    let sortable = [...filteredCards];
+
+    if (sortConfig.key) {
+      sortable.sort((a, b) => {
+        let aVal, bVal;
+
+        // Map key to actual value
+        switch (sortConfig.key) {
+          case "year":
+            aVal = parseInt(a.year, 10);
+            bVal = parseInt(b.year, 10);
+            break;
+          case "last_name":
+            aVal = a.last_name?.toLowerCase() || "";
+            bVal = b.last_name?.toLowerCase() || "";
+            break;
+          case "grade":
+            aVal = parseFloat(a.grade) || 0;
+            bVal = parseFloat(b.grade) || 0;
+            break;
+          case "card_value": {
+            const avgBook =
+              (Number(a.book_high) +
+                Number(a.book_high_mid) +
+                Number(a.book_mid) +
+                Number(a.book_low_mid) +
+                Number(a.book_low)) /
+              5;
+
+            const bAvgBook =
+              (Number(b.book_high) +
+                Number(b.book_high_mid) +
+                Number(b.book_mid) +
+                Number(b.book_low_mid) +
+                Number(b.book_low)) /
+              5;
+
+            const aFactor = getMarketFactor(a, settings);
+            const bFactor = getMarketFactor(b, settings);
+
+            aVal = Math.round(avgBook * (Number(a.grade) || 0) * aFactor);
+            bVal = Math.round(bAvgBook * (Number(b.grade) || 0) * bFactor);
+            break;
+          }
+          default:
+            aVal = a[sortConfig.key];
+            bVal = b[sortConfig.key];
+        }
+
+        if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortable;
+  }, [filteredCards, sortConfig, settings]);
+
+  const requestSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+    return (
     <div className="container" style={{ width: "100%" }}>
       {/* Centered Back to Home link */}
       <div style={{ textAlign: "center", marginBottom: "1rem" }}>
@@ -131,7 +245,7 @@ export default function ListCards() {
       >
         <h2 style={{ margin: 0 }}>Card List</h2>
         <span style={{ fontSize: "0.95rem", color: "#555" }}>
-          Showing <b>{cards.length}</b> of <b>{total}</b> cards (Page {page + 1} of {totalPages})
+          Showing <b>{sortedCards.length}</b> of <b>{total}</b> cards (Page {page + 1} of {totalPages})
         </span>
       </div>
 
@@ -142,29 +256,112 @@ export default function ListCards() {
           {/* Top paging */}
           <PagingBlock />
 
+        {/* Filtering */}
+        <div style={{ marginBottom: "0.75rem", textAlign: "center" }}>
+          {!showFilter ? (
+            <button
+              onClick={() => setShowFilter(true)}
+              style={{
+              background: "none",
+              border: "none",
+              color: "#007bff",
+              cursor: "pointer",
+              textDecoration: "underline",
+              fontSize: "0.9rem",
+              }}
+            >
+              Show Filters
+            </button>
+          ) : (
+            <div style={{ display: "inline-flex", gap: "1rem", alignItems: "center" }}>
+              
+              {/* Last Name filter */}
+              <div>
+                <label style={{ fontSize: "0.85rem", marginRight: "0.25rem" }}>
+                  Last Name:
+                </label>
+                <input
+                  type="text"
+                  value={lastNameFilter}
+                  onChange={(e) => setLastNameFilter(e.target.value)}
+                  placeholder="Enter last name"
+                  style={{
+                    fontSize: "0.85rem",
+                    padding: "2px 6px",
+                    width: "140px",
+                  }}
+                />
+              </div>
+
+              {/* Brand filter */}
+              <div>
+                <label style={{ fontSize: "0.85rem", marginRight: "0.25rem" }}>
+                  Brand:
+                </label>
+                <input
+                  type="text"
+                  value={brandFilter}
+                  onChange={(e) => setBrandFilter(e.target.value)}
+                  placeholder="Enter brand"
+                  style={{
+                    fontSize: "0.85rem",
+                    padding: "2px 6px",
+                    width: "140px",
+                  }}
+                />
+              </div>
+
+              {/* Hide button */}
+              <button
+                onClick={() => {
+                  setShowFilter(false);
+                  setLastNameFilter("");
+                  setBrandFilter("");
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#dc3545",
+                  cursor: "pointer",
+                  fontSize: "0.8rem",
+                  textDecoration: "underline",
+                }}
+              >
+                ✕ Hide
+              </button>
+            </div>
+          )}
+        </div>
+
           {/* Table */}
           <div className="table-scroll" style={{ width: "100%", overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
                   <th>First</th>
-                  <th>Last</th>
-                  <th>Year</th>
+                  <th onClick={() => requestSort("last_name")} style={{ cursor: "pointer" }}>Last {sortConfig.key === "last_name" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}</th>
+                  <th onClick={() => requestSort("year")} style={{ cursor: "pointer" }}>Year {sortConfig.key === "year" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}</th>
                   <th className="brand-col">Brand</th>
                   <th className="card-number-col">Card #</th>
                   <th className="rookie-col" style={{ textAlign: "center", width: 70 }}>Rookie</th>
-                  <th className="grade-col" style={{ textAlign: "center", width: 90 }}>Grade</th>
+
+                  <th className="grade-col" style={{ textAlign: "center", width: 90, cursor: "pointer" }}
+                      onClick={() => requestSort("grade")}>Grade {sortConfig.key === "grade" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}
+                  </th>
+                  
                   <th className="book-col" style={{ textAlign: "center", minWidth: 220 }}>Book</th>
                   <th className="market-factor-col" style={{ textAlign: "center", width: 130 }}>Market Factor</th>
-                  <th className="card-value-col" style={{ textAlign: "center", width: 130 }}>Card Value</th>
-                  <th className="card-images-col" style={{ textAlign: "center", width: 140 }}>Images</th>                  
-                  <th className="action-col actions-col" style={{ textAlign: "center", width: 140 }}>
-                    Actions
+                  
+                  <th className="card-value-col" style={{ textAlign: "center", width: 130, cursor: "pointer" }}
+                      onClick={() => requestSort("card_value")}>Card Value {sortConfig.key === "card_value" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}
                   </th>
+                                      
+                  <th className="card-images-col" style={{ textAlign: "center", width: 140 }}>Images</th>                  
+                  <th className="action-col actions-col" style={{ textAlign: "center", width: 140 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {cards.map((card) => {
+                {sortedCards.map((card) => {
                   // --- Market Factor calculation (frontend-only) ---
                   let factor = null;
                   const g = parseFloat(card.grade);

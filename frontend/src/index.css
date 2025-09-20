@@ -482,3 +482,9 @@ td.card-value-col {
 .value-low {
   background-color: #1b5e20; /* darkest green */
 }
+
+.filter-input {
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  margin-left: 0.5rem;
+}
