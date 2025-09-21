@@ -118,6 +118,8 @@ export default function Admin() {
           <input type="number" step="0.01" name="modern_era_factor" value={settings.modern_era_factor} onChange={handleChange} />
         </div>
 
+        <Link className="nav-btn" to="/import-cards">📂 Import Cards</Link>
+
         <button type="submit">Save Settings</button>
       </form>
     </div>

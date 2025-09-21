@@ -1,10 +1,12 @@
 // src/pages/ListCards.jsx
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import CardImages from "../components/CardImages"
 
 export default function ListCards() {
+  const navigate = useNavigate();
   const [cards, setCards] = useState([]);
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(25);
@@ -14,6 +16,7 @@ export default function ListCards() {
   const [showFilter, setShowFilter] = useState(false);
   const [lastNameFilter, setLastNameFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
+  const [gradeFilter, setGradeFilter] = useState("");
   const [sortConfig, setSortConfig] = React.useState({ key: null, direction: "asc"});
 
   // Load count once
@@ -78,7 +81,7 @@ export default function ListCards() {
 
   // Reusable centered paging + limit control block
   const PagingBlock = () => (
-    <div className="paging-controls" style={{ textAlign: "center", margin: "0.75rem 0", width: "100%" }}>
+    <div className="paging-controls" style={{ textAlign: "center", margin: "1rem 0", width: "100%" }}>
       {limit !== "all" && (
       <span
         onClick={prevPage}
@@ -144,7 +147,7 @@ export default function ListCards() {
     return 1; // default
   };
 
-  // Filtering: Last Name
+  // Filtering Fields
   const filteredCards = cards.filter((card) => {
     const matchesLastName = lastNameFilter
       ? card.last_name?.toLowerCase().includes(lastNameFilter.toLowerCase())
@@ -154,7 +157,11 @@ export default function ListCards() {
       ? card.brand?.toLowerCase().includes(brandFilter.toLowerCase())
       : true;
 
-    return matchesLastName && matchesBrand;
+    const matchesGrade = gradeFilter
+      ? card.grade?.toLowerCase().includes(gradeFilter.toLowerCase())
+      : true;
+  
+    return matchesLastName && matchesBrand && matchesGrade;
   });
 
   const sortedCards = React.useMemo(() => {
@@ -257,7 +264,7 @@ export default function ListCards() {
           <PagingBlock />
 
         {/* Filtering */}
-        <div style={{ marginBottom: "0.75rem", textAlign: "center" }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
           {!showFilter ? (
             <button
               onClick={() => setShowFilter(true)}
@@ -273,12 +280,12 @@ export default function ListCards() {
               Show Filters
             </button>
           ) : (
-            <div style={{ display: "inline-flex", gap: "1rem", alignItems: "center" }}>
+            <div style={{ display: "inline-flex", gap: "3rem", marginLeft: "10rem", alignItems: "center" }}>
               
               {/* Last Name filter */}
               <div>
-                <label style={{ fontSize: "0.85rem", marginRight: "0.25rem" }}>
-                  Last Name:
+                <label style={{ fontSize: "0.85rem" }}>
+                  Last Name: {" "}
                 </label>
                 <input
                   type="text"
@@ -295,20 +302,30 @@ export default function ListCards() {
 
               {/* Brand filter */}
               <div>
-                <label style={{ fontSize: "0.85rem", marginRight: "0.25rem" }}>
-                  Brand:
+                <label style={{ fontSize: "0.85rem" }}>
+                  Brand: {" "}
                 </label>
                 <input
                   type="text"
                   value={brandFilter}
                   onChange={(e) => setBrandFilter(e.target.value)}
                   placeholder="Enter brand"
-                  style={{
-                    fontSize: "0.85rem",
-                    padding: "2px 6px",
-                    width: "140px",
-                  }}
+                  style={{ fontSize: "0.85rem", padding: "2px 6px", width: "140px" }}
                 />
+              </div>
+
+              {/* Grade filter */}
+              <div>
+                <label style={{ fontSize: "0.85rem" }}>
+                  Grade:{" "}
+                  <input
+                    type="text"
+                    value={gradeFilter}
+                    onChange={(e) => setGradeFilter(e.target.value)}
+                    placeholder="Enter grade"
+                    style={{ fontSize: "0.85rem", padding: "2px 6px", width: "140px" }}
+                  />
+                </label>
               </div>
 
               {/* Hide button */}
@@ -319,6 +336,7 @@ export default function ListCards() {
                   setBrandFilter("");
                 }}
                 style={{
+                  textAlign: "left",
                   background: "none",
                   border: "none",
                   color: "#dc3545",
@@ -327,7 +345,7 @@ export default function ListCards() {
                   textDecoration: "underline",
                 }}
               >
-                ✕ Hide
+                ✕ Hide Filters
               </button>
             </div>
           )}
@@ -379,7 +397,7 @@ export default function ListCards() {
                   }
 
                   return (
-                    <tr key={card.id}>
+                     <tr key={card.id}>
                       <td className="fname-col">
                         <span>{card.first_name}</span>
                       </td>
@@ -388,8 +406,23 @@ export default function ListCards() {
                       <td className="brand-col">
                         {card.brand && <span className="badge badge-brand">{card.brand}</span>}
                       </td>
-                      <td className="card-number-col">
-                        <span>{card.card_number}</span>
+                      
+                      {/* Card Number is clickable (CardDetail) IF there are images */}
+                      <td className="card-number-col" style={{ textAlign: "center" }}>
+                        {card.front_image || card.back_image ? (
+                          <span
+                            style={{
+                            cursor: "pointer",
+                            color: "#007bff",
+                            textDecoration: "underline",
+                            }}
+                            onClick={() => navigate(`/card-detail/${card.id}`)}
+                          >
+                            {card.card_number}
+                          </span>
+                        ) : (
+                          <span>{card.card_number}</span>
+                        )}
                       </td>
 
                       {/* Rookie */}
