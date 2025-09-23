@@ -295,51 +295,69 @@ button:active {
   background-color: #28a745; /* Green for grade */
 }
 
+/* General page container */
 .home-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  min-height: 80vh;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e8f0fe, #ffffff);
   text-align: center;
+  padding: 2rem;
 }
 
+/* Logo */
+.logo-slot img {
+  max-width: 580px;
+  height: auto;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 40px 8px rgba(10,10,10,.2));
+}
+
+/* Title & Subtitle */
 .home-title {
-  font-size: 32px;
-  margin-bottom: 40px;
-  font-weight: bold;
-  color: #222;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+  color: #1a237e; /* Deep blue tone */
 }
 
+.home-subtitle {
+  font-size: 2.25rem;
+  font-weight: 400;
+  margin-bottom: 1.5rem;
+  color: #053e8a;
+}
+
+/* Navigation */
 .home-nav {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
 }
 
 .nav-btn {
-  background: none;
-  border: none;
-  color: #007bff;   /* Bootstrap-style link blue */
-  text-decoration: underline;
-  cursor: pointer;
+  display: inline-block;
+  background: #1976d2; /* Material blue */
+  color: white;
+  text-decoration: none;
+  padding: 0.4rem .4rem;
+  border-radius: 8px;
   font-size: 1rem;
-  padding: 0;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .nav-btn:hover {
-  color: #0056b3;
+  background: #0d47a1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
 }
 
 .logo-slot {
   margin-bottom: 20px;
-}
-
-.logo-slot img {
-  width: 100px;   /* Adjust as needed */
-  height: auto;
-  display: block;
-  margin: 0 auto;
 }
 
 .book-badge {
