@@ -11,6 +11,10 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import get_db
 
+# Auth imports
+from ..auth.security import get_current_user
+from ..models import Card, User
+
 router = APIRouter(prefix="/cards", tags=["cards"])
 
 # Photo upload location
@@ -125,7 +129,7 @@ async def import_cards(file: UploadFile = File(...), db: Session = Depends(get_d
 # Create a card
 @router.post("/", response_model=schemas.Card)
 def create_card(card: schemas.CardCreate, db: Session = Depends(get_db)):
-    db_card = models.Card(**card.dict())
+    db_card = models.Card(**card.dict(), user_id=current.id)
     db.add(db_card)
     db.commit()
     db.refresh(db_card)
@@ -134,19 +138,19 @@ def create_card(card: schemas.CardCreate, db: Session = Depends(get_db)):
 # List all cards
 @router.get("/", response_model=list[schemas.Card])
 def read_cards(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    cards = db.query(models.Card).offset(skip).limit(limit).all()
+    cards = db.query(models.Card).filter(Card.user_id == current.id).offset(skip).limit(limit).all()
     return cards
 
 # Count cards
 @router.get("/count")
 def count_cards(db: Session = Depends(get_db)):
-    total = db.query(models.Card).count()
+    total = db.query(models.Card).filter(Card.user_id == current.id).count()
     return {"count": total}
 
 # Read one card
 @router.get("/{card_id}", response_model=schemas.Card)
 def read_card(card_id: int, db: Session = Depends(get_db)):
-    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    card = db.query(models.Card).filter(Card.user_id == current.id).filter(models.Card.id == card_id).first()
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
     return card
@@ -154,7 +158,7 @@ def read_card(card_id: int, db: Session = Depends(get_db)):
 # Update a card
 @router.put("/{card_id}", response_model=schemas.Card)
 def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends(get_db)):
-    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    card = db.query(models.Card).filter(Card.user_id == current.id).filter(models.Card.id == card_id).first()
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
 
@@ -168,7 +172,7 @@ def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends
 # Delete a card
 @router.delete("/{card_id}")
 def delete_card(card_id: int, db: Session = Depends(get_db)):
-    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    card = db.query(models.Card).filter(Card.user_id == current.id).filter(models.Card.id == card_id).first()
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
 

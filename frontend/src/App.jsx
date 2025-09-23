@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import LogoutButton from "./components/LogoutButton";
 
 export default function App() {
   return (
@@ -26,7 +27,14 @@ export default function App() {
         <Link className="nav-btn" to="/add-card">➕ Add Card</Link>
         <Link className="nav-btn" to="/list-cards">📋 List Cards</Link>
         <Link className="nav-btn" to="/admin">⚙️ Admin</Link>
-      </nav>
+
+        {/* ✅ Conditionally show Logout if logged in, else Login */}
+        {isLoggedIn ? (
+          <LogoutButton />
+        ) : (
+          <Link className="nav-btn" to="/login">🔑 Login</Link>
+        )}
+       </nav>
     </div>
   );
 }

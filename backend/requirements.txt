@@ -4,3 +4,8 @@ sqlalchemy
 psycopg2-binary
 python-multipart
 pandas
+passlib[bcrypt]==1.7.4
+pyjwt==2.9.0
+pyotp==2.9.0
+qrcode==7.4.2
+Pillow==10.4.0

@@ -11,7 +11,7 @@ router = APIRouter(
 # Get settings (we assume just one row)
 @router.get("/", response_model=schemas.GlobalSettings)
 def get_settings(db: Session = Depends(get_db)):
-    settings = db.query(models.GlobalSettings).first()
+    settings = db.query(models.GlobalSettings).filter(Card.user_id == current.id).first()
     if not settings:
         settings = models.GlobalSettings()
         db.add(settings)
@@ -22,7 +22,7 @@ def get_settings(db: Session = Depends(get_db)):
 # Update settings
 @router.put("/", response_model=schemas.GlobalSettings)
 def update_settings(updated: schemas.GlobalSettingsUpdate, db: Session = Depends(get_db)):
-    settings = db.query(models.GlobalSettings).first()
+    settings = db.query(models.GlobalSettings).filter(Card.user_id == current.id).first()
     if not settings:
         settings = models.GlobalSettings()
         db.add(settings)
