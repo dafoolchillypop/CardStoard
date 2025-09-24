@@ -10,20 +10,24 @@ import UpdateCard from "./pages/UpdateCard";
 import DeleteCard from "./pages/DeleteCard";
 import CardDetail from "./pages/CardDetail";
 import Admin from "./pages/Admin";
+import Register from "./pages/Register";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { AuthProvider } from "./context/AuthContext";
 
 import "./index.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <Router>
-    <Routes>
-      {/* Public */}
-      <Route path="/" element={<Login />} />
-      <Route path="/" element={<App />} />
+  <AuthProvider>
+    <Router>
+      <Routes>
+        {/* Public */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<App />} />
 
-      {/* Protected */}
+        {/* Protected */}
 
         {/* ✅ Card management */}
         <Route path="/add-card" element={<ProtectedRoute><AddCard /></ProtectedRoute>} />
@@ -37,6 +41,7 @@ root.render(
 
         {/* ✅ Import Cards */}
         <Route path="/import-cards" element={<ProtectedRoute><ImportCards /></ProtectedRoute>} />
-    </Routes>
-  </Router>
+      </Routes>
+    </Router>
+  </AuthProvider>
 );

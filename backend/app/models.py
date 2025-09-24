@@ -12,13 +12,14 @@ class User(Base):
     mfa_secret = Column(String(32), nullable=True)   # base32 TOTP secret
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Relationships
     cards = relationship("Card", back_populates="owner", cascade="all, delete-orphan")
-    settings = relationship("GlobalSettings", back_populates="owner", uselist=False, cascade="all, delete-orphan")
+    settings = relationship("GlobalSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
+
 
 class Card(Base):
     __tablename__ = "cards"
 
-    # Columns
     id = Column(Integer, primary_key=True, index=True)
     first_name = Column(String, index=True, nullable=False)
     last_name = Column(String, index=True, nullable=False)
@@ -27,28 +28,33 @@ class Card(Base):
     card_number = Column(String, index=True)
     rookie = Column(Boolean, default=False)
     grade = Column(String, nullable=True)
+
     book_high = Column(Float, nullable=True)
     book_high_mid = Column(Float, nullable=True)
     book_mid = Column(Float, nullable=True)
     book_low_mid = Column(Float, nullable=True)
     book_low = Column(Float, nullable=True)
 
-    # Photos
-    front_image = Column(String, nullable=True)  
-    back_image = Column(String, nullable=True)  
+    front_image = Column(String, nullable=True)
+    back_image = Column(String, nullable=True)
 
     # Auth
     user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
     owner = relationship("User", back_populates="cards")
 
+
 class GlobalSettings(Base):
     __tablename__ = "global_settings"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    app_name = Column(String, default="Baseball Memorabilia App")
-    card_makes = Column(JSON, default=["Donruss","Fleer","Topps"])
-    card_grades = Column(JSON, default=["3.0","1.5","1.0","0.8","0.4","0.2"])
+    # Relationships
+    user = relationship("User", back_populates="settings")
+
+    app_name = Column(String, default="CardStoard")
+    card_makes = Column(JSON, default=["Donruss", "Fleer", "Topps"])
+    card_grades = Column(JSON, default=["3.0", "1.5", "1.0", "0.8", "0.4", "0.2"])
 
     rookie_factor = Column(Float, default=1.00)
     auto_factor = Column(Float, default=1.00)
@@ -61,6 +67,5 @@ class GlobalSettings(Base):
 
     vintage_era_year = Column(Integer, default=1970)
     modern_era_year = Column(Integer, default=1980)
-
     vintage_era_factor = Column(Float, default=1.00)
     modern_era_factor = Column(Float, default=1.00)

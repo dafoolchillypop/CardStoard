@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from .database import engine, Base
-from .routes import cards, settings #, balls, packs, boxes, auth
+from .routes import cards, settings, auth #, balls, packs, boxes, auth
 from sqlalchemy import Column, Integer, String, Float, JSON
 
 app = FastAPI(title="CardStoard")
@@ -32,6 +32,7 @@ app.add_middleware(
 # ---------------------------
 app.include_router(cards.router)
 app.include_router(settings.router)
+app.include_router(auth.router)
 #app.include_router(balls.router, prefix="/balls", tags=["balls"])
 #app.include_router(packs.router, prefix="/packs", tags=["packs"])
 #app.include_router(boxes.router, prefix="/boxes", tags=["boxes"])

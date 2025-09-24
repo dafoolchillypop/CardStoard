@@ -1,13 +1,20 @@
 // src/pages/Login.jsx
 import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    totp: "",
+  });
+  const [error, setError] = useState(null);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,48 +22,64 @@ export default function Login() {
 
     try {
       const res = await axios.post("http://host.docker.internal:8000/auth/login", {
-        username,
-        password,
+        email: form.email,
+        password: form.password,
+        totp: form.totp || undefined, // optional MFA field
       });
 
-      // ✅ Assuming backend returns { access_token: "...", token_type: "bearer" }
-      const { access_token } = res.data;
-      localStorage.setItem("token", access_token);
+      if (res.data.mfa_required) {
+        setError("MFA code required. Please enter it.");
+        return;
+      }
 
-      // TODO: extend here for MFA flow if backend returns "mfa_required"
-
-      navigate("/list-cards"); // redirect after login
+      // ✅ On success, send to home
+      navigate("/");
     } catch (err) {
-      console.error(err);
-      setError("Invalid username or password.");
+      console.error("Login failed:", err);
+      setError(err.response?.data?.detail || "Login failed");
     }
   };
 
   return (
-    <div className="login-container" style={{ maxWidth: 400, margin: "2rem auto", textAlign: "center" }}>
+    <div className="login-container" style={{ margin: "2rem auto", textAlign: "center" }}>
+      {/* ✅ Logo slot */}
+      <div className="logo-slot" style={{ textAlign: "center", marginBottom: "1rem" }}>
+        <img 
+          src="/logo.png" 
+          alt="CardStoard Logo" 
+          style={{ width: "550px", height: "auto" }}
+        />
+      </div>
       <h2>Login</h2>
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
         <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={form.email}
+          onChange={handleChange}
           required
-          style={{ padding: "0.5rem", fontSize: "1rem" }}
         />
         <input
           type="password"
+          name="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={form.password}
+          onChange={handleChange}
           required
-          style={{ padding: "0.5rem", fontSize: "1rem" }}
         />
-        <button type="submit" className="nav-btn" style={{ padding: "0.75rem", fontSize: "1rem" }}>
-          Log In
-        </button>
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        <input
+          type="text"
+          name="totp"
+          placeholder="MFA Code (if enabled)"
+          value={form.totp}
+          onChange={handleChange}
+        />
+        <button type="submit" className="nav-btn" style={{ padding: "0.75rem", fontSize: "1rem" }}>LogIn</button>
       </form>
+      <p>
+        Don’t have an account? <Link to="/register">Register</Link>
+      </p>
     </div>
   );
 }
