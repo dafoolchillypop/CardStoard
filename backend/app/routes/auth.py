@@ -50,9 +50,11 @@ def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
 
     access = create_token(user.id, "access")
     refresh = create_token(user.id, "refresh")
+
     # HttpOnly cookies
-    response.set_cookie("access_token", access, httponly=True, samesite="Lax", secure=False)
-    response.set_cookie("refresh_token", refresh, httponly=True, samesite="Lax", secure=False)
+    response.set_cookie("access_token", access, httponly=True, samesite="Lax", secure=False, domain="localhost")
+    response.set_cookie("refresh_token", refresh, httponly=True, samesite="Lax", secure=False, domain="localhost")
+
     return {"ok": True}
 
 @router.post("/refresh")
@@ -70,7 +72,10 @@ def refresh(request: Request, response: Response):
     except jwt.PyJWTError:
         raise HTTPException(401, "Invalid token")
     new_access = create_token(payload["sub"], "access")
-    response.set_cookie("access_token", new_access, httponly=True, samesite="Lax", secure=False)
+
+    # HttpOnly cookies
+    response.set_cookie("access_token", new_access, httponly=True, samesite="Lax", secure=False, domain="localhost")
+    
     return {"ok": True}
 
 @router.post("/logout")
@@ -122,3 +127,10 @@ def mfa_disable(payload: VerifyMFAIn, current: User = Depends(get_current_user),
     current.mfa_secret = None
     db.commit()
     return {"ok": True}
+
+@router.get("/me")
+def me(current: User = Depends(get_current_user)):
+    return {
+        "id": current.id,
+        "email": current.email
+    }

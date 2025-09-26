@@ -1,7 +1,9 @@
-import axios from 'axios';
+// src/api/api.js
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: 'http://host.docker.internal:8000',
+  baseURL: "/",  // 👈 bypass CRA, talk directly
+  withCredentials: true,
 });
 
 export default api;

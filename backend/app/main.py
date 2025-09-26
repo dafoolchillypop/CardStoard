@@ -7,25 +7,32 @@ from sqlalchemy import Column, Integer, String, Float, JSON
 
 app = FastAPI(title="CardStoard")
 
+# ---------------------------
+# CORS Configuration
+# ---------------------------
+
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://host.docker.internal:3000",
+    "http://[::1]:3000",  # IPv6 localhost
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,     # explicitly use the list
+    allow_credentials=True,    # cookies allowed
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.on_event("startup")
 def on_startup():
     # Create tables once the app is starting and DB is available
     Base.metadata.create_all(bind=engine)
-
-# ---------------------------
-# CORS Configuration
-# ---------------------------
-origins = ["http://localhost:3000","http://127.0.0.1:3000","http://host.docker.internal:3000"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow GET, POST, PUT, DELETE, OPTIONS
-    allow_headers=["*"],
-)
 
 # ---------------------------
 # Include routers

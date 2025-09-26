@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/api";
 import { Link } from "react-router-dom";
 import ChipsInput from "../components/ChipsInput";
 
@@ -7,11 +7,17 @@ export default function Admin() {
   const [settings, setSettings] = useState(null);
 
   useEffect(() => {
-    axios.get("http://host.docker.internal:8000/settings/")
-      .then(res => setSettings(res.data))
-      .catch(err => console.error(err));
+  api.get("/settings/")
+    .then(res => {
+      setSettings({
+        ...res.data,
+        card_makes: res.data.card_makes || [],
+        card_grades: res.data.card_grades || []
+      });
+    })
+    .catch(err => console.error(err));
   }, []);
-
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setSettings({ ...settings, [name]: value });
@@ -19,7 +25,7 @@ export default function Admin() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.put("http://host.docker.internal:8000/settings/", settings)
+    api.put("/settings/", settings)
       .then(res => {
         setSettings(res.data);
         alert("Settings updated!");
@@ -59,7 +65,7 @@ export default function Admin() {
             label="Card Grades"
             values={settings.card_grades}
             setValues={(vals) => setSettings({ ...settings, card_grades: vals })}
-            type="number"
+            type="text"
           />
         </div>
 

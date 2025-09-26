@@ -12,14 +12,14 @@ export default function UpdateCard() {
 
   // Fetch global settings + card details
   useEffect(() => {
-    axios.get("http://host.docker.internal:8000/settings/")
+    axios.get("/settings/")
       .then(res => {
         setCardMakes(res.data.card_makes || []);
         setCardGrades(res.data.card_grades || []);
       })
       .catch(err => console.error("Error fetching settings:", err));
 
-    axios.get(`http://host.docker.internal:8000/cards/${id}`)
+    axios.get(`/cards/${id}`)
       .then(res => setCard(res.data))
       .catch(err => console.error("Error fetching card:", err));
   }, [id]);
@@ -31,7 +31,7 @@ export default function UpdateCard() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.put(`http://host.docker.internal:8000/cards/${id}`, card)
+    axios.put(`/cards/${id}`, card)
       .then(() => {
         alert("Card updated successfully!");
         navigate("/list-cards");
@@ -46,7 +46,7 @@ export default function UpdateCard() {
   formData.append("file", file);
 
   try {
-    const url = `http://host.docker.internal:8000/cards/${card.id}/upload-${type}`;
+    const url = `/cards/${card.id}/upload-${type}`;
     const res = await axios.post(url, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });

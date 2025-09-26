@@ -13,7 +13,7 @@ export default function DeleteCard() {
   if (!window.confirm(`Permanently delete card #${id}? This cannot be undone.`)) return;
 
   axios
-    .delete(`http://host.docker.internal:8000/cards/${id}`)
+    .delete(`/cards/${id}`)
     .then(() => alert("Card deleted."))
     .catch((error) => {
       console.error("Error deleting card:", error);

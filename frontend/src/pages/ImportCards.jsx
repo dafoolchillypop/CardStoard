@@ -19,11 +19,7 @@ export default function ImportCards() {
     formData.append("file", file);
 
     try {
-      const res = await axios.post(
-        "http://host.docker.internal:8000/cards/import",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      const res = await axios.post("/cards/import", formData, { headers: { "Content-Type": "multipart/form-data" } });
       setMessage(res.data.message || "Import successful!");
     } catch (err) {
       console.error(err);

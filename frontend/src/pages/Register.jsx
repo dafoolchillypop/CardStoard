@@ -1,7 +1,7 @@
 // src/pages/Register.jsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 //import "./Auth.css"; // reuse styles from login
 
 export default function Register() {
@@ -27,7 +27,7 @@ export default function Register() {
     }
 
     try {
-      await axios.post("http://host.docker.internal:8000/auth/register", {
+      await api.post("/auth/register", {
         email: form.email,
         password: form.password,
       });

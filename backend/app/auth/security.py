@@ -24,12 +24,7 @@ def create_token(sub: int, kind: str = "access"):
 bearer = HTTPBearer(auto_error=False)
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
-    # Prefer HTTP-only cookie
     token = request.cookies.get("access_token")
-    if not token:
-        # fallback to Authorization: Bearer
-        creds: HTTPAuthorizationCredentials = bearer(request)
-        token = creds.credentials if creds else None
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
@@ -44,4 +39,6 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
     user = db.query(User).filter(User.id == int(payload["sub"])).first()
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
+
     return user
+

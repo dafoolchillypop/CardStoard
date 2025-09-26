@@ -2,29 +2,49 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import get_db
+from ..auth.security import get_current_user
 
 router = APIRouter(
     prefix="/settings",
     tags=["settings"],
 )
 
-# Get settings (we assume just one row)
+# -------------------------
+# Get settings
+# -------------------------
 @router.get("/", response_model=schemas.GlobalSettings)
-def get_settings(db: Session = Depends(get_db)):
-    settings = db.query(models.GlobalSettings).filter(Card.user_id == current.id).first()
+def get_settings(
+    db: Session = Depends(get_db),
+    current: models.User = Depends(get_current_user),
+):
+    settings = db.query(models.GlobalSettings).filter(
+        models.GlobalSettings.user_id == current.id
+    ).first()
+
     if not settings:
-        settings = models.GlobalSettings()
+        settings = models.GlobalSettings(user_id=current.id)
         db.add(settings)
         db.commit()
         db.refresh(settings)
+
     return settings
 
+
+# -------------------------
 # Update settings
+# -------------------------
 @router.put("/", response_model=schemas.GlobalSettings)
-def update_settings(updated: schemas.GlobalSettingsUpdate, db: Session = Depends(get_db)):
-    settings = db.query(models.GlobalSettings).filter(Card.user_id == current.id).first()
+def update_settings(
+    updated: schemas.GlobalSettingsUpdate,
+    db: Session = Depends(get_db),
+    current: models.User = Depends(get_current_user),
+):
+    settings = db.query(models.GlobalSettings).filter(
+        models.GlobalSettings.user_id == current.id
+    ).first()
+
     if not settings:
-        settings = models.GlobalSettings()
+        settings = models.GlobalSettings(user_id=current.id)
         db.add(settings)
         db.commit()
         db.refresh(settings)

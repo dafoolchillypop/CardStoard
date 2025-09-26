@@ -1,7 +1,8 @@
 // src/pages/Login.jsx
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import api from "../api/api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function Login() {
     setError(null);
 
     try {
-      const res = await axios.post("http://host.docker.internal:8000/auth/login", {
+      const res = await api.post("/auth/login", {
         email: form.email,
         password: form.password,
         totp: form.totp || undefined, // optional MFA field
