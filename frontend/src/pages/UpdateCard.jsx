@@ -12,14 +12,14 @@ export default function UpdateCard() {
 
   // Fetch global settings + card details
   useEffect(() => {
-    axios.get("/settings/")
+    axios.get("http://host.docker.internal:8000/settings/")
       .then(res => {
         setCardMakes(res.data.card_makes || []);
         setCardGrades(res.data.card_grades || []);
       })
       .catch(err => console.error("Error fetching settings:", err));
 
-    axios.get(`/cards/${id}`)
+    axios.get(`http://host.docker.internal:8000/cards/${id}`)
       .then(res => setCard(res.data))
       .catch(err => console.error("Error fetching card:", err));
   }, [id]);
@@ -31,7 +31,7 @@ export default function UpdateCard() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.put(`/cards/${id}`, card)
+    axios.put(`http://host.docker.internal:8000/cards/${id}`, card)
       .then(() => {
         alert("Card updated successfully!");
         navigate("/list-cards");
@@ -46,7 +46,7 @@ export default function UpdateCard() {
   formData.append("file", file);
 
   try {
-    const url = `/cards/${card.id}/upload-${type}`;
+    const url = `http://host.docker.internal:8000/cards/${card.id}/upload-${type}`;
     const res = await axios.post(url, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
@@ -76,7 +76,7 @@ export default function UpdateCard() {
         <label>First Name</label>
         <input
           name="first_name"
-          value={card.first_name ?? ""}
+          value={card.first_name}
           onChange={handleChange}
           required
         />
@@ -84,7 +84,7 @@ export default function UpdateCard() {
         <label>Last Name</label>
         <input
           name="last_name"
-          value={card.last_name ?? ""}
+          value={card.last_name}
           onChange={handleChange}
           required
         />
@@ -93,7 +93,7 @@ export default function UpdateCard() {
         <input
           type="number"
           name="year"
-          value={card.year ?? ""}
+          value={card.year}
           onChange={handleChange}
         />
 
@@ -101,7 +101,7 @@ export default function UpdateCard() {
         <label>Brand</label>
         <select
           name="brand"
-          value={card.brand ?? ""}
+          value={card.brand}
           onChange={handleChange}
           required
         >
@@ -114,7 +114,7 @@ export default function UpdateCard() {
         <label>Card Number</label>
         <input
           name="card_number"
-          value={card.card_number ?? ""}
+          value={card.card_number}
           onChange={handleChange}
         />
 
@@ -132,7 +132,7 @@ export default function UpdateCard() {
         <label>Grade</label>
         <select
           name="grade"
-          value={card.grade ?? ""}
+          value={card.grade}
           onChange={handleChange}
           required
         >
@@ -147,7 +147,7 @@ export default function UpdateCard() {
           type="number"
           step="0.01"
           name="book_high"
-          value={card.book_high ?? ""}
+          value={card.book_high}
           onChange={handleChange}
         />
 
@@ -156,7 +156,7 @@ export default function UpdateCard() {
           type="number"
           step="0.01"
           name="book_high_mid"
-          value={card.book_high_mid ?? ""}
+          value={card.book_high_mid}
           onChange={handleChange}
         />
 
@@ -165,7 +165,7 @@ export default function UpdateCard() {
           type="number"
           step="0.01"
           name="book_mid"
-          value={card.book_mid ?? ""}
+          value={card.book_mid}
           onChange={handleChange}
         />
 
@@ -174,7 +174,7 @@ export default function UpdateCard() {
           type="number"
           step="0.01"
           name="book_low_mid"
-          value={card.book_low_mid ?? ""}
+          value={card.book_low_mid}
           onChange={handleChange}
         />
 
@@ -183,19 +183,17 @@ export default function UpdateCard() {
           type="number"
           step="0.01"
           name="book_low"
-          value={card.book_low ?? ""}
+          value={card.book_low}
           onChange={handleChange}
         />
         
         <div>
           <label>Front Image</label>
           <input type="file" onChange={(e) => handleFileUpload(e, "front")} />
-          {card.front_image && (<img src={card.front_image} alt="Front" style={{ maxWidth: "200px" }} />)}
         </div>
         <div>
-          <label>Back Image</label>
-          <input type="file" onChange={(e) => handleFileUpload(e, "back")} />
-          {card.back_image && (<img src={card.back_image} alt="Front" style={{ maxWidth: "200px" }} />)}
+        <label>Back Image</label>
+        <input type="file" onChange={(e) => handleFileUpload(e, "back")} />
         </div>
 
         <button type="submit">Update Card</button>

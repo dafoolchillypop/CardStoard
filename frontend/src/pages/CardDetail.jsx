@@ -10,12 +10,12 @@ export default function CardDetail() {
 
   useEffect(() => {
     // Fetch card
-    axios.get(`/cards/${id}`)
+    axios.get(`http://host.docker.internal:8000/cards/${id}`)
       .then((res) => setCard(res.data))
       .catch((err) => console.error("Error fetching card:", err));
 
     // Fetch settings (for market factor/value calc)
-    axios.get("/settings/")
+    axios.get("http://host.docker.internal:8000/settings/")
       .then((res) => setSettings(res.data))
       .catch((err) => console.error("Error fetching settings:", err));
   }, [id]);

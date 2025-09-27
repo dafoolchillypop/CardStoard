@@ -1,22 +1,10 @@
-// src/components/Navbar.jsx
-import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import React from 'react';
+import { Link } from 'react-router-dom';
 
-export default function Navbar() {
-  const { user, logout } = useAuth();
-  return (
-    <nav className="nav">
-      <Link to="/">🏠 Dashboard</Link>
-      <Link to="/cards">🃏 Cards</Link>
-      <Link to="/settings">⚙️ Settings</Link>
+const NavBar = () => (
+  <nav>
+    <Link to="/">Home</Link> | <Link to="/admin">Admin</Link>
+  </nav>
+);
 
-      <div style={{ marginLeft: "auto" }}>
-        {user ? (
-          <button className="nav-btn" onClick={logout}>Logout</button>
-        ) : (
-          <Link className="nav-btn" to="/login">🔑 Login</Link>
-        )}
-      </div>
-    </nav>
-  );
-}
+export default NavBar;

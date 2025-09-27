@@ -23,7 +23,7 @@ export default function ListCards() {
   useEffect(() => {
     const fetchCount = async () => {
       try {
-        const res = await axios.get("/cards/count");
+        const res = await axios.get("http://host.docker.internal:8000/cards/count");
         setTotal(res.data.count);
       } catch (err) {
         console.error("Error fetching count:", err);
@@ -35,7 +35,7 @@ export default function ListCards() {
   // Load settings once
   useEffect(() => {
     axios
-      .get("/settings/")
+      .get("http://host.docker.internal:8000/settings/")
       .then((res) => setSettings(res.data))
       .catch((err) => console.error("Error fetching settings:", err));
   }, []);
@@ -47,8 +47,8 @@ export default function ListCards() {
         const skip = page * (limit === "all" ? total : limit);
         const url =
           limit === "all"
-            ? `/cards/?skip=0&limit=${total}`
-            : `/cards/?skip=${skip}&limit=${limit}`;
+            ? `http://host.docker.internal:8000/cards/?skip=0&limit=${total}`
+            : `http://host.docker.internal:8000/cards/?skip=${skip}&limit=${limit}`;
         const res = await axios.get(url);
         setCards(res.data);
       } catch (err) {

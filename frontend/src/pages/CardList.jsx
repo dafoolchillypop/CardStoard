@@ -15,7 +15,7 @@ function CardList() {
   // Load all cards
   const fetchCards = () => {
     axios
-      .get("/cards/")
+      .get("http://host.docker.internal:8000/cards/")
       .then((res) => setCards(res.data))
       .catch((err) => console.error(err));
   };
@@ -27,7 +27,7 @@ function CardList() {
   // Delete a card
   const deleteCard = (id) => {
     axios
-      .delete(`/cards/${id}`)
+      .delete(`http://host.docker.internal:8000/cards/${id}`)
       .then(() => fetchCards())
       .catch((err) => console.error(err));
   };
@@ -56,7 +56,7 @@ function CardList() {
   // Submit edit
   const saveEdit = (id) => {
     axios
-      .put(`/cards/${id}`, editForm)
+      .put(`http://host.docker.internal:8000/cards/${id}`, editForm)
       .then(() => {
         setEditingId(null);
         fetchCards();

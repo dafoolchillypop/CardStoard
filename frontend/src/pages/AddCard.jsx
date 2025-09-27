@@ -23,7 +23,7 @@ export default function AddCard() {
 
   // Fetch global settings for dropdown values
   useEffect(() => {
-    axios.get("/settings/")
+    axios.get("http://host.docker.internal:8000/settings/")
       .then(res => {
         setCardMakes(res.data.card_makes || []);
         setCardGrades(res.data.card_grades || []);
@@ -38,7 +38,7 @@ export default function AddCard() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.post("/cards/", card)
+    axios.post("http://host.docker.internal:8000/cards/", card)
       .then(() => {
         alert("Card added successfully!");
         setCard({
