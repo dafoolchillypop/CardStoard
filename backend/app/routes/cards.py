@@ -24,27 +24,47 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)   # ✅ ensure dir exists
 
 
 # Card Photos
-
 @router.post("/{card_id}/upload-front")
-def upload_front(card_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
-    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+def upload_front(
+    card_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    card = db.query(models.Card).filter(
+        models.Card.id == card_id,
+        models.Card.user_id == current.id,
+    ).first()
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
 
+    # Build filename + filesystem path
     filename = f"card_{card_id}_front_{file.filename}"
     filepath = os.path.join(UPLOAD_DIR, filename)
 
+    # Save file
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+    # Always store relative path
     card.front_image = f"/static/cards/{filename}"
     db.commit()
     db.refresh(card)
+
     return {"message": "Front image uploaded", "front_image": card.front_image}
 
+
 @router.post("/{card_id}/upload-back")
-def upload_back(card_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
-    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+def upload_back(
+    card_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    card = db.query(models.Card).filter(
+        models.Card.id == card_id,
+        models.Card.user_id == current.id,
+    ).first()
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
 
@@ -57,11 +77,16 @@ def upload_back(card_id: int, file: UploadFile = File(...), db: Session = Depend
     card.back_image = f"/static/cards/{filename}"
     db.commit()
     db.refresh(card)
+
     return {"message": "Back image uploaded", "back_image": card.back_image}
 
 # Import cards
 @router.post("/import-csv")
-async def import_cards(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def import_cards(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),   # ✅ inject current user
+):
     # Basic validation
     if not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="Please upload a .csv file")
@@ -70,7 +95,7 @@ async def import_cards(file: UploadFile = File(...), db: Session = Depends(get_d
     content = (await file.read()).decode("utf-8", errors="ignore")
     reader = csv.DictReader(io.StringIO(content))
 
-    # Expected headers (exactly as you specified)
+    # Expected headers
     expected = {
         "First", "Last", "Year", "Brand", "Rookie", "Card Number",
         "BookHi", "BookHiMid", "BookMid", "BookLowMid", "BookLow", "Grade",
@@ -106,17 +131,16 @@ async def import_cards(file: UploadFile = File(...), db: Session = Depends(get_d
                 brand=(row["Brand"] or "").strip(),
                 rookie=to_rookie(row["Rookie"]),
                 card_number=(row["Card Number"] or "").strip(),
-                # ✅ book_* fields (renamed from value_*)
                 book_high=to_float(row["BookHi"]),
                 book_high_mid=to_float(row["BookHiMid"]),
                 book_mid=to_float(row["BookMid"]),
                 book_low_mid=to_float(row["BookLowMid"]),
                 book_low=to_float(row["BookLow"]),
                 grade=to_float(row["Grade"]),
+                user_id=current.id,   # ✅ tie to logged-in user
             )
             new_cards.append(card)
         except Exception as e:
-            # Fail fast with row context
             raise HTTPException(status_code=400, detail=f"Row {rownum} invalid: {e}")
 
     if not new_cards:
@@ -124,11 +148,15 @@ async def import_cards(file: UploadFile = File(...), db: Session = Depends(get_d
 
     db.add_all(new_cards)
     db.commit()
-    return {"imported": len(new_cards)}
+    return {
+    "imported": len(new_cards),
+    "message": f"Successfully imported {len(new_cards)} cards."
+    }
+
 
 # Create a card
 @router.post("/", response_model=schemas.Card)
-def create_card(card: schemas.CardCreate, db: Session = Depends(get_db)):
+def create_card(card: schemas.CardCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user),):
     db_card = models.Card(**card.dict(), user_id=current.id)
     db.add(db_card)
     db.commit()
@@ -137,19 +165,19 @@ def create_card(card: schemas.CardCreate, db: Session = Depends(get_db)):
 
 # List all cards
 @router.get("/", response_model=list[schemas.Card])
-def read_cards(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_cards(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current: User = Depends(get_current_user),):
     cards = db.query(models.Card).filter(Card.user_id == current.id).offset(skip).limit(limit).all()
     return cards
 
 # Count cards
 @router.get("/count")
-def count_cards(db: Session = Depends(get_db)):
+def count_cards(db: Session = Depends(get_db), current: User = Depends(get_current_user),):
     total = db.query(models.Card).filter(Card.user_id == current.id).count()
     return {"count": total}
 
 # Read one card
 @router.get("/{card_id}", response_model=schemas.Card)
-def read_card(card_id: int, db: Session = Depends(get_db)):
+def read_card(card_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user),):
     card = db.query(models.Card).filter(Card.user_id == current.id).filter(models.Card.id == card_id).first()
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
@@ -157,7 +185,7 @@ def read_card(card_id: int, db: Session = Depends(get_db)):
 
 # Update a card
 @router.put("/{card_id}", response_model=schemas.Card)
-def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends(get_db)):
+def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user),):
     card = db.query(models.Card).filter(Card.user_id == current.id).filter(models.Card.id == card_id).first()
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
@@ -171,14 +199,34 @@ def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends
 
 # Delete a card
 @router.delete("/{card_id}")
-def delete_card(card_id: int, db: Session = Depends(get_db)):
-    card = db.query(models.Card).filter(Card.user_id == current.id).filter(models.Card.id == card_id).first()
+def delete_card(
+    card_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    card = db.query(models.Card).filter(
+        Card.user_id == current.id,
+        models.Card.id == card_id
+    ).first()
+
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
 
+    # Delete associated images from disk (if present)
+    for image_field in [card.front_image, card.back_image]:
+        if image_field:
+            image_path = os.path.join(BASE_DIR, image_field.lstrip("/"))
+            try:
+                os.remove(image_path)
+            except FileNotFoundError:
+                pass
+            except Exception as e:
+                # Log unexpected issues but don’t block deletion
+                print(f"Warning: could not delete file {image_path}: {e}")
+
     db.delete(card)
     db.commit()
-    return {"ok": True, "message": "Card deleted"}
+    return {"ok": True, "message": "Card and associated images deleted"}
 
 # Calculate Market Factor
 def calculate_market_factor(card, settings):

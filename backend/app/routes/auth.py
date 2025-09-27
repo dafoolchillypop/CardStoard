@@ -6,7 +6,6 @@ from io import BytesIO
 from base64 import b64encode
 from ..database import get_db
 from ..models import User, GlobalSettings
-from . import settings as settings_routes  # if you want defaults
 from ..auth.security import hash_password, verify_password, create_token, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -52,8 +51,8 @@ def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
     refresh = create_token(user.id, "refresh")
 
     # HttpOnly cookies
-    response.set_cookie("access_token", access, httponly=True, samesite="Lax", secure=False, domain="localhost")
-    response.set_cookie("refresh_token", refresh, httponly=True, samesite="Lax", secure=False, domain="localhost")
+    response.set_cookie("access_token", access, httponly=True, samesite="Lax", secure=False)
+    response.set_cookie("refresh_token", refresh, httponly=True, samesite="Lax", secure=False)
 
     return {"ok": True}
 
@@ -74,7 +73,7 @@ def refresh(request: Request, response: Response):
     new_access = create_token(payload["sub"], "access")
 
     # HttpOnly cookies
-    response.set_cookie("access_token", new_access, httponly=True, samesite="Lax", secure=False, domain="localhost")
+    response.set_cookie("access_token", new_access, httponly=True, samesite="Lax", secure=False)
     
     return {"ok": True}
 

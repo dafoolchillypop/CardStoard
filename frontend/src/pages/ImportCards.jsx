@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { Link } from "react-router-dom";
+import api from "../api/api";
 
 export default function ImportCards() {
   const [file, setFile] = useState(null);
@@ -19,7 +20,7 @@ export default function ImportCards() {
     formData.append("file", file);
 
     try {
-      const res = await axios.post("/cards/import", formData, { headers: { "Content-Type": "multipart/form-data" } });
+      const res = await api.post("/cards/import-csv", formData, { headers: { "Content-Type": "multipart/form-data" } });
       setMessage(res.data.message || "Import successful!");
     } catch (err) {
       console.error(err);
@@ -34,7 +35,20 @@ export default function ImportCards() {
       <button onClick={handleUpload} style={{ marginLeft: "1rem" }}>
         Upload
       </button>
-      {message && <p>{message}</p>}
+
+      {message && (
+        <div style={{ marginTop: "1rem" }}>
+          <p>{message}</p>
+
+          {/* Navigation buttons after success */}
+          {message.startsWith("Successfully") && (
+            <div style={{ marginTop: "1rem" }}>
+              <Link className="nav-btn" to="/">Back to Home</Link>
+              <Link className="nav-btn" to="/list-cards">List Cards</Link>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
