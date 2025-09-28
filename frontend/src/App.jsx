@@ -44,6 +44,9 @@ export default function App() {
           <Link className="nav-btn" to="/list-cards">
             📋 List Cards
           </Link>
+          <Link className="nav-btn" to="/analytics">
+            📈 Analytics
+          </Link>
           <Link className="nav-btn" to="/admin">
             ⚙️ Admin
           </Link>

@@ -9,6 +9,7 @@ import ImportCards from "./pages/ImportCards";
 import UpdateCard from "./pages/UpdateCard";
 import DeleteCard from "./pages/DeleteCard";
 import CardDetail from "./pages/CardDetail";
+import Analytics from "./pages/Analytics";
 import Admin from "./pages/Admin";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
@@ -35,6 +36,8 @@ root.render(
         <Route path="/update-card/:id" element={<ProtectedRoute><UpdateCard /></ProtectedRoute>} />
         <Route path="/delete-card/:id" element={<ProtectedRoute><DeleteCard /></ProtectedRoute>} />
         <Route path="/card-detail/:id" element={<ProtectedRoute><CardDetail /></ProtectedRoute>} />
+        <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+
 
         {/* ✅ Admin settings */}
         <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />

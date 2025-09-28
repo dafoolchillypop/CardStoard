@@ -79,9 +79,9 @@ def refresh(request: Request, response: Response):
 
 @router.post("/logout")
 def logout(response: Response):
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
-    return {"ok": True}
+    response.delete_cookie("access_token", path="/")
+    response.delete_cookie("refresh_token", path="/")
+    return {"ok": True, "message": "Logged out"}
 
 # ----- MFA enable/verify -----
 

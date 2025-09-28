@@ -1,21 +1,12 @@
 // src/components/LogoutButton.jsx
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 export default function LogoutButton() {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem("token"); // clear session
-    navigate("/login"); // redirect
-  };
+  const { logout } = useContext(AuthContext);
 
   return (
-    <button
-      onClick={handleLogout}
-      className="nav-btn"
-      style={{ marginLeft: "0.5rem" }}
-    >
+    <button className="nav-btn" onClick={() => logout()}>
       🚪 Logout
     </button>
   );
