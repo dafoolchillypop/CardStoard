@@ -1,7 +1,7 @@
 // src/pages/CardDetail.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 
 export default function CardDetail() {
   const { id } = useParams();
@@ -10,12 +10,12 @@ export default function CardDetail() {
 
   useEffect(() => {
     // Fetch card
-    axios.get(`/cards/${id}`)
+    api.get(`/cards/${id}`)
       .then((res) => setCard(res.data))
       .catch((err) => console.error("Error fetching card:", err));
 
     // Fetch settings (for market factor/value calc)
-    axios.get("/settings/")
+    api.get("/settings/")
       .then((res) => setSettings(res.data))
       .catch((err) => console.error("Error fetching settings:", err));
   }, [id]);

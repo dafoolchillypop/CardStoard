@@ -1,7 +1,7 @@
 // src/pages/DeleteCard.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 
 export default function DeleteCard() {
   const { id } = useParams();
@@ -11,11 +11,11 @@ export default function DeleteCard() {
   const [settings, setSettings] = useState(null);
 
   useEffect(() => {
-    axios.get(`/cards/${id}`)
+    api.get(`/cards/${id}`)
       .then((res) => setCard(res.data))
       .catch((err) => console.error("Error fetching card:", err));
 
-    axios.get("/settings/")
+    api.get("/settings/")
       .then((res) => setSettings(res.data))
       .catch((err) => console.error("Error fetching settings:", err));
   }, [id]);
@@ -75,7 +75,7 @@ export default function DeleteCard() {
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this card?")) return;
     try {
-      await axios.delete(`/cards/${id}`);
+      await api.delete(`/cards/${id}`);
       alert("Card deleted successfully!");
       navigate("/list-cards");
     } catch (err) {

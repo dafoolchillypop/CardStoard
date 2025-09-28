@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/api";
 import { useParams, Link, useNavigate } from "react-router-dom";
 
 export default function UpdateCard() {
@@ -12,14 +12,14 @@ export default function UpdateCard() {
 
   // Fetch global settings + card details
   useEffect(() => {
-    axios.get("/settings/")
+    api.get("/settings/")
       .then(res => {
         setCardMakes(res.data.card_makes || []);
         setCardGrades(res.data.card_grades || []);
       })
       .catch(err => console.error("Error fetching settings:", err));
 
-    axios.get(`/cards/${id}`)
+    api.get(`/cards/${id}`)
       .then(res => setCard(res.data))
       .catch(err => console.error("Error fetching card:", err));
   }, [id]);
@@ -31,7 +31,7 @@ export default function UpdateCard() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.put(`/cards/${id}`, card)
+    api.put(`/cards/${id}`, card)
       .then(() => {
         alert("Card updated successfully!");
         navigate("/list-cards");
@@ -47,7 +47,7 @@ export default function UpdateCard() {
 
   try {
     const url = `/cards/${card.id}/upload-${type}`;
-    const res = await axios.post(url, formData, {
+    const res = await api.post(url, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 

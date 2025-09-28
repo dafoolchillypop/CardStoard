@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/api";
 import { Link } from "react-router-dom";
 
 export default function AddCard() {
@@ -23,7 +23,7 @@ export default function AddCard() {
 
   // Fetch global settings for dropdown values
   useEffect(() => {
-    axios.get("/settings/")
+    api.get("/settings/")
       .then(res => {
         setCardMakes(res.data.card_makes || []);
         setCardGrades(res.data.card_grades || []);
@@ -38,7 +38,7 @@ export default function AddCard() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.post("/cards/", card)
+    api.post("/cards/", card)
       .then(() => {
         alert("Card added successfully!");
         setCard({

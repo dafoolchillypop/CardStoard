@@ -1,7 +1,7 @@
 // src/pages/ListCards.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 import { Link } from "react-router-dom";
 import CardImages from "../components/CardImages"
 
@@ -23,7 +23,7 @@ export default function ListCards() {
   useEffect(() => {
     const fetchCount = async () => {
       try {
-        const res = await axios.get("/cards/count");
+        const res = await api.get("/cards/count");
         setTotal(res.data.count);
       } catch (err) {
         console.error("Error fetching count:", err);
@@ -34,7 +34,7 @@ export default function ListCards() {
 
   // Load settings once
   useEffect(() => {
-    axios
+    api
       .get("/settings/")
       .then((res) => setSettings(res.data))
       .catch((err) => console.error("Error fetching settings:", err));
@@ -49,7 +49,7 @@ export default function ListCards() {
           limit === "all"
             ? `/cards/?skip=0&limit=${total}`
             : `/cards/?skip=${skip}&limit=${limit}`;
-        const res = await axios.get(url);
+        const res = await api.get(url);
         setCards(res.data);
       } catch (err) {
         console.error("Error fetching cards:", err);

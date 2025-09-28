@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/api";
 
 function CardList() {
   const [cards, setCards] = useState([]);
@@ -14,7 +14,7 @@ function CardList() {
 
   // Load all cards
   const fetchCards = () => {
-    axios
+    api
       .get("/cards/")
       .then((res) => setCards(res.data))
       .catch((err) => console.error(err));
@@ -26,7 +26,7 @@ function CardList() {
 
   // Delete a card
   const deleteCard = (id) => {
-    axios
+    api
       .delete(`/cards/${id}`)
       .then(() => fetchCards())
       .catch((err) => console.error(err));
@@ -55,7 +55,7 @@ function CardList() {
 
   // Submit edit
   const saveEdit = (id) => {
-    axios
+    api
       .put(`/cards/${id}`, editForm)
       .then(() => {
         setEditingId(null);
