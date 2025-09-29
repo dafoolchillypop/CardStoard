@@ -1,13 +1,13 @@
 // src/pages/Analytics.jsx
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
+import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar} from "recharts";
 
 export default function Analytics() {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    // 🔌 Placeholder API call — we’ll implement the backend route later
-    api.get("/analytics/summary")
+    api.get("/analytics")
       .then((res) => setStats(res.data))
       .catch((err) => console.error("Error fetching analytics:", err));
   }, []);
@@ -25,39 +25,41 @@ export default function Analytics() {
         gap: "1rem",
         margin: "2rem 0"
       }}>
-        <div className="summary-box">Total Cards: {stats.total_cards}</div>
+        <div className="summary-box">Total Cards: {stats.total_count}</div>
         <div className="summary-box">Collection Value: ${stats.total_value}</div>
-        <div className="summary-box">Unique Players: {stats.unique_players}</div>
-        <div className="summary-box">Brands: {stats.brands_count}</div>
+        <div className="summary-box">Unique Players: {stats.by_player.length}</div>
+        <div className="summary-box">Brands: {stats.by_brand.length}</div>
       </div>
 
-      {/* ✅ Placeholder Trend Graphs */}
+      {/* ✅ Value Trend */}
       <div style={{ margin: "2rem 0" }}>
         <h3>Value Trend Over Time</h3>
-        <div style={{
-          height: "250px",
-          background: "#f0f0f0",
-          border: "1px dashed #ccc",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center"
-        }}>
-          [Graph Placeholder]
-        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={stats.trend} width={600} height={300}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="value" stroke="#8884d8" name="Value" />
+            <Line type="monotone" dataKey="count" stroke="#82ca9d" name="Count" />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
 
+      {/* ✅ Count Trend */}
       <div style={{ margin: "2rem 0" }}>
         <h3>Collection Growth Over Time</h3>
-        <div style={{
-          height: "250px",
-          background: "#f0f0f0",
-          border: "1px dashed #ccc",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center"
-        }}>
-          [Graph Placeholder]
-        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={stats.trend_count}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="period" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="count" fill="#82ca9d" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       {/* ✅ Breakdown Tables */}

@@ -13,15 +13,15 @@ services:
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@stoardb:5432/cardstoardb
     command: sh -c "dockerize -wait tcp://stoardb:5432 -timeout 120s uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-
+  
   frontend:
     build: ./frontend
     container_name: stoarfront
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - ./frontend:/app       # mount project code
+      - /app/node_modules     # keep node_modules inside container
     environment:
       - CHOKIDAR_USEPOLLING=true
     depends_on:

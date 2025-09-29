@@ -1,8 +1,15 @@
 FROM node:20-alpine
+
 WORKDIR /app
-COPY package.json ./
+
+# Copy only package descriptors first (cache layer)
+COPY package*.json ./
+
+# Install dependencies
 RUN npm install
-COPY public ./public
-COPY src ./src
+
+# Copy the rest of the project
+COPY . .
+
 EXPOSE 3000
 CMD ["npm", "start"]
