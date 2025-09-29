@@ -9,45 +9,35 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
 
-  const logout = (msg = "You have been logged out successfully.") => {
+  const logout = (msg = null) => {
     console.log("Logging out...");
     setIsLoggedIn(false);
     setUser(null);
 
     // Show message
-    if (msg) {
-      alert(msg);
-    }
-
-    // Optional server-side logout
-    // api.post("/auth/logout");
+    if (msg) alert(msg);
 
     // Clear cookies
-    document.cookie
-      .split(";")
-      .forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, "")
-          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      });
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
 
     // Redirect to login
     window.location.href = "/login";
   };
 
   useEffect(() => {
-    // Register logout globally
-    setAuthContext({ logout });
-
-    api.get("/auth/me")
-      .then((res) => {
+   api.get("/auth/me")
+     .then((res) => {
         setUser(res.data);
         setIsLoggedIn(true);
       })
-      .catch(() => {
-        setUser(null);
-        setIsLoggedIn(false);
-      });
+     .catch(() => {
+       setUser(null);
+       setIsLoggedIn(false);
+     });
   }, []);
 
   return (

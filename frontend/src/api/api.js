@@ -12,7 +12,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       console.warn("Session expired, logging out...");
-      logoutHandler("Session expired, please log in again.");
     }
     return Promise.reject(error);
   }
