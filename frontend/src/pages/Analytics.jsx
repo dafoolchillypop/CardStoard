@@ -104,7 +104,7 @@ export default function Analytics() {
 
       {/* ✅ Value Trend */}
       <div style={{ margin: "2rem 0" }}>
-        <h3>Value Trend Over Time</h3>
+        <h3>Value Trend</h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={stats.trend}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -113,8 +113,22 @@ export default function Analytics() {
             <Tooltip />
             <Legend />
             <Line type="monotone" dataKey="value" stroke="#167e30ff" name="Value" />
-            <Line type="monotone" dataKey="count" stroke="#517fd4ff" name="Count" />
-          </LineChart>
+           </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* ✅ Count Trend */}
+      <div style={{ margin: "2rem 0" }}>
+        <h3>Inventory Trend</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={stats.trend}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="count" fill="#517fd4ff" />
+          </BarChart>
         </ResponsiveContainer>
       </div>
 

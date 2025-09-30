@@ -5,6 +5,11 @@ import api from "../api/api";
 import { Link } from "react-router-dom";
 import CardImages from "../components/CardImages"
 
+const fmtDollar = (n) => {
+  const val = Math.round(Number(n || 0));
+  return `$${val.toLocaleString()}`;
+};
+
 export default function ListCards() {
   const navigate = useNavigate();
   const [cards, setCards] = useState([]);
@@ -158,8 +163,8 @@ export default function ListCards() {
       : true;
 
     const matchesGrade = gradeFilter
-      ? card.grade?.toLowerCase().includes(gradeFilter.toLowerCase())
-      : true;
+    ? String(card.grade || "").toLowerCase().includes(gradeFilter.toLowerCase())
+    : true;
   
     return matchesLastName && matchesBrand && matchesGrade;
   });
@@ -230,6 +235,42 @@ export default function ListCards() {
     setSortConfig({ key, direction });
   };
 
+  // Add this near top of component body (after sortedCards is defined)
+  const totalValue = React.useMemo(() => {
+    if (!settings) return 0;
+
+    return sortedCards.reduce((sum, card) => {
+      const books = [
+        parseFloat(card.book_high) || 0,
+        parseFloat(card.book_high_mid) || 0,
+        parseFloat(card.book_mid) || 0,
+        parseFloat(card.book_low_mid) || 0,
+        parseFloat(card.book_low) || 0,
+      ];
+      const avgBook = books.reduce((a, b) => a + b, 0) / books.length;
+      const g = parseFloat(card.grade) || 0;
+
+      let factor = null;
+      const isRookie =
+        card.rookie === "*" ||
+        card.rookie === "1" ||
+        Number(card.rookie) === 1 ||
+        card.rookie === true;
+
+      if (g === 3 && isRookie) factor = settings.auto_factor;
+      else if (g === 3) factor = settings.mtgrade_factor;
+      else if (isRookie) factor = settings.rookie_factor;
+      else if (g === 1.5) factor = settings.exgrade_factor;
+      else if (g === 1) factor = settings.vggrade_factor;
+      else if (g === 0.8) factor = settings.gdgrade_factor;
+      else if (g === 0.4) factor = settings.frgrade_factor;
+      else if (g === 0.2) factor = settings.prgrade_factor;
+
+      const cardValue = factor !== null ? avgBook * g * factor : 0;
+      return sum + Math.round(cardValue);
+    }, 0);
+  }, [sortedCards, settings]);
+
     return (
     <div className="container" style={{ width: "100%" }}>
       {/* Centered Back to Home link */}
@@ -256,6 +297,22 @@ export default function ListCards() {
         </span>
       </div>
 
+      {/* ✅ Running Total Bar */}
+      <div
+        style={{
+        padding: "0rem 1.25rem",
+        background: "#f8f9fa",
+        color: "#2e7d32",
+        fontSize: "0.95rem",
+        display: "inline-block",
+        float: "right",
+        }}
+      >
+        Value: {fmtDollar(totalValue)}
+      </div>
+
+      <div style={{ clear: "both" }} />  {/* ensures layout resets after float */}
+      
       {cards.length === 0 ? (
         <p style={{ textAlign: "center" }}>No cards found.</p>
       ) : (
