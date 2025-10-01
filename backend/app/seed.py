@@ -53,39 +53,38 @@ def seed():
             grade = random.choice(grades)
             rookie = random.choice([0, 1])
 
-            book_mid = random.uniform(5, 500)
-
             # Random created_at in the last 24 months
             created_at = now - timedelta(days=random.randint(0, 730))
 
             # Sometimes simulate an update a few months later
             if random.random() < 0.5:
                 updated_at = created_at + timedelta(days=random.randint(30, 300))
-                # Adjust book_mid a bit on update
-                book_mid = round(book_mid * random.uniform(0.8, 1.2), 2)
             else:
                 updated_at = created_at
 
             card = models.Card(
+                user_id=u.id,
                 first_name=fn,
                 last_name=ln,
                 year=year,
                 brand=brand,
+                card_number=str(random.randint(1, 700)),
                 rookie=rookie,
-                card_number=str(random.randint(1, 999)),
                 grade=grade,
-                book_high=book_mid * 1.2,
-                book_mid=book_mid,
-                book_low=book_mid * 0.8,
-                user_id=u.id,
+                book_high=round(random.uniform(100, 1000)),
+                book_high_mid=round(random.uniform(80, 800)),
+                book_mid=round(random.uniform(50, 600)),
+                book_low_mid=round(random.uniform(20, 300)),
+                book_low=round(random.uniform(5, 200)),
                 created_at=created_at,
                 updated_at=updated_at,
             )
+
             db.add(card)
 
         db.commit()
 
-    print("✅ Seed complete: 5 users, random cards with simulated history.")
+    print("✅ Seed complete: 5 users, random cards with simulated whole-dollar values + history.")
 
 
 if __name__ == "__main__":
