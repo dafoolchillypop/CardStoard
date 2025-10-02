@@ -12,6 +12,9 @@ RUN npm install --legacy-peer-deps
 # Copy rest of frontend project
 COPY . .
 
+ARG REACT_APP_API_BASE
+ENV REACT_APP_API_BASE=$REACT_APP_API_BASE
+
 # Build optimized React app
 RUN npm run build
 
