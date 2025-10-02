@@ -13,10 +13,7 @@ RUN npm install --legacy-peer-deps
 COPY . .
 
 # Build optimized React app
-ARG REACT_APP_API_BASE=https://cardstoard.com/api
-ENV REACT_APP_API_BASE=$REACT_APP_API_BASE
 RUN npm run build
-
 
 # ---------- Serve stage ----------
 FROM nginx:1.27-alpine
