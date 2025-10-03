@@ -38,7 +38,7 @@ def set_refresh_cookie(response: Response, value: str):
         **_cookie_kwargs(),
     )
 
-def clear_cookies(response: Response):
+def clear_auth_cookie(response: Response):
     kwargs = _cookie_kwargs()
     response.delete_cookie("access_token", **kwargs)
     response.delete_cookie("refresh_token", **kwargs)
