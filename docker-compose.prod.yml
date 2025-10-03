@@ -16,7 +16,6 @@ services:
       interval: 5s
       retries: 5
       start_period: 10s
-    # No ports → stays private inside Docker network
 
   stoarback:
     build:
@@ -33,7 +32,6 @@ services:
       ENV: prod
     expose:
       - "8000"
-    # No bind mounts, no reload → clean prod container
 
   stoarfront:
     build:
@@ -45,7 +43,8 @@ services:
     restart: unless-stopped
     depends_on:
       - stoarback
-    # No ports → built assets served through Nginx only
+    expose:
+      - "80"
 
   nginx:
     image: nginx:1.27-alpine
