@@ -61,7 +61,7 @@ services:
       - stoarfront
       - stoarback
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://localhost/api/health || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O- http://stoarback:8000/api/health || exit 1"]
       interval: 30s
       retries: 3
       start_period: 10s
