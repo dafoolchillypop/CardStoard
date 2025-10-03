@@ -12,10 +12,15 @@ app = FastAPI(title="CardStoard")
 # ---------------------------
 
 origins = [
+    # Local dev
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://host.docker.internal:3000",
-    "http://[::1]:3000",  # IPv6 localhost
+    "http://[::1]:3000",
+
+    # Production
+    "https://cardstoard.com",
+    "https://www.cardstoard.com"
 ]
 
 app.add_middleware(
