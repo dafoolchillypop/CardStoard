@@ -43,7 +43,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        REACT_APP_API_BASE: "https://cardstoard.com/api"
+        REACT_APP_API_BASE: ${REACT_APP_API_BASE}
     container_name: stoarfront
     restart: unless-stopped
     depends_on:
