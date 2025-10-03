@@ -30,6 +30,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@stoardb:5432/cardstoardb
       FRONTEND_ORIGIN: https://cardstoard.com
+      ENV: prod
     expose:
       - "8000"
     # No bind mounts, no reload → clean prod container
@@ -60,7 +61,7 @@ services:
       - stoarfront
       - stoarback
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-check-certificate --spider -q https://localhost || exit 1"]
+      test: ["CMD-SHELL", "wget --no-check-certificate --spider -q http://localhost || exit 1"]
       interval: 30s
       retries: 3
       start_period: 10s

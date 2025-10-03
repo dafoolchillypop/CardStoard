@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from .database import engine, Base
 from .routes import cards, rtr_settings, auth, analytics #, balls, packs, boxes, auth
 from .config import cfg_settings
+import os
 
 app = FastAPI(title="CardStoard")
 
@@ -39,12 +40,15 @@ async def refresh_access_token(request, call_next):
 
     new_token = getattr(request.state, "new_access_token", None)
     if new_token:
+        IS_PROD = os.getenv("ENV") == "prod"
+
         response.set_cookie(
             "access_token",
             new_token,
             httponly=True,
-            samesite="Lax",
-            secure=False,  # 🔒 set True once you’re on HTTPS
+            samesite="None" if IS_PROD else "Lax",
+            secure=True if IS_PROD else False,
+            domain="cardstoard.com" if IS_PROD else None,
             max_age=cfg_settings.ACCESS_MIN * 60
         )
     return response
