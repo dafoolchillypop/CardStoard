@@ -7,6 +7,9 @@ from base64 import b64encode
 from ..database import get_db
 from ..models import User, GlobalSettings
 from ..auth.security import hash_password, verify_password, create_token, get_current_user
+from ..auth.cookies import set_auth_cookie, set_access_cookie, clear_auth_cookie
+
+import os
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -50,9 +53,8 @@ def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
     access = create_token(user.id, "access")
     refresh = create_token(user.id, "refresh")
 
-    # HttpOnly cookies
-    response.set_cookie("access_token", access, httponly=True, samesite="Lax", secure=False)
-    response.set_cookie("refresh_token", refresh, httponly=True, samesite="Lax", secure=False)
+    set_auth_cookie(response, "access_token", access)
+    set_auth_cookie(response, "refresh_token", refresh)
 
     return {"ok": True}
 
@@ -70,17 +72,17 @@ def refresh(request: Request, response: Response):
             raise HTTPException(401, "Invalid token")
     except jwt.PyJWTError:
         raise HTTPException(401, "Invalid token")
-    new_access = create_token(payload["sub"], "access")
-
-    # HttpOnly cookies
-    response.set_cookie("access_token", new_access, httponly=True, samesite="Lax", secure=False)
     
+    new_access = create_token(payload["sub"], "access")
+    set_access_cookie(response, new_access)
+
     return {"ok": True}
 
 @router.post("/logout")
 def logout(response: Response):
-    response.delete_cookie("access_token", path="/")
-    response.delete_cookie("refresh_token", path="/")
+    clear_auth_cookie(response, "access_token")
+    clear_auth_cookie(response, "refresh_token")
+
     return {"ok": True, "message": "Logged out"}
 
 # ----- MFA enable/verify -----
