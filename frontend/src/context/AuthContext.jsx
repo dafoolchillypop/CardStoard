@@ -1,12 +1,11 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect } from "react";
 import api from "../api/api";
-import { setAuthContext } from "../utils/logoutHandler";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(null); // null = unknown
   const [user, setUser] = useState(null);
 
   const logout = (msg = null) => {
@@ -14,7 +13,6 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
     setUser(null);
 
-    // Show message
     if (msg) alert(msg);
 
     // Clear cookies
@@ -24,21 +22,25 @@ export const AuthProvider = ({ children }) => {
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
 
-    // Redirect to login
     window.location.href = "/login";
   };
 
   useEffect(() => {
-   api.get("/auth/me")
-     .then((res) => {
+    api.get("/auth/me")
+      .then((res) => {
         setUser(res.data);
         setIsLoggedIn(true);
       })
-     .catch(() => {
-       setUser(null);
-       setIsLoggedIn(false);
-     });
+      .catch(() => {
+        setUser(null);
+        setIsLoggedIn(false);
+      });
   }, []);
+
+  // If we’re still checking, don’t render children yet
+  if (isLoggedIn === null) {
+    return <p>Loading session...</p>;
+  }
 
   return (
     <AuthContext.Provider value={{ isLoggedIn, user, logout }}>
