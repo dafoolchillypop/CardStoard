@@ -40,7 +40,7 @@ function AppRouter() {
       {/* Protected once logged in */}
       {isLoggedIn && (
         <>
-          <Route path="/" element={<App />} />
+          <Route path="/" element={<ProtectedRoute><App /></ProtectedRoute>} />
           <Route path="/add-card" element={<ProtectedRoute><AddCard /></ProtectedRoute>} />
           <Route path="/list-cards" element={<ProtectedRoute><ListCards /></ProtectedRoute>} />
           <Route path="/update-card/:id" element={<ProtectedRoute><UpdateCard /></ProtectedRoute>} />
