@@ -25,8 +25,6 @@ export const AuthProvider = ({ children }) => {
         .replace(/^ +/, "")
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-
-    window.location.href = "/login";
   };
 
   useEffect(() => {
