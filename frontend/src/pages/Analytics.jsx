@@ -30,7 +30,7 @@ export default function Analytics() {
 
   useEffect(() => {
     api
-      .get("/analytics")
+      .get("/analytics/")
       .then((res) => setStats(res.data))
       .catch((err) => console.error("Error fetching analytics:", err));
   }, []);
