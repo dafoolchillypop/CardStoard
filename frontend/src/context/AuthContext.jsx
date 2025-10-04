@@ -1,8 +1,12 @@
 // src/context/AuthContext.jsx
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useContext } from "react";
 import api from "../api/api";
 
 export const AuthContext = createContext();
+
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
 
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(null); // null = unknown
@@ -47,8 +51,4 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  return useContext(AuthContext);
 };

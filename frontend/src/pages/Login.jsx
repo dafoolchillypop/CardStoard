@@ -30,9 +30,8 @@ export default function Login() {
         return;
       }
 
-      // Immediately fetch user and update context
-      const me = await api.get("/auth/me");
-      setUser(me.data);
+      // ✅ Immediately update context so ProtectedRoutes unlock
+      setUser({ id: res.data.id ?? null, email: form.email });
       setIsLoggedIn(true);
 
       // On success, send to home
