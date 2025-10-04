@@ -4,6 +4,14 @@ This document tracks major snapshots and feature milestones in the CardStoard pr
 
 ---
 
+## v0.4 (2025-10-03)
+- **AWS EC2**
+  - cardstoard.com domain
+  - DNS
+  - SSL
+  - login/logout cookies
+  - NGINX
+
 ## v0.3-snapshot (2025-09-29)
 - ✅ **Analytics page**
   - Totals for cards, value, players, brands
