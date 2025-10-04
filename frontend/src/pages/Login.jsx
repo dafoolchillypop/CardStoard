@@ -6,11 +6,8 @@ import api from "../api/api";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-    totp: "",
-  });
+  const { setUser, setIsLoggedIn } = useAuth();
+  const [form, setForm] = useState({ email: "", password: "", totp: "" });
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
@@ -33,7 +30,12 @@ export default function Login() {
         return;
       }
 
-      // ✅ On success, send to home
+      // Immediately fetch user and update context
+      const me = await api.get("/auth/me");
+      setUser(me.data);
+      setIsLoggedIn(true);
+
+      // On success, send to home
       navigate("/");
     } catch (err) {
       console.error("Login failed:", err);
