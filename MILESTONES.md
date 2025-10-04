@@ -4,6 +4,13 @@ This document tracks major snapshots and feature milestones in the CardStoard pr
 
 ---
 
+## v0.5 (202-10-04)
+- **AWS EC2**
+  - login/logout stable
+  - login only upon entry (no menu options until logged in)
+  - Analytics fix
+  - git cleanup
+
 ## v0.4 (2025-10-03)
 - **AWS EC2**
   - cardstoard.com domain
