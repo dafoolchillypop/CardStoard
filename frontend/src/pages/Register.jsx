@@ -6,11 +6,14 @@ import api from "../api/api";
 
 export default function Register() {
   const navigate = useNavigate();
+
   const [form, setForm] = useState({
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+  
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
@@ -28,8 +31,10 @@ export default function Register() {
 
     try {
       await api.post("/auth/register", {
+        username: form.username,
         email: form.email,
         password: form.password,
+        totp: form.totp || undefined,
       });
 
       // ✅ After successful registration, send to login
@@ -45,6 +50,14 @@ export default function Register() {
       <h2>Create Account</h2>
       {error && <p className="auth-error">{error}</p>}
       <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          name="username"
+          placeholder="Username"
+          value={form.username}
+          onChange={handleChange}
+          required
+        />
         <input
           type="email"
           name="email"

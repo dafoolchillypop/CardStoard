@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
-import pyotp, qrcode
+import pyotp, qrcode, os, jwt
 from io import BytesIO
 from base64 import b64encode
 from ..database import get_db
 from ..models import User, GlobalSettings
+from ..schemas import UserCreate
 from ..auth.security import hash_password, verify_password, create_token, get_current_user
 from ..auth.cookies import set_auth_cookie, set_access_cookie, clear_auth_cookie
-
-import os
+from ..auth.email_verify import generate_email_token, verify_email_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -22,19 +22,39 @@ class LoginIn(BaseModel):
     password: str
     totp: str | None = None
 
+#--Registration--#
+
 @router.post("/register")
-def register(payload: RegisterIn, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == payload.email).first():
-        raise HTTPException(400, "Email already registered")
-    user = User(email=payload.email, password_hash=hash_password(payload.password))
-    db.add(user)
+async def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    # Prevent duplicates
+    if db.query(User).filter((User.email == user.email) | (User.username == user.username)).first():
+        raise HTTPException(status_code=400, detail="Email or username already taken")
+
+    hashed_pw = hash_password(user.password)
+    new_user = User(
+        email=user.email,
+        username=user.username,
+        password_hash=hashed_pw,
+        is_verified=False,
+        is_active=True,
+    )
+    db.add(new_user)
     db.commit()
-    db.refresh(user)
+    db.refresh(new_user)
+
     # create default settings row for the new user
-    if not db.query(GlobalSettings).filter(GlobalSettings.user_id == user.id).first():
-        s = GlobalSettings(user_id=user.id, app_name="CardStoard")
+    if not db.query(GlobalSettings).filter(GlobalSettings.user_id == new_user.id).first():
+        s = GlobalSettings(user_id=new_user.id, app_name="CardStoard")
         db.add(s); db.commit()
-    return {"ok": True}
+
+    # Generate email verification token
+    token = generate_email_token(new_user.email)
+    verify_link = f"https://cardstoard.com/api/auth/verify?token={token}"
+
+    # TODO: send verification email (for now we just return the link)
+    return {"ok": True, "verify_link": verify_link}
+
+#--Login--#
 
 @router.post("/login")
 def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
@@ -50,6 +70,9 @@ def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
         if not totp.verify(payload.totp, valid_window=1):
             raise HTTPException(401, "Invalid MFA code")
 
+    if not user.is_verified:
+        raise HTTPException(403, "Email not verified. Please check your inbox.")
+
     access = create_token(user.id, "access")
     refresh = create_token(user.id, "refresh")
 
@@ -58,9 +81,27 @@ def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
 
     return {"ok": True}
 
+#--Verification--#
+
+@router.get("/verify")
+def verify_email(token: str, db: Session = Depends(get_db)):
+    """Confirm a user's email address."""
+    email = verify_email_token(token)
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user.is_verified:
+        return {"ok": True, "message": "Email already verified"}
+
+    user.is_verified = True
+    db.commit()
+    return {"ok": True, "message": "Email verified successfully"}
+
+#--Refresh--#
+
 @router.post("/refresh")
 def refresh(request: Request, response: Response):
-    import jwt, os
     JWT_SECRET = os.getenv("JWT_SECRET", "dev-secret-change-me")
     JWT_ALG = "HS256"
     token = request.cookies.get("refresh_token")
@@ -77,6 +118,8 @@ def refresh(request: Request, response: Response):
     set_access_cookie(response, new_access)
 
     return {"ok": True}
+
+#--Logout--#
 
 @router.post("/logout")
 def logout(response: Response):
@@ -133,5 +176,8 @@ def mfa_disable(payload: VerifyMFAIn, current: User = Depends(get_current_user),
 def me(current: User = Depends(get_current_user)):
     return {
         "id": current.id,
-        "email": current.email
+        "email": current.email,
+        "username": current.username,
+        "is_verified": current.is_verified,
+        "is_active": current.is_active,
     }

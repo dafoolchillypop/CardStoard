@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 
 class CardBase(BaseModel):
@@ -84,3 +84,17 @@ class GlobalSettings(GlobalSettingsBase):
 
     class Config:
         from_attributes = True
+
+class UserBase(BaseModel):
+    email: EmailStr
+    username: str
+
+class UserCreate(UserBase):
+    password: str
+
+class UserRead(UserBase):
+    id: int
+    is_verified: bool
+
+    class Config:
+        orm_mode = True
