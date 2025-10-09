@@ -1,18 +1,18 @@
 import React, { useContext } from "react";   // <-- add useContext here
 import { Link } from "react-router-dom";
-import LogoutButton from "./components/LogoutButton";
+import AppHeader from "./components/AppHeader";
 import { AuthContext } from "./context/AuthContext";
 
 export default function App() {
   const { isLoggedIn } = useContext(AuthContext);
 
   return (
+    <>
+    <AppHeader/>
     <div className="home-container">
       {/* ✅ Logo slot */}
       <div
-        className="logo-slot"
-        style={{ textAlign: "center", marginBottom: "1rem" }}
-      >
+        className="logo-slot" style={{ textAlign: "center", marginBottom: "1rem" }}>
         <img
           src="/logo.png"
           alt="CardStoard Logo"
@@ -31,13 +31,9 @@ export default function App() {
         Track cards 📇 | Check inventory 📦 | Monitor value 📈
       </div>
 
+      {/* Navigation Bar  */}
       <nav className="home-nav"
-           style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "1rem",
-            marginTop: "1.5rem"
-          }}>
+           style={{ display: "flex", justifyContent: "center", gap: "1rem", marginTop: "1.5rem" }}>
           <Link className="nav-btn" to="/add-card">
             ➕ Add Card
           </Link>
@@ -50,16 +46,8 @@ export default function App() {
           <Link className="nav-btn" to="/admin">
             ⚙️ Admin
           </Link>
-
-        {/* ✅ Conditionally show Logout if logged in, else Login */}
-        {isLoggedIn ? (
-          <LogoutButton />
-        ) : (
-          <Link className="nav-btn" to="/login">
-            🔑 Login
-          </Link>
-        )}
       </nav>
     </div>
+    </>
   );
 }

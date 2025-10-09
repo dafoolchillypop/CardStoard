@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     api.get("/auth/me")
       .then((res) => {
+        console.log("USER:", res.data);
         setUser(res.data);
         setIsLoggedIn(true);
       })

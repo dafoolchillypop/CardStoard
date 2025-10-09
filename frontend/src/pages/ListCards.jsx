@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
+import AppHeader from "../components/AppHeader";
 import { Link } from "react-router-dom";
 import CardImages from "../components/CardImages"
 
@@ -86,7 +87,7 @@ export default function ListCards() {
 
   // Reusable centered paging + limit control block
   const PagingBlock = () => (
-    <div className="paging-controls" style={{ textAlign: "center", margin: "1rem 0", width: "100%" }}>
+    <div className="paging-controls" style={{ textAlign: "center", margin: "0rem 0", width: "100%" }}>
       {limit !== "all" && (
       <span
         onClick={prevPage}
@@ -272,141 +273,158 @@ export default function ListCards() {
   }, [sortedCards, settings]);
 
     return (
-    <div className="container" style={{ width: "100%" }}>
-      {/* Centered Back to Home link */}
-      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-        <Link className="nav-btn" to="/">Back to Home</Link>
-      </div>
+      <>
+      <AppHeader />
+      <div className="container" style={{ width: "100%" }}>
 
-      {/* Full-width header bar: title left, count right */}
-      <div
-        className="list-header"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          width: "100%",
-          padding: "0 1rem",
-          boxSizing: "border-box",
-          marginBottom: "0.5rem",
-        }}
-      >
-        <h2 style={{ margin: 0 }}>Card List</h2>
-        <span style={{ fontSize: "0.95rem", color: "#555" }}>
+        {/* Full-width header bar: title left, count right */}
+        <div
+          className="list-header"
+          style={{
+            position: "relative",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            padding: "0 1rem",
+            boxSizing: "border-box",
+            marginBottom: "0.5rem",
+          }}
+        >
+        {/* Centered title */}
+        <h2 className="page-header"
+          style={{
+            margin: 0,
+            textAlign: "center",
+            flexGrow: 1,
+          }}
+        >
+          Card List
+        </h2>
+
+        {/* Count stays on the right */}
+        <span
+          style={{
+            position: "absolute",
+            right: "1rem",
+            fontSize: "0.95rem",
+            color: "#555",
+          }}
+        >
           Showing <b>{sortedCards.length}</b> of <b>{total}</b> cards (Page {page + 1} of {totalPages})
         </span>
       </div>
 
-      {/* ✅ Running Total Bar */}
-      <div
-        style={{
-        padding: "0rem 1.25rem",
-        background: "#f8f9fa",
-        color: "#2e7d32",
-        fontSize: "0.95rem",
-        display: "inline-block",
-        float: "right",
-        }}
-      >
-        Value: {fmtDollar(totalValue)}
-      </div>
+        {/* ✅ Running Total Bar */}
+        <div
+          style={{
+          padding: "0rem 1.25rem",
+          background: "#f8f9fa",
+          color: "#2e7d32",
+          fontSize: "0.95rem",
+          display: "inline-block",
+          float: "right",
+          }}
+        >
+          Value: {fmtDollar(totalValue)}
+        </div>
 
-      <div style={{ clear: "both" }} />  {/* ensures layout resets after float */}
+        <div style={{ clear: "both" }} />  {/* ensures layout resets after float */}
       
-      {cards.length === 0 ? (
-        <p style={{ textAlign: "center" }}>No cards found.</p>
-      ) : (
-        <div className="card-section" style={{ width: "100%", boxSizing: "border-box" }}>
-          {/* Top paging */}
-          <PagingBlock />
+        {cards.length === 0 ? (
+          <p style={{ textAlign: "center" }}>No cards found.</p>
+        ) : (
+          <div className="card-section" style={{ width: "100%", boxSizing: "border-box" }}>
+            {/* Top paging */}
+            <PagingBlock />
 
-        {/* Filtering */}
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
-          {!showFilter ? (
-            <button
-              onClick={() => setShowFilter(true)}
-              style={{
-              background: "none",
-              border: "none",
-              color: "#007bff",
-              cursor: "pointer",
-              textDecoration: "underline",
-              fontSize: "0.9rem",
-              }}
-            >
-              Show Filters
-            </button>
-          ) : (
-            <div style={{ display: "inline-flex", gap: "3rem", marginLeft: "10rem", alignItems: "center" }}>
-              
-              {/* Last Name filter */}
-              <div>
-                <label style={{ fontSize: "0.85rem" }}>
-                  Last Name: {" "}
-                </label>
-                <input
-                  type="text"
-                  value={lastNameFilter}
-                  onChange={(e) => setLastNameFilter(e.target.value)}
-                  placeholder="Enter last name"
-                  style={{
-                    fontSize: "0.85rem",
-                    padding: "2px 6px",
-                    width: "140px",
-                  }}
-                />
-              </div>
-
-              {/* Brand filter */}
-              <div>
-                <label style={{ fontSize: "0.85rem" }}>
-                  Brand: {" "}
-                </label>
-                <input
-                  type="text"
-                  value={brandFilter}
-                  onChange={(e) => setBrandFilter(e.target.value)}
-                  placeholder="Enter brand"
-                  style={{ fontSize: "0.85rem", padding: "2px 6px", width: "140px" }}
-                />
-              </div>
-
-              {/* Grade filter */}
-              <div>
-                <label style={{ fontSize: "0.85rem" }}>
-                  Grade:{" "}
-                  <input
-                    type="text"
-                    value={gradeFilter}
-                    onChange={(e) => setGradeFilter(e.target.value)}
-                    placeholder="Enter grade"
-                    style={{ fontSize: "0.85rem", padding: "2px 6px", width: "140px" }}
-                  />
-                </label>
-              </div>
-
-              {/* Hide button */}
+          {/* Filtering */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
+            {!showFilter ? (
               <button
-                onClick={() => {
-                  setShowFilter(false);
-                  setLastNameFilter("");
-                  setBrandFilter("");
-                }}
+                onClick={() => setShowFilter(true)}
                 style={{
-                  textAlign: "left",
-                  background: "none",
-                  border: "none",
-                  color: "#dc3545",
-                  cursor: "pointer",
-                  fontSize: "0.8rem",
-                  textDecoration: "underline",
+                background: "none",
+                border: "none",
+                color: "#007bff",
+                cursor: "pointer",
+                textDecoration: "underline",
+                fontSize: "0.9rem",
                 }}
               >
-                ✕ Hide Filters
+                Show Filters
               </button>
-            </div>
-          )}
-        </div>
+            ) : (
+              <div style={{ display: "inline-flex", gap: "3rem", marginLeft: "10rem", alignItems: "center" }}>
+              
+                {/* Last Name filter */}
+                <div>
+                  <label style={{ fontSize: "0.85rem" }}>
+                  Last Name: {" "}
+                  </label>
+                  <input
+                    type="text"
+                    value={lastNameFilter}
+                    onChange={(e) => setLastNameFilter(e.target.value)}
+                    placeholder="Enter last name"
+                    style={{
+                      fontSize: "0.85rem",
+                      padding: "2px 6px",
+                      width: "140px",
+                    }}
+                  />
+                </div>
+
+                {/* Brand filter */}
+                <div>
+                  <label style={{ fontSize: "0.85rem" }}>
+                    Brand: {" "}
+                  </label>
+                  <input
+                    type="text"
+                    value={brandFilter}
+                    onChange={(e) => setBrandFilter(e.target.value)}
+                    placeholder="Enter brand"
+                    style={{ fontSize: "0.85rem", padding: "2px 6px", width: "140px" }}
+                  />
+                </div>
+
+                {/* Grade filter */}
+                <div>
+                  <label style={{ fontSize: "0.85rem" }}>
+                    Grade:{" "}
+                    <input
+                      type="text"
+                      value={gradeFilter}
+                      onChange={(e) => setGradeFilter(e.target.value)}
+                      placeholder="Enter grade"
+                      style={{ fontSize: "0.85rem", padding: "2px 6px", width: "140px" }}
+                    />
+                  </label>
+                </div>
+
+                {/* Hide button */}
+                <button
+                  onClick={() => {
+                    setShowFilter(false);
+                    setLastNameFilter("");
+                    setBrandFilter("");
+                  }}
+                  style={{
+                    textAlign: "left",
+                    background: "none",
+                    border: "none",
+                    color: "#dc3545",
+                    cursor: "pointer",
+                    fontSize: "0.8rem",
+                    textDecoration: "underline",
+                  }}
+                >
+                  ✕ Hide Filters
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Table */}
           <div className="table-scroll" style={{ width: "100%", overflowX: "auto" }}>
@@ -628,5 +646,6 @@ export default function ListCards() {
         <CardImages card={selectedCard} onClose={() => setSelectedCard(null)} />
       )}
     </div>
+    </>
   );
 }

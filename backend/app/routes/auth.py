@@ -49,7 +49,11 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
     # Generate email verification token
     token = generate_email_token(new_user.email)
-    verify_link = f"https://cardstoard.com/api/auth/verify?token={token}"
+
+    # Dynamically set base URL depending on environment
+    backend_base_url = os.getenv("BACKEND_BASE_URL", "http://localhost:8000")
+
+    verify_link = f"{backend_base_url}/auth/verify?token={token}"
 
     # TODO: send verification email (for now we just return the link)
     return {"ok": True, "verify_link": verify_link}

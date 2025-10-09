@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../api/api";
+import AppHeader from "../components/AppHeader";
 
 export default function DeleteCard() {
   const { id } = useParams();
@@ -85,6 +86,8 @@ export default function DeleteCard() {
   };
 
   return (
+    <>
+    <AppHeader />
     <div style={{ textAlign: "center" }}>
       {/* Heading with Rookie Star */}
       <h2>
@@ -149,5 +152,6 @@ export default function DeleteCard() {
         </button>
       </div>
     </div>
+    </>
   );
 }

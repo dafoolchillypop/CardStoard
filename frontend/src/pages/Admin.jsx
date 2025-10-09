@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
+import AppHeader from "../components/AppHeader";
 import { Link } from "react-router-dom";
 import ChipsInput from "../components/ChipsInput";
 
@@ -36,11 +37,9 @@ export default function Admin() {
   if (!settings) return <p>Loading...</p>;
 
   return (
+    <>
+    <AppHeader />
     <div className="container">
-      {/* Centered Back to Home link */}
-      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-        <Link className="nav-btn" to="/">Back to Home</Link>
-      </div>
       
       <h2 className="page-header">Admin Settings</h2>
 
@@ -129,5 +128,6 @@ export default function Admin() {
         <button type="submit">Save Settings</button>
       </form>
     </div>
+    </>
   );
 }

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/api";
+import AppHeader from "../components/AppHeader"
 import {
   LineChart,
   Line,
@@ -75,11 +76,9 @@ export default function Analytics() {
   };
 
   return (
+    <>
+    <AppHeader />
     <div className="container" style={{ textAlign: "center" }}>
-      {/* Centered Back to Home link */}
-      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-        <Link className="nav-btn" to="/">Back to Home</Link>
-      </div>
 
       <h2 className="page-header">📈 Collection Analytics</h2>
 
@@ -219,5 +218,6 @@ export default function Analytics() {
         </table>
       </div>
     </div>
+    </>
   );
 }

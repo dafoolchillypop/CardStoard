@@ -1,9 +1,18 @@
 import axios from "axios";
 import { logoutHandler } from "../utils/logoutHandler";
 
-// Use env variable if available, fallback to localhost for dev
+// Detect environment
+const isLocal = window.location.hostname === "localhost";
+
+// Dynamically choose baseURL
+const baseURL = process.env.REACT_APP_API_BASE 
+  || (isLocal 
+        ? "http://localhost:8000"       // Local dev
+        : "https://cardstoard.com/api"  // Production default
+     );
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE || "http://localhost:8000",
+  baseURL,
   withCredentials: true,
 });
 
@@ -12,7 +21,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       console.warn("Session expired, logging out...");
-      logoutHandler(); // ensure session clears
+      logoutHandler();
     }
     return Promise.reject(error);
   }

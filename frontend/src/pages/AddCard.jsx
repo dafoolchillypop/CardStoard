@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
+import AppHeader from "../components/AppHeader";
 import { Link } from "react-router-dom";
 
 export default function AddCard() {
@@ -60,12 +61,11 @@ export default function AddCard() {
   };
 
   return (
+    <>
+    <AppHeader/>
     <div className="container">
       {/* Centered Back to Home link */}
-      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-        <Link className="nav-btn" to="/">Back to Home</Link>
-      </div>
-      
+
       <h2 className="page-header">Add Card</h2>
       
       <form onSubmit={handleSubmit}>
@@ -186,5 +186,6 @@ export default function AddCard() {
         <button type="submit">Add Card</button>
       </form>
     </div>
+    </>
   );
 }

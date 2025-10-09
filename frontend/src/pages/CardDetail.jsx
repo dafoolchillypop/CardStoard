@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api/api";
+import AppHeader from "../components/AppHeader";
 
 export default function CardDetail() {
   const { id } = useParams();
@@ -73,6 +74,8 @@ export default function CardDetail() {
   }
 
   return (
+    <>
+    <AppHeader />
     <div style={{ textAlign: "center" }}>
       {/* Heading with Rookie Star */}
       <h2>
@@ -134,5 +137,6 @@ export default function CardDetail() {
         <Link to="/list-cards" className="nav-btn">⬅ Back to List</Link>
       </div>
     </div>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
+import AppHeader from "../components/AppHeader";
 import { useParams, Link, useNavigate } from "react-router-dom";
 
 export default function UpdateCard() {
@@ -64,6 +65,8 @@ export default function UpdateCard() {
   if (!card) return <p>Loading...</p>;
 
   return (
+    <>
+    <AppHeader />
     <div className="container">
       {/* Centered Back to Home link */}
       <div style={{ textAlign: "center", marginBottom: "1rem" }}>
@@ -201,5 +204,6 @@ export default function UpdateCard() {
         <button type="submit">Update Card</button>
       </form>
     </div>
+    </>
   );
 }

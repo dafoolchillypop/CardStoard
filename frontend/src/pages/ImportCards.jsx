@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/api";
+import AppHeader from "../components/AppHeader";
 
 export default function ImportCards() {
   const [file, setFile] = useState(null);
@@ -29,6 +30,8 @@ export default function ImportCards() {
   };
 
   return (
+    <>
+    <AppHeader />
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
       <h2>Import Cards</h2>
       <input type="file" onChange={handleFileChange} />
@@ -50,5 +53,6 @@ export default function ImportCards() {
         </div>
       )}
     </div>
+    </>
   );
 }

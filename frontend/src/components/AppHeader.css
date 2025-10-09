@@ -1,0 +1,84 @@
+.app-header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fc;
+  padding: 0.5rem 1.25rem;
+  border-bottom: 2px solid #ddd;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+.app-header-left,
+.app-header-right {
+  display: flex;
+  align-items: center;
+}
+
+/* ✅ True center alignment */
+.app-header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* --- Logo & Title --- */
+.app-header-logo {
+  height: 50px;
+  width: auto;
+  vertical-align: middle;
+}
+
+.app-header-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #003366;
+  text-decoration: none;
+  margin-left: 0.5rem;
+  font-family: "Segoe UI", "Open Sans", sans-serif;
+}
+
+/* --- User Info --- */
+.user-info {
+  font-size: 1rem;
+  color: #333;
+  margin-right: 0.75rem;
+}
+
+.user-id {
+  color: #777;
+  font-size: 0.9rem;
+}
+
+/* --- Button Styling (Shared for Home + Logout) --- */
+.header-btn {
+  background: linear-gradient(135deg, #0055cc, #007bff);
+  color: #fff;
+  border: none;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.25s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 85, 204, 0.3);
+}
+
+.header-btn:hover {
+  background: linear-gradient(135deg, #0044aa, #0066dd);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 85, 204, 0.4);
+}
+
+.header-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 3px rgba(0, 85, 204, 0.3);
+}
+
+/* --- Spacing adjustments --- */
+.app-header-right button {
+  margin-left: 0.5rem;
+}
