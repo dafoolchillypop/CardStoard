@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from .database import engine, Base
-from .routes import cards, rtr_settings, auth, analytics #, balls, packs, boxes, auth
+from .routes import cards, rtr_settings, auth, analytics, email_test #, balls, packs, boxes, auth
 from .config import cfg_settings
 from .auth.cookies import set_access_cookie
 import os
@@ -55,6 +55,7 @@ app.include_router(cards.router)
 app.include_router(rtr_settings.router)
 app.include_router(auth.router)
 app.include_router(analytics.router)
+app.include_router(email_test.router)
 #app.include_router(balls.router, prefix="/balls", tags=["balls"])
 #app.include_router(packs.router, prefix="/packs", tags=["packs"])
 #app.include_router(boxes.router, prefix="/boxes", tags=["boxes"])

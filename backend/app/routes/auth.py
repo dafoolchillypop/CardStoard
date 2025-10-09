@@ -10,6 +10,7 @@ from ..schemas import UserCreate
 from ..auth.security import hash_password, verify_password, create_token, get_current_user
 from ..auth.cookies import set_auth_cookie, set_access_cookie, clear_auth_cookie
 from ..auth.email_verify import generate_email_token, verify_email_token
+from ..utils.email_service import send_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -47,16 +48,29 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
         s = GlobalSettings(user_id=new_user.id, app_name="CardStoard")
         db.add(s); db.commit()
 
-    # Generate email verification token
-    token = generate_email_token(new_user.email)
-
     # Dynamically set base URL depending on environment
     backend_base_url = os.getenv("BACKEND_BASE_URL", "http://localhost:8000")
 
+    # Generate verification link
+    token = generate_email_token(new_user.email)
     verify_link = f"{backend_base_url}/auth/verify?token={token}"
 
-    # TODO: send verification email (for now we just return the link)
-    return {"ok": True, "verify_link": verify_link}
+    # verification email structure
+    subject = "Verify your CardStoard account"
+    body = f"""
+    Welcome to CardStoard!
+
+    Please verify your email by clicking the link below:
+
+    {verify_link}
+
+    If you did not register for CardStoard, please ignore this message.
+    """
+    
+    # send verification email
+    send_email(new_user.email, subject, body)
+    
+    return {"ok": True, "message": f"Verification email sent to {new_user.email}"}
 
 #--Login--#
 

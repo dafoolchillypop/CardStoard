@@ -1,4 +1,5 @@
 fastapi
+fastapi-mail==1.4.1
 uvicorn
 sqlalchemy
 psycopg2-binary
