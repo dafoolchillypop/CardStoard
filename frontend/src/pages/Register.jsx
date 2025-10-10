@@ -46,12 +46,13 @@ export default function Register() {
           "Please click the link in that email to activate your account."
       );
 
-      navigate("/login");
+      // ✅ Give the alert time before navigation
+      setTimeout(() => navigate("/login"), 200);
     } catch (err) {
       console.error("Registration failed:", err);
       setError(err.response?.data?.detail || "Registration failed");
     }
-  }; // ✅ This closing brace is critical!
+  };
 
   return (
     <div className="auth-container">
