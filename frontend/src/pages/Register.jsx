@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api/api";
-// import "./Auth.css";
+import Modal from "../components/Modal";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -19,6 +19,8 @@ export default function Register() {
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  const [modalOpen, setModalOpen] = useState(false);
 
   // ✅ async function wrapper here
   const handleSubmit = async (e) => {
@@ -40,14 +42,8 @@ export default function Register() {
 
       console.log("Registration response:", res.data);
 
-      alert(
-        "Registration successful! 🎉\n\n" +
-          "A verification email has been sent to your inbox.\n" +
-          "Please click the link in that email to activate your account."
-      );
+      setModalOpen(true);
 
-      // ✅ Give the alert time before navigation
-      setTimeout(() => navigate("/login"), 5000);
     } catch (err) {
       console.error("Registration failed:", err);
       setError(err.response?.data?.detail || "Registration failed");
@@ -98,6 +94,16 @@ export default function Register() {
       <p>
         Already have an account? <Link to="/login">Login</Link>
       </p>
+
+      {/* ✅ Success Modal */}
+      <Modal
+        isOpen={modalOpen}
+        title="Registration Successful 🎉"
+        message="A verification email has been sent to your inbox. 
+                Please click the link in that email to activate your account."
+        onConfirm={() => navigate("/login")}
+        onClose={() => setModalOpen(false)}
+      />
     </div>
   );
 }
