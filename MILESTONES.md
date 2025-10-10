@@ -4,7 +4,15 @@ This document tracks major snapshots and feature milestones in the CardStoard pr
 
 ---
 
-## v0.5 (202-10-04)
+## v0.6 (2025-10-10)
+- **Email/SMTP, User model, AppHeader**
+  - email registration/validation via SMTP
+  - movement btw dev and EC2 (env vars)
+  - standardized app header with global id, home, and logout
+  - login present only for unauthenticated users
+  - user model includes is_vedrified, is_active
+
+## v0.5 (2025-10-04)
 - **AWS EC2**
   - login/logout stable
   - login only upon entry (no menu options until logged in)
