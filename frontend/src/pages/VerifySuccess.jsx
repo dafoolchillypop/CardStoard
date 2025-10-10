@@ -1,62 +1,62 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import "./VerifySuccess.css";
 
 export default function VerifySuccess() {
   const navigate = useNavigate();
 
+  // ⏱️ Auto-redirect after 5 seconds
   useEffect(() => {
-    const timer = setTimeout(() => navigate("/login"), 5000);
+    const timer = setTimeout(() => {
+      navigate("/login");
+    }, 5000);
     return () => clearTimeout(timer);
   }, [navigate]);
 
+  const handleContinue = () => {
+    navigate("/login");
+  };
+
   return (
-    <div
-      style={{
-        textAlign: "center",
-        marginTop: "6rem",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}
-    >
-      {/* ✅ CardStoard Logo */}
+    <div className="verify-container">
+      {/* ✅ App logo */}
       <img
         src="/logo.png"
         alt="CardStoard Logo"
-        style={{
-          width: "480px",
-          height: "auto",
-          marginBottom: "2rem",
-        }}
+        className="verify-logo"
       />
 
-      <h2 style={{ fontSize: "1.8rem", color: "#222", marginBottom: "1rem" }}>
-        ✅ Email Verified Successfully
-      </h2>
-      <p style={{ fontSize: "1.1rem", color: "#444", marginBottom: "1rem" }}>
-        Your CardStoard account is now active.
-      </p>
-      <p style={{ fontSize: "1rem", color: "#666" }}>
-        Redirecting to login in <b>5 seconds...</b>
+      {/* ✅ Animated checkmark icon */}
+      <div className="verify-icon">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#00aaff"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="icon-check"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <path d="M8 12l3 3 5-5" />
+        </svg>
+      </div>
+
+      {/* ✅ Success message */}
+      <h2>Email Verified 🎉</h2>
+      <p className="verify-message">
+        Your email address has been successfully verified.<br />
+        You can now log in and start tracking your collection.
       </p>
 
-      {/* Optional direct button */}
-      <button
-        onClick={() => navigate("/login")}
-        style={{
-          marginTop: "2rem",
-          padding: "0.7rem 1.5rem",
-          fontSize: "1rem",
-          border: "none",
-          borderRadius: "6px",
-          backgroundColor: "#0078d7",
-          color: "#fff",
-          cursor: "pointer",
-          transition: "background-color 0.2s ease",
-        }}
-      >
-        Go to Login Now
+      <button className="nav-btn" onClick={handleContinue}>
+        Continue to Login
       </button>
+
+      <p style={{ marginTop: "1rem", fontSize: "0.9rem", color: "#777" }}>
+        You’ll be redirected automatically in 5 seconds...
+      </p>
     </div>
   );
 }
