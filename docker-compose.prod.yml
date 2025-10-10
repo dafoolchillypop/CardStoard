@@ -23,7 +23,7 @@ services:
       dockerfile: Dockerfile
     container_name: stoarback
     env_file:
-      - ./backend/.env
+      - ./backend/.env.prd
     restart: unless-stopped
     depends_on:
       stoardb:
