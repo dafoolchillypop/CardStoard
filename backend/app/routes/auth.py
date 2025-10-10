@@ -101,20 +101,27 @@ def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
 
 #--Verification--#
 
+from fastapi.responses import RedirectResponse, HTMLResponse
+
 @router.get("/verify")
 def verify_email(token: str, db: Session = Depends(get_db)):
-    """Confirm a user's email address."""
+    """Confirm a user's email address and redirect to success page."""
     email = verify_email_token(token)
     user = db.query(User).filter(User.email == email).first()
+
+    # Dynamically set base URL depending on environment
+    frontend_base_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:3000")
+
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        # Optional: redirect to a frontend error page instead of raising HTTPException
+        return RedirectResponse(url=f"{frontend_base_url}/verify-error")
 
-    if user.is_verified:
-        return {"ok": True, "message": "Email already verified"}
+    if not user.is_verified:
+        user.is_verified = True
+        db.commit()
 
-    user.is_verified = True
-    db.commit()
-    return {"ok": True, "message": "Email verified successfully"}
+    # ✅ Redirect to frontend success page
+    return RedirectResponse(url=f"{frontend_base_url}/verify-success")
 
 #--Refresh--#
 

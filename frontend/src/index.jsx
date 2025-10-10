@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import App from "./App";
+import VerifySuccess from "./pages/VerifySuccess";
 import AddCard from "./pages/AddCard";
 import ListCards from "./pages/ListCards";
 import ImportCards from "./pages/ImportCards";
@@ -41,6 +42,7 @@ function AppRouter() {
       {isLoggedIn && (
         <>
           <Route path="/" element={<ProtectedRoute><App /></ProtectedRoute>} />
+          <Route path="/verify-success" element={<VerifySuccess />} />
           <Route path="/add-card" element={<ProtectedRoute><AddCard /></ProtectedRoute>} />
           <Route path="/list-cards" element={<ProtectedRoute><ListCards /></ProtectedRoute>} />
           <Route path="/update-card/:id" element={<ProtectedRoute><UpdateCard /></ProtectedRoute>} />

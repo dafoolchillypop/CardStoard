@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api/api";
-//import "./Auth.css"; // reuse styles from login
+// import "./Auth.css";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -13,13 +13,14 @@ export default function Register() {
     password: "",
     confirmPassword: "",
   });
-  
+
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // ✅ async function wrapper here
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -30,20 +31,27 @@ export default function Register() {
     }
 
     try {
-      await api.post("/auth/register", {
+      const res = await api.post("/auth/register", {
         username: form.username,
         email: form.email,
         password: form.password,
         totp: form.totp || undefined,
       });
 
-      // ✅ After successful registration, send to login
+      console.log("Registration response:", res.data);
+
+      alert(
+        "Registration successful! 🎉\n\n" +
+          "A verification email has been sent to your inbox.\n" +
+          "Please click the link in that email to activate your account."
+      );
+
       navigate("/login");
     } catch (err) {
       console.error("Registration failed:", err);
       setError(err.response?.data?.detail || "Registration failed");
     }
-  };
+  }; // ✅ This closing brace is critical!
 
   return (
     <div className="auth-container">
