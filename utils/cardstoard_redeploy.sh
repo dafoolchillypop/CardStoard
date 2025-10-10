@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # --------- config ---------
-APP_DIR="/home/shawn/projects/CardStoard"
+APP_DIR="/home/ubuntu/CardStoard"
 COMPOSE_FILE="${APP_DIR}/docker-compose.prod.yml"
 LOG="/var/log/cardstoard_redeploy.log"
 # --------------------------
