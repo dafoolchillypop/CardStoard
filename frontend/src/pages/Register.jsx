@@ -47,7 +47,7 @@ export default function Register() {
       );
 
       // ✅ Give the alert time before navigation
-      setTimeout(() => navigate("/login"), 200);
+      setTimeout(() => navigate("/login"), 5000);
     } catch (err) {
       console.error("Registration failed:", err);
       setError(err.response?.data?.detail || "Registration failed");

@@ -34,6 +34,7 @@ function AppRouter() {
         <>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-success" element={<VerifySuccess />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </>
       )}
@@ -42,7 +43,6 @@ function AppRouter() {
       {isLoggedIn && (
         <>
           <Route path="/" element={<ProtectedRoute><App /></ProtectedRoute>} />
-          <Route path="/verify-success" element={<VerifySuccess />} />
           <Route path="/add-card" element={<ProtectedRoute><AddCard /></ProtectedRoute>} />
           <Route path="/list-cards" element={<ProtectedRoute><ListCards /></ProtectedRoute>} />
           <Route path="/update-card/:id" element={<ProtectedRoute><UpdateCard /></ProtectedRoute>} />

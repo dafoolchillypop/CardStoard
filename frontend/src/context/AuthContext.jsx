@@ -28,6 +28,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    const publicRoutes = ["/login", "/register", "/verify-success", "/verify-error", "/forgot-password"];
+    if (publicRoutes.includes(window.location.pathname)) {
+      setIsLoggedIn(false);
+      return; // ✅ Don’t trigger /auth/me on public routes
+    }
+
     api.get("/auth/me")
       .then((res) => {
         console.log("USER:", res.data);
