@@ -14,6 +14,7 @@ import CardDetail from "./pages/CardDetail";
 import Analytics from "./pages/Analytics";
 import Admin from "./pages/Admin";
 import Register from "./pages/Register";
+import Account from "./pages/Account";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
@@ -50,6 +51,7 @@ function AppRouter() {
           <Route path="/card-detail/:id" element={<ProtectedRoute><CardDetail /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+          <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
           <Route path="/import-cards" element={<ProtectedRoute><ImportCards /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </>

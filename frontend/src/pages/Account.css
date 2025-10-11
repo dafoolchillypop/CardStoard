@@ -1,0 +1,86 @@
+.account-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.account-subtitle {
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.account-info {
+  background: #f9f9f9;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.account-info p {
+  margin: 0.3rem 0;
+}
+
+.account-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.account-form label {
+  text-align: left;
+  font-weight: 500;
+  color: #333;
+}
+
+.account-form input {
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.nav-btn {
+  background-color: #1e88e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.nav-btn:hover {
+  background-color: #1565c0;
+}
+
+.delete-section {
+  margin-top: 2rem;
+}
+
+.delete-btn {
+  background-color: #c62828;
+}
+
+.delete-btn:hover {
+  background-color: #b71c1c;
+}
+
+.account-success {
+  color: green;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.account-error {
+  color: red;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}

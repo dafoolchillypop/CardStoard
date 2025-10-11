@@ -35,9 +35,9 @@ export default function AppHeader() {
       <div className="app-header-right">
         {user && (
           <>
-            <span className="user-info">
+            <Link to="/account" clasName="user-info-link">
               {user.username || user.email}
-            </span>
+            </Link>
             <button className="header-btn" onClick={handleLogout}>
               Logout
             </button>

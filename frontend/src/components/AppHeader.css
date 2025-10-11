@@ -82,3 +82,15 @@
 .app-header-right button {
   margin-left: 0.5rem;
 }
+
+.user-info-link {
+  color: #fff;
+  font-weight: 500;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.user-info-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
