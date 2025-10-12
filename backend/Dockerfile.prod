@@ -3,12 +3,13 @@ FROM python:3.11-slim
 
 WORKDIR /code
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies (curl, wget, build tools, Postgres, OCR)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
     build-essential \
     libpq-dev \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dockerize (for wait-for-db behavior)

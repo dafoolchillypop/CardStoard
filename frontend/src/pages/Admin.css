@@ -1,0 +1,85 @@
+.container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Section wrapper */
+.card-section {
+  background: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.card-section h3 {
+  margin-bottom: 1rem;
+  color: #1e88e5;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 0.25rem;
+}
+
+/* Labels and inputs */
+.card-section label {
+  display: block;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.4rem;
+  margin-top: 1rem;
+}
+
+.card-section input {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+/* ChipsInput spacing */
+.card-section .chips-input {
+  margin-top: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Factor grid */
+.factor-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem 1.5rem;
+  margin-top: 1rem;
+}
+
+/* Buttons */
+.nav-btn,
+button[type="submit"] {
+  background-color: #1e88e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.2s;
+}
+
+.nav-btn:hover,
+button[type="submit"]:hover {
+  background-color: #1565c0;
+}

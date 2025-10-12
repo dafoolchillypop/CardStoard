@@ -27,4 +27,17 @@ api.interceptors.response.use(
   }
 );
 
+// 🔹 Smart Fill helper
+export const smartFill = async (first, last, brand, year) => {
+  try {
+    const res = await api.get("/cards/smart-fill", {
+      params: { first_name: first, last_name: last, brand, year }
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Smart fill error:", err);
+    return { status: "error", fields: {} };
+  }
+};
+
 export default api;

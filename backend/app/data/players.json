@@ -1,0 +1,26 @@
+{
+  "wade boggs": {
+    "rookie_year": 1983,
+    "cards": {
+      "Topps": 498,
+      "Donruss": 586,
+      "Fleer": 179
+    }
+  },
+  "tony gwynn": {
+    "rookie_year": 1983,
+    "cards": {
+      "Topps": 482,
+      "Donruss": 598,
+      "Fleer": 360
+    }
+  },
+  "ryne sandberg": {
+    "rookie_year": 1983,
+    "cards": {
+      "Topps": 83,
+      "Donruss": 277,
+      "Fleer": 507
+    }
+  }
+}

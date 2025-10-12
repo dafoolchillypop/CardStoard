@@ -10,6 +10,7 @@ export default function UpdateCard() {
   const [card, setCard] = useState(null);
   const [cardMakes, setCardMakes] = useState([]);
   const [cardGrades, setCardGrades] = useState([]);
+  const [smartMessage, setSmartMessage] = useState("");
 
   // Fetch global settings + card details
   useEffect(() => {
@@ -41,169 +42,217 @@ export default function UpdateCard() {
   };
 
   const handleFileUpload = async (e, type) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const formData = new FormData();
-  formData.append("file", file);
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
 
-  try {
-    const url = `/cards/${card.id}/upload-${type}`;
-    const res = await api.post(url, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    try {
+      const url = `/cards/${card.id}/upload-${type}`;
+      const res = await api.post(url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-    // ✅ Update local state with the new image path
-    setCard((prev) => ({
-      ...prev,
-      [`${type}_image`]: res.data[`${type}_image`],
-    }));
-  } catch (err) {
-    console.error("Error uploading file:", err);
-  }
-};
+      // ✅ Update local state with the new image path
+      setCard((prev) => ({
+        ...prev,
+        [`${type}_image`]: res.data[`${type}_image`],
+      }));
+    } catch (err) {
+      console.error("Error uploading file:", err);
+    }
+  };
+
+  const handleSmartFill = async () => {
+    if (!card.first_name || !card.last_name) {
+      setSmartMessage("⚠️ First and Last name are required for Smart Fill.");
+      return;
+    }
+
+    try {
+      const res = await api.get("/cards/smart-fill", {
+        params: {
+          first_name: card.first_name,
+          last_name: card.last_name,
+          brand: card.brand || undefined,
+          year: card.year || undefined,
+        },
+      });
+
+      if (res.data.status === "ok") {
+        setCard((prev) => ({
+          ...prev,
+          rookie: res.data.fields.rookie !== undefined ? (res.data.fields.rookie ? 1 : 0) : prev.rookie,
+          card_number: res.data.fields.card_number || prev.card_number,
+        }));
+        setSmartMessage("✅ Smart Fill applied.");
+      } else {
+        setSmartMessage("ℹ️ No dictionary entry found.");
+      }
+    } catch (err) {
+      console.error(err);
+      setSmartMessage("❌ Error running Smart Fill.");
+    }
+  };
 
   if (!card) return <p>Loading...</p>;
 
   return (
     <>
-    <AppHeader />
-    <div className="container">
-      {/* Centered Back to Home link */}
-      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-        <Link className="nav-btn" to="/">Back to Home</Link>
+      <AppHeader />
+      <div className="container">
+        <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+          <Link className="nav-btn" to="/">Back to Home</Link>
+        </div>
+
+        <h2 className="page-header">Update Card</h2>
+
+        <form onSubmit={handleSubmit}>
+          <label>First Name</label>
+          <input
+            name="first_name"
+            value={card.first_name ?? ""}
+            onChange={handleChange}
+            required
+          />
+
+          <label>Last Name</label>
+          <input
+            name="last_name"
+            value={card.last_name ?? ""}
+            onChange={handleChange}
+            required
+          />
+
+          <label>Year</label>
+          <input
+            type="number"
+            name="year"
+            value={card.year ?? ""}
+            onChange={handleChange}
+          />
+
+          <label>Brand</label>
+          <select
+            name="brand"
+            value={card.brand ?? ""}
+            onChange={handleChange}
+            required
+          >
+            <option value="">-- Select Brand --</option>
+            {cardMakes.map((make, idx) => (
+              <option key={idx} value={make}>{make}</option>
+            ))}
+          </select>
+
+          <label>Card Number</label>
+          <input
+            name="card_number"
+            value={card.card_number ?? ""}
+            onChange={handleChange}
+          />
+
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              name="rookie"
+              checked={Number(card.rookie) === 1}
+              onChange={(e) =>
+                setCard({ ...card, rookie: e.target.checked ? 1 : 0 })
+              }
+            />
+            Rookie
+          </label>
+
+          <label>Grade</label>
+          <select
+            name="grade"
+            value={card.grade ?? ""}
+            onChange={handleChange}
+            required
+          >
+            <option value="">-- Select Grade --</option>
+            {cardGrades.map((grade, idx) => (
+              <option key={idx} value={grade}>{grade}</option>
+            ))}
+          </select>
+
+          <label>High Value</label>
+          <input
+            type="number"
+            step="0.01"
+            name="book_high"
+            value={card.book_high ?? ""}
+            onChange={handleChange}
+          />
+
+          <label>High-Mid Value</label>
+          <input
+            type="number"
+            step="0.01"
+            name="book_high_mid"
+            value={card.book_high_mid ?? ""}
+            onChange={handleChange}
+          />
+
+          <label>Mid Value</label>
+          <input
+            type="number"
+            step="0.01"
+            name="book_mid"
+            value={card.book_mid ?? ""}
+            onChange={handleChange}
+          />
+
+          <label>Low-Mid Value</label>
+          <input
+            type="number"
+            step="0.01"
+            name="book_low_mid"
+            value={card.book_low_mid ?? ""}
+            onChange={handleChange}
+          />
+
+          <label>Low Value</label>
+          <input
+            type="number"
+            step="0.01"
+            name="book_low"
+            value={card.book_low ?? ""}
+            onChange={handleChange}
+          />
+
+          <div>
+            <label>Front Image</label>
+            <input type="file" onChange={(e) => handleFileUpload(e, "front")} />
+            {card.front_image && (
+              <img
+                src={card.front_image}
+                alt="Front"
+                style={{ maxWidth: "200px" }}
+              />
+            )}
+          </div>
+          <div>
+            <label>Back Image</label>
+            <input type="file" onChange={(e) => handleFileUpload(e, "back")} />
+            {card.back_image && (
+              <img
+                src={card.back_image}
+                alt="Back"
+                style={{ maxWidth: "200px" }}
+              />
+            )}
+          </div>
+
+          <div className="button-row">
+            <button type="button" onClick={handleSmartFill}>✨ Smart Fill</button>
+            <button type="submit">Update Card</button>
+          </div>
+
+          {smartMessage && <p className="info-text">{smartMessage}</p>}
+        </form>
       </div>
-      
-      <h2 className="page-header">Update Card</h2>
-
-      <form onSubmit={handleSubmit}>
-        <label>First Name</label>
-        <input
-          name="first_name"
-          value={card.first_name ?? ""}
-          onChange={handleChange}
-          required
-        />
-
-        <label>Last Name</label>
-        <input
-          name="last_name"
-          value={card.last_name ?? ""}
-          onChange={handleChange}
-          required
-        />
-
-        <label>Year</label>
-        <input
-          type="number"
-          name="year"
-          value={card.year ?? ""}
-          onChange={handleChange}
-        />
-
-        {/* ✅ Brand dropdown from settings */}
-        <label>Brand</label>
-        <select
-          name="brand"
-          value={card.brand ?? ""}
-          onChange={handleChange}
-          required
-        >
-          <option value="">-- Select Brand --</option>
-          {cardMakes.map((make, idx) => (
-            <option key={idx} value={make}>{make}</option>
-          ))}
-        </select>
-
-        <label>Card Number</label>
-        <input
-          name="card_number"
-          value={card.card_number ?? ""}
-          onChange={handleChange}
-        />
-
-        <label className="checkbox-label">
-        <input
-          type="checkbox"
-          name="rookie"
-          checked={Number(card.rookie) === 1}
-          onChange={(e) => setCard({ ...card, rookie: e.target.checked ? 1 : 0 })}
-        />
-        Rookie
-        </label>
-
-        {/* ✅ Grade dropdown from settings */}
-        <label>Grade</label>
-        <select
-          name="grade"
-          value={card.grade ?? ""}
-          onChange={handleChange}
-          required
-        >
-          <option value="">-- Select Grade --</option>
-          {cardGrades.map((grade, idx) => (
-            <option key={idx} value={grade}>{grade}</option>
-          ))}
-        </select>
-
-        <label>High Value</label>
-        <input
-          type="number"
-          step="0.01"
-          name="book_high"
-          value={card.book_high ?? ""}
-          onChange={handleChange}
-        />
-
-        <label>High-Mid Value</label>
-        <input
-          type="number"
-          step="0.01"
-          name="book_high_mid"
-          value={card.book_high_mid ?? ""}
-          onChange={handleChange}
-        />
-
-        <label>Mid Value</label>
-        <input
-          type="number"
-          step="0.01"
-          name="book_mid"
-          value={card.book_mid ?? ""}
-          onChange={handleChange}
-        />
-
-        <label>Low-Mid Value</label>
-        <input
-          type="number"
-          step="0.01"
-          name="book_low_mid"
-          value={card.book_low_mid ?? ""}
-          onChange={handleChange}
-        />
-
-        <label>Low Value</label>
-        <input
-          type="number"
-          step="0.01"
-          name="book_low"
-          value={card.book_low ?? ""}
-          onChange={handleChange}
-        />
-        
-        <div>
-          <label>Front Image</label>
-          <input type="file" onChange={(e) => handleFileUpload(e, "front")} />
-          {card.front_image && (<img src={card.front_image} alt="Front" style={{ maxWidth: "200px" }} />)}
-        </div>
-        <div>
-          <label>Back Image</label>
-          <input type="file" onChange={(e) => handleFileUpload(e, "back")} />
-          {card.back_image && (<img src={card.back_image} alt="Front" style={{ maxWidth: "200px" }} />)}
-        </div>
-
-        <button type="submit">Update Card</button>
-      </form>
-    </div>
     </>
   );
 }

@@ -6,10 +6,12 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /code
 
-# Install system dependencies for dockerize and other tools
-RUN apt-get update && apt-get install && apt-get install wget -y \
+# Install system dependencies: build tools, wget/curl, and OCR
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
     curl \
     build-essential \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 # Install dockerize
@@ -21,13 +23,13 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 # Copy Python dependencies
 COPY requirements.txt .
 
-# Install Python dependencies, including python-multipart
+# Install Python dependencies (includes python-multipart for uploads)
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
 
-# Create photo upload dir 
+# Ensure upload dir exists
 RUN mkdir -p /code/app/static/cards
 
 # Default command: wait for DB, then start Uvicorn

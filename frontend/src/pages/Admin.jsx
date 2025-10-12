@@ -3,6 +3,7 @@ import api from "../api/api";
 import AppHeader from "../components/AppHeader";
 import { Link } from "react-router-dom";
 import ChipsInput from "../components/ChipsInput";
+import "./Admin.css";
 
 export default function Admin() {
   const [settings, setSettings] = useState(null);

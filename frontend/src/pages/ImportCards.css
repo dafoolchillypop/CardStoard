@@ -1,0 +1,69 @@
+.import-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.import-container h2 {
+  margin-bottom: 0.25rem;
+}
+
+.import-subtitle {
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.import-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.import-input {
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  max-width: 400px;
+  font-size: 1rem;
+}
+
+.nav-btn {
+  background-color: #1e88e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.nav-btn:hover {
+  background-color: #1565c0;
+}
+
+.import-success {
+  color: green;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+.import-error {
+  color: red;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+.import-links {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}

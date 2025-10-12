@@ -506,3 +506,31 @@ td.card-value-col {
   font-size: 0.9rem;
   margin-left: 0.5rem;
 }
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;  /* vertical centering */
+  gap: 6px;             /* spacing between box + text */
+  line-height: 1;       /* avoids text offset */
+  vertical-align: middle;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin: 0;            /* remove browser default margin */
+  position: relative;
+  top: 0;               /* make sure it doesn’t sit too low */
+}
+
+.rookie-container {
+  display: flex;
+  flex-direction: column; /* stack checkbox and label */
+  align-items: center;    /* center horizontally */
+  margin: 10px 0;
+}
+
+.rookie-label {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  text-align: center;
+  font-weight: bold;
+}

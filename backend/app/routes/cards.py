@@ -1,10 +1,11 @@
 # Standard library
-import csv
-import io
-import shutil, os
+import io, os, csv, shutil, json
+from pathlib import Path
+from typing import Optional
 
 # Third-party
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 # Local
@@ -15,6 +16,11 @@ from ..database import get_db
 from ..auth.security import get_current_user
 from ..models import Card, User
 
+# OCR / Card Identification
+#from app.services.image_pipeline import run_crop_pipeline, CardCropError, run_ocr, structured_ocr
+#from app.services.quickadd_parser import parse_card_back
+#from app.services.fuzzy_match import fuzzy_match_name, fuzzy_match_brand
+
 router = APIRouter(prefix="/cards", tags=["cards"])
 
 # Photo upload location
@@ -22,6 +28,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_DIR = os.path.join(BASE_DIR, "static", "cards")
 os.makedirs(UPLOAD_DIR, exist_ok=True)   # ✅ ensure dir exists
 
+# Dictionary JSON
+DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "players.json"
+
+with open(DATA_PATH, "r") as f:
+    PLAYER_DICTIONARY = json.load(f)
 
 # Card Photos
 @router.post("/{card_id}/upload-front")
@@ -52,7 +63,6 @@ def upload_front(
     db.refresh(card)
 
     return {"message": "Front image uploaded", "front_image": card.front_image}
-
 
 @router.post("/{card_id}/upload-back")
 def upload_back(
@@ -153,7 +163,6 @@ async def import_cards(
     "message": f"Successfully imported {len(new_cards)} cards."
     }
 
-
 # Create a card
 @router.post("/", response_model=schemas.Card)
 def create_card(card: schemas.CardCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user),):
@@ -175,6 +184,32 @@ def count_cards(db: Session = Depends(get_db), current: User = Depends(get_curre
     total = db.query(models.Card).filter(Card.user_id == current.id).count()
     return {"count": total}
 
+# Smart Fill
+@router.get("/smart-fill")
+async def smart_fill(
+    first_name: str,
+    last_name: str,
+    brand: Optional[str] = None,
+    year: Optional[int] = None
+):
+    try:
+        full_name = f"{first_name.strip()} {last_name.strip()}".lower()
+        data = PLAYER_DICTIONARY.get(full_name)
+
+        if not data:
+            return {"status": "not_found", "fields": {}}
+
+        fields = {}
+        if year is not None:
+            fields["rookie"] = (year == data["rookie_year"])
+        if brand and brand in data["cards"]:
+            fields["card_number"] = data["cards"][brand]
+
+        return {"status": "ok", "fields": fields, "dictionary": data}
+
+    except Exception as e:
+        return {"detail": f"Unexpected error in smart-fill: {repr(e)}"}
+    
 # Read one card
 @router.get("/{card_id}", response_model=schemas.Card)
 def read_card(card_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user),):
@@ -196,6 +231,28 @@ def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends
     db.commit()
     db.refresh(card)
     return card
+
+# Identify a card
+#@router.post("/identify")
+#async def identify_card(file: UploadFile = File(...)):
+#    try:
+#        content = await file.read()
+#        result = run_crop_pipeline(content)
+#        dbg = result["debug"]
+#
+#        # Run structured OCR instead of full-image OCR
+#        structured = structured_ocr(result["cropped_image"])
+#
+#        return {
+#            "status": "ok",
+#            "pipeline": dbg,
+#            "ocr": structured
+#        }
+#
+#    except CardCropError as e:
+#        raise HTTPException(status_code=400, detail=str(e))
+#    except Exception as e:
+#        raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
 
 # Delete a card
 @router.delete("/{card_id}")
@@ -227,6 +284,44 @@ def delete_card(
     db.delete(card)
     db.commit()
     return {"ok": True, "message": "Card and associated images deleted"}
+
+# AI Quick Add
+#@router.post("/quick-add")
+#async def quick_add(file: UploadFile = File(...)):
+#    try:
+#        contents = await file.read()
+#        image = Image.open(io.BytesIO(contents)).convert("L")  # PIL grayscale
+#
+#        # OCR (only once, only with PIL image)
+#        ocr_text = pytesseract.image_to_string(image)
+#
+#        # Parse OCR into structured fields
+#        fields = structured_ocr(ocr_text)
+#
+#        # 🔹 Run fuzzy matching cleanup
+#        matched = fuzzy_match_name(fields.get("first_name", ""), fields.get("last_name", ""))
+#        if matched:
+#            fields["first_name"] = matched["first_name"]
+#            fields["last_name"] = matched["last_name"]
+#            # fill in year if missing
+#            if not fields.get("year"):
+#                fields["year"] = matched["rookie_year"]
+#            # try brand detection if missing
+#            if not fields.get("brand"):
+#                fields["brand"] = fuzzy_match_brand(ocr_text)
+#
+#        return JSONResponse(content={
+#            "status": "ok",
+#            "pipeline": {"steps": ["PIL load", "grayscale", "tesseract OCR", "structured parsing", "fuzzy match"]},
+#            "ocr_text": ocr_text,
+#            "fields": fields
+#        })
+#
+#    except Exception as e:
+#        return JSONResponse(
+#            content={"detail": f"Unexpected error in quick-add: {repr(e)}"},
+#            status_code=500
+#        )
 
 # Calculate Market Factor
 def calculate_market_factor(card, settings):
