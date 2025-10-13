@@ -534,3 +534,17 @@ td.card-value-col {
   text-align: center;
   font-weight: bold;
 }
+
+.smartfill-container {
+  display: flex;
+  flex-direction: column; /* stack checkbox and label */
+  align-items: center;    /* center horizontally */
+  margin: 10px 0;
+}
+
+.smartfill-label {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  text-align: center;
+  font-weight: bold;
+}

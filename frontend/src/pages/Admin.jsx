@@ -54,16 +54,17 @@ export default function Admin() {
       <div className="container">
         <h2 className="page-header">Admin Settings</h2>
 
-        <div className="setting-row">
-          <label>Enable Smart Fill</label>
-          <input
-            type="checkbox"
-            checked={settings.enable_smart_fill}
-            onChange={handleToggle}
-          />
-        </div>
+        <div className="smartfill-container">
+            <input
+              type="checkbox"
+              name="smart"
+              checked={settings.enable_smart_fill}
+              onChange={handleToggle}
+            />
+            <div className="smartfill-label">Smart Fill</div>
+          </div>
 
-        <form className="settings-form" onSubmit={handleSubmit}>
+         <form className="settings-form" onSubmit={handleSubmit}>
           {/* General Settings */}
           <div className="card-section">
             <h3>General Settings</h3>
