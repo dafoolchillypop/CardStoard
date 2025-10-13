@@ -652,8 +652,20 @@ export default function ListCards() {
 
                       {/* Actions */}
                       <td className="action-col actions-col" style={{ textAlign: "center" }}>
-                        <Link to={`/update-card/${card.id}`} className="nav-btn">Update</Link>{" "}
-                        <Link to={`/delete-card/${card.id}`} className="nav-btn">Delete</Link>
+                        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+                          <Link 
+                            to={`/update-card/${card.id}`} 
+                            className="small-btn"
+                          >
+                            Update
+                          </Link>
+                          <Link 
+                            to={`/delete-card/${card.id}`} 
+                            className="small-btn"
+                          >
+                            Delete
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   );
