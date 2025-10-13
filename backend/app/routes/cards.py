@@ -190,9 +190,20 @@ async def smart_fill(
     first_name: str,
     last_name: str,
     brand: Optional[str] = None,
-    year: Optional[int] = None
+    year: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current: models.User = Depends(get_current_user),
 ):
     try:
+        # ✅ Check global settings for this user
+        settings = db.query(models.GlobalSettings).filter(
+            models.GlobalSettings.user_id == current.id
+        ).first()
+
+        if not settings or not settings.enable_smart_fill:
+            return {"status": "disabled", "fields": {}}
+
+        # ✅ Normalize the name for lookup
         full_name = f"{first_name.strip()} {last_name.strip()}".lower()
         data = PLAYER_DICTIONARY.get(full_name)
 

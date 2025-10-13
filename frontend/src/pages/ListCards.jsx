@@ -87,26 +87,39 @@ export default function ListCards() {
 
   // Reusable centered paging + limit control block
   const PagingBlock = () => (
-    <div className="paging-controls" style={{ textAlign: "center", margin: "0rem 0", width: "100%" }}>
+    <div
+      className="paging-controls"
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: "1rem", // even spacing between items
+        margin: "0.25rem 0",
+        width: "100%",
+      }}
+    >
       {limit !== "all" && (
-      <span
-        onClick={prevPage}
-        style={{
-          cursor: page === 0 ? "not-allowed" : "pointer",
-          opacity: page === 0 ? 0.3 : 1,
-          marginRight: 12,
-          fontSize: "1.2rem",
-          userSelect: "none"
-        }}
-        aria-label="Previous page"
-      >
-        {"<"}
-      </span>
+        <span
+          onClick={prevPage}
+          style={{
+            cursor: page === 0 ? "not-allowed" : "pointer",
+            opacity: page === 0 ? 0.3 : 1,
+            fontSize: "1.2rem",
+            userSelect: "none",
+          }}
+          aria-label="Previous page"
+        >
+          {"<"}
+        </span>
       )}
 
       <label style={{ fontSize: "0.95rem" }}>
         Show{" "}
-        <select value={limit} onChange={handleLimitChange} style={{ margin: "0 0.5rem" }}>
+        <select
+          value={limit}
+          onChange={handleLimitChange}
+          style={{ margin: "0 0.5rem" }}
+        >
           <option value={10}>10</option>
           <option value={25}>25</option>
           <option value={50}>50</option>
@@ -117,19 +130,18 @@ export default function ListCards() {
       </label>
 
       {limit !== "all" && (
-      <span
-        onClick={nextPage}
-        style={{
-          cursor: (page + 1) * limit >= total ? "not-allowed" : "pointer",
-          opacity: (page + 1) * limit >= total ? 0.3 : 1,
-          marginLeft: 12,
-          fontSize: "1.2rem",
-          userSelect: "none"
-        }}
-        aria-label="Next page"
-      >
-        {">"}
-      </span>
+        <span
+          onClick={nextPage}
+          style={{
+            cursor: (page + 1) * limit >= total ? "not-allowed" : "pointer",
+            opacity: (page + 1) * limit >= total ? 0.3 : 1,
+            fontSize: "1.2rem",
+            userSelect: "none",
+          }}
+          aria-label="Next page"
+        >
+          {">"}
+        </span>
       )}
     </div>
   );
@@ -275,7 +287,7 @@ export default function ListCards() {
     return (
       <>
       <AppHeader />
-      <div className="container" style={{ width: "100%" }}>
+      <div className="list-container">
 
         {/* Full-width header bar: title left, count right */}
         <div
@@ -294,7 +306,7 @@ export default function ListCards() {
         {/* Centered title */}
         <h2 className="page-header"
           style={{
-            margin: 0,
+            margin: "1rem 0",
             textAlign: "center",
             flexGrow: 1,
           }}
@@ -309,6 +321,8 @@ export default function ListCards() {
             right: "1rem",
             fontSize: "0.95rem",
             color: "#555",
+            marginTop: "0rem",
+            marginBottom: "0rem",
           }}
         >
           Showing <b>{sortedCards.length}</b> of <b>{total}</b> cards (Page {page + 1} of {totalPages})
@@ -318,16 +332,26 @@ export default function ListCards() {
         {/* ✅ Running Total Bar */}
         <div
           style={{
-          padding: "0rem 1.25rem",
-          background: "#f8f9fa",
-          color: "#2e7d32",
-          fontSize: "0.95rem",
-          display: "inline-block",
-          float: "right",
+            display: "flex",
+            justifyContent: "flex-end",
+            marginTop: "0rem",
+            marginBottom: "0rem",
+            paddingRight: "1rem",
           }}
         >
-          Value: {fmtDollar(totalValue)}
+          <div
+            style={{
+              background: "#f8f9fa",
+              color: "#2e7d32",
+              fontSize: "0.95rem",
+              padding: "0.2rem 0.75rem",
+              borderRadius: "4px",
+            }}
+          >
+            Value: {fmtDollar(totalValue)}
+          </div>
         </div>
+
 
         <div style={{ clear: "both" }} />  {/* ensures layout resets after float */}
       
@@ -393,14 +417,14 @@ export default function ListCards() {
                 <div>
                   <label style={{ fontSize: "0.85rem" }}>
                     Grade:{" "}
-                    <input
-                      type="text"
-                      value={gradeFilter}
-                      onChange={(e) => setGradeFilter(e.target.value)}
-                      placeholder="Enter grade"
-                      style={{ fontSize: "0.85rem", padding: "2px 6px", width: "140px" }}
-                    />
                   </label>
+                  <input
+                    type="text"
+                    value={gradeFilter}
+                    onChange={(e) => setGradeFilter(e.target.value)}
+                    placeholder="Enter grade"
+                    style={{ fontSize: "0.85rem", padding: "2px 6px", width: "140px" }}
+                  />
                 </div>
 
                 {/* Hide button */}

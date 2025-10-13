@@ -53,6 +53,7 @@ class GlobalSettingsBase(BaseModel):
     app_name: Optional[str] = "CardStoard"
     card_makes: Optional[List[str]] = ["Bowman","Donruss","Fleer","Score","Topps","Upper Deck"]
     card_grades: Optional[List[str]] = ["3","1.5","1","0.8","0.4","0.2"]
+    enable_smart_fill: bool = False
 
     rookie_factor: Optional[float] = .80
     auto_factor: Optional[float] = 1.00
@@ -69,14 +70,28 @@ class GlobalSettingsBase(BaseModel):
     vintage_era_factor: Optional[float] = 1.00
     modern_era_factor: Optional[float] = 1.00
 
-
 class GlobalSettingsCreate(GlobalSettingsBase):
     pass
 
+class GlobalSettingsUpdate(BaseModel):
+    app_name: Optional[str] = None
+    card_makes: Optional[List[str]] = None
+    card_grades: Optional[List[str]] = None
+    enable_smart_fill: Optional[bool] = None
 
-class GlobalSettingsUpdate(GlobalSettingsBase):
-    pass
+    rookie_factor: Optional[float] = None
+    auto_factor: Optional[float] = None
+    mtgrade_factor: Optional[float] = None
+    exgrade_factor: Optional[float] = None
+    vggrade_factor: Optional[float] = None
+    gdgrade_factor: Optional[float] = None
+    frgrade_factor: Optional[float] = None
+    prgrade_factor: Optional[float] = None
 
+    vintage_era_year: Optional[int] = None
+    modern_era_year: Optional[int] = None
+    vintage_era_factor: Optional[float] = None
+    modern_era_factor: Optional[float] = None
 
 class GlobalSettings(GlobalSettingsBase):
     id: int

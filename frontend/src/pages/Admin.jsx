@@ -9,15 +9,15 @@ export default function Admin() {
   const [settings, setSettings] = useState(null);
 
   useEffect(() => {
-  api.get("/settings/")
-    .then(res => {
-      setSettings({
-        ...res.data,
-        card_makes: res.data.card_makes || [],
-        card_grades: res.data.card_grades || []
-      });
-    })
-    .catch(err => console.error(err));
+    api.get("/settings/")
+      .then(res => {
+        setSettings({
+          ...res.data,
+          card_makes: res.data.card_makes || [],
+          card_grades: res.data.card_grades || []
+        });
+      })
+      .catch(err => console.error(err));
   }, []);
   
   const handleChange = (e) => {
@@ -35,100 +35,119 @@ export default function Admin() {
       .catch(err => console.error(err));
   };
 
+  const handleToggle = async () => {
+    try {
+      const updated = { ...settings, enable_smart_fill: !settings.enable_smart_fill };
+      const res = await api.put("/settings/", updated);
+      setSettings(res.data);
+    } catch (err) {
+      console.error("Error updating settings:", err);
+    }
+  };
+
+  // ✅ Loading check should be here
   if (!settings) return <p>Loading...</p>;
 
   return (
     <>
-    <AppHeader />
-    <div className="container">
-      
-      <h2 className="page-header">Admin Settings</h2>
+      <AppHeader />
+      <div className="container">
+        <h2 className="page-header">Admin Settings</h2>
 
-      <form className="settings-form" onSubmit={handleSubmit}>
-        {/* General Settings */}
-        <div className="card-section">
-          <h3>General Settings</h3>
-          <label>App Name</label>
+        <div className="setting-row">
+          <label>Enable Smart Fill</label>
           <input
-            name="app_name"
-            value={settings.app_name}
-            onChange={handleChange}
-          />
-
-          <ChipsInput
-            label="Card Makes"
-            values={settings.card_makes}
-            setValues={(vals) => setSettings({ ...settings, card_makes: vals })}
-          />
-
-          <ChipsInput
-            label="Card Grades"
-            values={settings.card_grades}
-            setValues={(vals) => setSettings({ ...settings, card_grades: vals })}
-            type="text"
+            type="checkbox"
+            checked={settings.enable_smart_fill}
+            onChange={handleToggle}
           />
         </div>
 
-        {/* Factor Settings */}
-        <div className="card-section">
-          <h3>Factor Settings</h3>
-          <div className="factor-group">
-            <div>
-              <label>Rookie Factor</label>
-              <input type="number" step="0.01" name="rookie_factor" value={settings.rookie_factor} onChange={handleChange} />
-            </div>
-            <div>
-              <label>Auto Factor</label>
-              <input type="number" step="0.01" name="auto_factor" value={settings.auto_factor} onChange={handleChange} />
-            </div>
-            <div>
-              <label>MTGrade Factor</label>
-              <input type="number" step="0.01" name="mtgrade_factor" value={settings.mtgrade_factor} onChange={handleChange} />
-            </div>
-            <div>
-              <label>EXGrade Factor</label>
-              <input type="number" step="0.01" name="exgrade_factor" value={settings.exgrade_factor} onChange={handleChange} />
-            </div>
-            <div>
-              <label>VGGrade Factor</label>
-              <input type="number" step="0.01" name="vggrade_factor" value={settings.vggrade_factor} onChange={handleChange} />
-            </div>
-            <div>
-              <label>GDGrade Factor</label>
-              <input type="number" step="0.01" name="gdgrade_factor" value={settings.gdgrade_factor} onChange={handleChange} />
-            </div>
-            <div>
-              <label>FRGrade Factor</label>
-              <input type="number" step="0.01" name="frgrade_factor" value={settings.frgrade_factor} onChange={handleChange} />
-            </div>
-            <div>
-              <label>PRGrade Factor</label>
-              <input type="number" step="0.01" name="prgrade_factor" value={settings.prgrade_factor} onChange={handleChange} />
+        <form className="settings-form" onSubmit={handleSubmit}>
+          {/* General Settings */}
+          <div className="card-section">
+            <h3>General Settings</h3>
+            <label>App Name</label>
+            <input
+              name="app_name"
+              value={settings.app_name}
+              onChange={handleChange}
+            />
+
+            <ChipsInput
+              label="Card Makes"
+              values={settings.card_makes}
+              setValues={(vals) => setSettings({ ...settings, card_makes: vals })}
+            />
+
+            <ChipsInput
+              label="Card Grades"
+              values={settings.card_grades}
+              setValues={(vals) => setSettings({ ...settings, card_grades: vals })}
+              type="text"
+            />
+          </div>
+
+          {/* Factor Settings */}
+          <div className="card-section">
+            <h3>Factor Settings</h3>
+            <div className="factor-group">
+              <div>
+                <label>Rookie Factor</label>
+                <input type="number" step="0.01" name="rookie_factor" value={settings.rookie_factor} onChange={handleChange} />
+              </div>
+              <div>
+                <label>Auto Factor</label>
+                <input type="number" step="0.01" name="auto_factor" value={settings.auto_factor} onChange={handleChange} />
+              </div>
+              <div>
+                <label>MTGrade Factor</label>
+                <input type="number" step="0.01" name="mtgrade_factor" value={settings.mtgrade_factor} onChange={handleChange} />
+              </div>
+              <div>
+                <label>EXGrade Factor</label>
+                <input type="number" step="0.01" name="exgrade_factor" value={settings.exgrade_factor} onChange={handleChange} />
+              </div>
+              <div>
+                <label>VGGrade Factor</label>
+                <input type="number" step="0.01" name="vggrade_factor" value={settings.vggrade_factor} onChange={handleChange} />
+              </div>
+              <div>
+                <label>GDGrade Factor</label>
+                <input type="number" step="0.01" name="gdgrade_factor" value={settings.gdgrade_factor} onChange={handleChange} />
+              </div>
+              <div>
+                <label>FRGrade Factor</label>
+                <input type="number" step="0.01" name="frgrade_factor" value={settings.frgrade_factor} onChange={handleChange} />
+              </div>
+              <div>
+                <label>PRGrade Factor</label>
+                <input type="number" step="0.01" name="prgrade_factor" value={settings.prgrade_factor} onChange={handleChange} />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Era Settings */}
-        <div className="card-section">
-          <h3>Era Settings</h3>
-          <label>Vintage Era Year</label>
-          <input type="number" name="vintage_era_year" value={settings.vintage_era_year} onChange={handleChange} />
+          {/* Era Settings */}
+          <div className="card-section">
+            <h3>Era Settings</h3>
+            <label>Vintage Era Year</label>
+            <input type="number" name="vintage_era_year" value={settings.vintage_era_year} onChange={handleChange} />
 
-          <label>Modern Era Year</label>
-          <input type="number" name="modern_era_year" value={settings.modern_era_year} onChange={handleChange} />
+            <label>Modern Era Year</label>
+            <input type="number" name="modern_era_year" value={settings.modern_era_year} onChange={handleChange} />
 
-          <label>Vintage Era Factor</label>
-          <input type="number" step="0.01" name="vintage_era_factor" value={settings.vintage_era_factor} onChange={handleChange} />
+            <label>Vintage Era Factor</label>
+            <input type="number" step="0.01" name="vintage_era_factor" value={settings.vintage_era_factor} onChange={handleChange} />
 
-          <label>Modern Era Factor</label>
-          <input type="number" step="0.01" name="modern_era_factor" value={settings.modern_era_factor} onChange={handleChange} />
-        </div>
+            <label>Modern Era Factor</label>
+            <input type="number" step="0.01" name="modern_era_factor" value={settings.modern_era_factor} onChange={handleChange} />
+          </div>
 
-        <Link className="nav-btn" to="/import-cards">📂 Import Cards</Link>
+          <Link className="nav-btn" to="/import-cards">📂 Import Cards</Link>
 
-        <button type="submit">Save Settings</button>
-      </form>
-    </div>
+          <button type="submit">Save Settings</button>
+        </form>
+      </div>
     </>
   );
 }

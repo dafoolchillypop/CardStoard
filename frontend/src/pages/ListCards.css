@@ -1,0 +1,22 @@
+/* ListCards.css */
+
+/* Override the global .container so this page is full width */
+.list-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 0 1rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Table takes full available width */
+.list-container table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.list-container .page-header {
+  margin: 5.5rem 0 1rem;  /* top margin separates from AppHeader */
+  text-align: center;
+}
