@@ -4,6 +4,17 @@ This document tracks major snapshots and feature milestones in the CardStoard pr
 
 ---
 
+## v0.7 (2025-10-16)
+- **Smartfill, seed prep, EC2 DB exposure, profile admin**
+  - added SmartFill feature for AddCard
+  - prepped for load testing with seed data (25k records added/verified, manual login works)
+  - exposed PostGres on EC2 (server)
+  - user profile update page
+  - AddCard GUI updates
+  - GUI standardization
+  - Docker Compose v2
+  - Nightly redeploy/restart/cleanupo staged (not working)
+
 ## v0.6 (2025-10-10)
 - **Email/SMTP, User model, AppHeader**
   - email registration/validation via SMTP
