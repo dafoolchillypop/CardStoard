@@ -22,7 +22,7 @@ services:
   stoarback:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     container_name: stoarback
     env_file:
       - ./backend/.env.prd
