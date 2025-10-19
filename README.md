@@ -60,12 +60,13 @@ docker-compose -f docker-compose.prod.yml up --build -d
 ## 📌 Roadmap
 
 - [ ] MFA / TOTP authentication
-- [ ] eBay integration for live valuations
+- [ ] eBay and 3rd party API consumption for live valuations
 - [ ] Mobile-friendly UI
 - [ ] Enhanced analytics dashboards
+- [ ] Beyond cards: balls, packs, wax boxes, sets, etc.
 
 ---
 
 ## 📜 License
 
-This project is for personal use and hobby development. License TBD.
+This project is for personal use and hobby development. Copyright CardStoard 2025. All rights reserved.
