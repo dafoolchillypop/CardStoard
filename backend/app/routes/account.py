@@ -2,13 +2,11 @@ import os
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
-from ..database import get_db
-from ..models import User
-from ..auth.security import verify_password, hash_password
-from ..auth.cookies import clear_auth_cookie
-from ..auth.email_verify import generate_email_token
-from ..utils.email_service import send_email
-from ..auth.security import get_current_user
+from app.database import get_db
+from app.models import User
+from app.auth.security import verify_password, hash_password, get_current_user
+from app.auth.email_verify import generate_email_token
+from app.utils.email_service import send_email
 
 router = APIRouter(prefix="/account", tags=["account"])
 
@@ -71,5 +69,4 @@ def change_password(payload: ChangePasswordIn, db: Session = Depends(get_db), cu
 def delete_account(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     db.delete(current)
     db.commit()
-    response = {"ok": True, "message": "Account deleted successfully."}
-    return response
+    return {"ok": True, "message": "Account deleted successfully."}

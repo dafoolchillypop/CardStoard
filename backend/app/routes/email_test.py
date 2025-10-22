@@ -1,6 +1,6 @@
 # app/routes/test_email.py
-from fastapi import APIRouter, Depends, HTTPException
-from ..utils.email_service import send_email
+from fastapi import APIRouter, HTTPException
+from app.utils.email_service import send_email
 
 router = APIRouter(prefix="/test-email", tags=["email"])
 

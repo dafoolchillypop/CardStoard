@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
+from datetime import date, datetime
 
 class CardBase(BaseModel):
     first_name: str
@@ -100,6 +101,8 @@ class GlobalSettings(GlobalSettingsBase):
     class Config:
         from_attributes = True
 
+# User
+
 class UserBase(BaseModel):
     email: EmailStr
     username: str
@@ -113,3 +116,23 @@ class UserRead(UserBase):
 
     class Config:
         orm_mode = True
+
+# Valuation
+
+class SaleBase(BaseModel):
+    card_id: int
+    price: float
+    sale_date: date
+    source: Optional[str] = "eBay"
+    url: Optional[str] = None
+
+class SaleCreate(SaleBase):
+    """Schema for creating a new sale record."""
+    pass
+
+class Sale(SaleBase):
+    id: int
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

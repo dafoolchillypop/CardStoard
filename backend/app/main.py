@@ -1,10 +1,11 @@
+import os, logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from .database import engine, Base
-from .routes import cards, rtr_settings, auth, analytics, email_test, account
-from .config import cfg_settings
-from .auth.cookies import set_access_cookie
+from app.database import engine, Base
+from app.routes import cards, rtr_settings, auth, analytics, email_test, account, valuation
+from app.auth.cookies import set_access_cookie
+from app.jobs.scheduler import start_scheduler, stop_scheduler
 
 app = FastAPI(title="CardStoard")
 
@@ -44,8 +45,15 @@ async def refresh_access_token(request, call_next):
 
 @app.on_event("startup")
 def on_startup():
-    # Create tables once the app is starting and DB is available
+    logging.info("Creating tables (if not exist)")
     Base.metadata.create_all(bind=engine)
+    # only start scheduler in the worker process
+    if os.getenv("WORKER", "1") == "1":  # optional: set WORKER=1 in your env
+        start_scheduler(app.state)
+
+@app.on_event("shutdown")
+def on_shutdown():
+    stop_scheduler()
 
 # ---------------------------
 # Include routers
@@ -56,6 +64,7 @@ app.include_router(auth.router)
 app.include_router(analytics.router)
 app.include_router(email_test.router)
 app.include_router(account.router)
+app.include_router(valuation.router)
 #app.include_router(balls.router, prefix="/balls", tags=["balls"])
 #app.include_router(packs.router, prefix="/packs", tags=["packs"])
 #app.include_router(boxes.router, prefix="/boxes", tags=["boxes"])

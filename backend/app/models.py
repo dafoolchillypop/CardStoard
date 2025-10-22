@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, Float, JSON, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, Float, JSON, DateTime, Date, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from .database import Base
+from app.database import Base
 
 class User(Base):
     __tablename__ = "users"
@@ -52,6 +52,7 @@ class Card(Base):
 
     # Relationships
     user = relationship("User", back_populates="cards")
+    sales = relationship("CardSale", back_populates="card", cascade="all, delete-orphan")
 
 class GlobalSettings(Base):
     __tablename__ = "global_settings"
@@ -80,3 +81,17 @@ class GlobalSettings(Base):
     modern_era_year = Column(Integer, default=1980)
     vintage_era_factor = Column(Float, default=1.00)
     modern_era_factor = Column(Float, default=1.00)
+
+class CardSale(Base):
+    __tablename__ = "card_sales"
+
+    id = Column(Integer, primary_key=True, index=True)
+    card_id = Column(Integer, ForeignKey("cards.id", ondelete="CASCADE"), nullable=False, index=True)
+    price = Column(Float, nullable=False)
+    sale_date = Column(Date, nullable=False)
+    source = Column(String, default="eBay")
+    url = Column(String, nullable=True)   # <--- add this back
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    card = relationship("Card", back_populates="sales")
+

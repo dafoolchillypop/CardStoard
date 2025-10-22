@@ -4,13 +4,13 @@ from sqlalchemy.orm import Session
 import pyotp, qrcode, os, jwt
 from io import BytesIO
 from base64 import b64encode
-from ..database import get_db
-from ..models import User, GlobalSettings
-from ..schemas import UserCreate
-from ..auth.security import hash_password, verify_password, create_token, get_current_user
-from ..auth.cookies import set_auth_cookie, set_access_cookie, clear_auth_cookie
-from ..auth.email_verify import generate_email_token, verify_email_token
-from ..utils.email_service import send_email
+from app.database import get_db
+from app.models import User, GlobalSettings
+from app.schemas import UserCreate
+from app.auth.security import hash_password, verify_password, create_token, get_current_user
+from app.auth.cookies import set_auth_cookie, set_access_cookie, clear_auth_cookie
+from app.auth.email_verify import generate_email_token, verify_email_token
+from app.utils.email_service import send_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

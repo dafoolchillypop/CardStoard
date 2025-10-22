@@ -2,7 +2,7 @@
 
 import os
 from fastapi import Response
-from ..config import cfg_settings
+from app.config import cfg_settings
 
 IS_PROD = os.getenv("ENV") == "prod"
 

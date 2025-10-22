@@ -2,9 +2,9 @@ import datetime, jwt, bcrypt
 from fastapi import HTTPException, Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
-from ..database import get_db
-from ..models import User
-from ..config import cfg_settings   # 🔑 single source of truth
+from app.database import get_db
+from app.models import User
+from app.config import cfg_settings   # 🔑 single source of truth
 
 def hash_password(pw: str) -> str:
     return bcrypt.hashpw(pw.encode(), bcrypt.gensalt()).decode()

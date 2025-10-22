@@ -9,12 +9,12 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 # Local
-from .. import models, schemas
-from ..database import get_db
+from app import models, schemas
+from app.database import get_db
 
 # Auth imports
-from ..auth.security import get_current_user
-from ..models import Card, User
+from app.auth.security import get_current_user
+from app.models import Card, User
 
 # OCR / Card Identification
 #from app.services.image_pipeline import run_crop_pipeline, CardCropError, run_ocr, structured_ocr
