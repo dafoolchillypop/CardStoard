@@ -10,6 +10,7 @@ from app.models import Card, CardSale, User
 from app.schemas import Sale, SaleCreate
 from app.auth.security import get_current_user
 from app.jobs.scheduler import fetch_sales_job
+from app.services import cardladder_service
 
 router = APIRouter(prefix="/valuation", tags=["valuation"])
 
@@ -37,6 +38,21 @@ def create_sale(
     db.commit()
     db.refresh(new_sale)
     return new_sale
+
+# --- Fetch Card Ladder ---
+
+@router.post("/fetch-cardladder-now")
+def trigger_cardladder_fetch(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user)
+):
+    new_count = 0
+    cards = db.query(Card).filter(Card.user_id == current.id).all()
+    for card in cards:
+        new_count += cardladder_service.fetch_cardladder_sales(db, card)
+    return {"status": "ok", "inserted": new_count}
+
+# --- Fetch eBay ---
 
 @router.post("/fetch-ebay-now")
 def trigger_ebay_fetch(
