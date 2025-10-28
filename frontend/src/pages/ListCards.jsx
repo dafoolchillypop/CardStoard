@@ -1,6 +1,6 @@
 // src/pages/ListCards.jsx
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
 import { Link } from "react-router-dom";
@@ -13,6 +13,7 @@ const fmtDollar = (n) => {
 
 export default function ListCards() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [cards, setCards] = useState([]);
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(25);
@@ -62,7 +63,7 @@ export default function ListCards() {
       }
     };
     fetchCards();
-  }, [page, limit]);
+  }, [page, limit, location]);
 
   const handleLimitChange = (e) => {
     const value = e.target.value;
@@ -146,25 +147,6 @@ export default function ListCards() {
     </div>
   );
   
-  const getMarketFactor = (card, settings) => {
-    if (!settings) return 1; // fallback
-
-    const g = parseFloat(card.grade);
-    const isRookie =
-      card.rookie === "*" || card.rookie === "1" || Number(card.rookie) === 1;
-
-    if (g === 3 && isRookie) return settings.auto_factor;
-    else if (g === 3) return settings.mtgrade_factor;
-    else if (isRookie) return settings.rookie_factor;
-    else if (g === 1.5) return settings.exgrade_factor;
-    else if (g === 1) return settings.vggrade_factor;
-    else if (g === 0.8) return settings.gdgrade_factor;
-    else if (g === 0.4) return settings.frgrade_factor;
-    else if (g === 0.2) return settings.prgrade_factor;
-
-    return 1; // default
-  };
-
   // Filtering Fields
   const filteredCards = cards.filter((card) => {
     const matchesLastName = lastNameFilter
@@ -203,30 +185,10 @@ export default function ListCards() {
             aVal = parseFloat(a.grade) || 0;
             bVal = parseFloat(b.grade) || 0;
             break;
-          case "card_value": {
-            const avgBook =
-              (Number(a.book_high) +
-                Number(a.book_high_mid) +
-                Number(a.book_mid) +
-                Number(a.book_low_mid) +
-                Number(a.book_low)) /
-              5;
-
-            const bAvgBook =
-              (Number(b.book_high) +
-                Number(b.book_high_mid) +
-                Number(b.book_mid) +
-                Number(b.book_low_mid) +
-                Number(b.book_low)) /
-              5;
-
-            const aFactor = getMarketFactor(a, settings);
-            const bFactor = getMarketFactor(b, settings);
-
-            aVal = Math.round(avgBook * (Number(a.grade) || 0) * aFactor);
-            bVal = Math.round(bAvgBook * (Number(b.grade) || 0) * bFactor);
+          case "card_value":
+            aVal = Number(a.value) || 0;
+            bVal = Number(b.value) || 0;
             break;
-          }
           default:
             aVal = a[sortConfig.key];
             bVal = b[sortConfig.key];
@@ -249,40 +211,9 @@ export default function ListCards() {
   };
 
   // Add this near top of component body (after sortedCards is defined)
-  const totalValue = React.useMemo(() => {
-    if (!settings) return 0;
-
-    return sortedCards.reduce((sum, card) => {
-      const books = [
-        parseFloat(card.book_high) || 0,
-        parseFloat(card.book_high_mid) || 0,
-        parseFloat(card.book_mid) || 0,
-        parseFloat(card.book_low_mid) || 0,
-        parseFloat(card.book_low) || 0,
-      ];
-      const avgBook = books.reduce((a, b) => a + b, 0) / books.length;
-      const g = parseFloat(card.grade) || 0;
-
-      let factor = null;
-      const isRookie =
-        card.rookie === "*" ||
-        card.rookie === "1" ||
-        Number(card.rookie) === 1 ||
-        card.rookie === true;
-
-      if (g === 3 && isRookie) factor = settings.auto_factor;
-      else if (g === 3) factor = settings.mtgrade_factor;
-      else if (isRookie) factor = settings.rookie_factor;
-      else if (g === 1.5) factor = settings.exgrade_factor;
-      else if (g === 1) factor = settings.vggrade_factor;
-      else if (g === 0.8) factor = settings.gdgrade_factor;
-      else if (g === 0.4) factor = settings.frgrade_factor;
-      else if (g === 0.2) factor = settings.prgrade_factor;
-
-      const cardValue = factor !== null ? avgBook * g * factor : 0;
-      return sum + Math.round(cardValue);
-    }, 0);
-  }, [sortedCards, settings]);
+  const totalValue = React.useMemo(
+    () => sortedCards.reduce((sum, card) => sum + Math.round(Number(card.value) || 0), 0), [sortedCards]
+  );
 
     return (
       <>
@@ -480,7 +411,6 @@ export default function ListCards() {
               <tbody>
                 {sortedCards.map((card) => {
                   // --- Market Factor calculation (frontend-only) ---
-                  let factor = null;
                   const g = parseFloat(card.grade);
                   const rookieVal = card.rookie === "*" || card.rookie === "1" ||  Number(card.rookie) === 1 || card.rookie === true;
 
@@ -559,84 +489,30 @@ export default function ListCards() {
 
                       {/* Market Factor */}
                       <td className="market-col market-factor-col" style={{ textAlign: "center" }}>
-                        {settings && (() => {
-                          let factor = null;
-                          const g = parseFloat(card.grade);
-                          const rookieVal = card.rookie === "*" || card.rookie === "1" || Number(card.rookie) === 1;
-
-                          if (g === 3 && rookieVal) factor = settings.auto_factor;
-                          else if (g === 3) factor = settings.mtgrade_factor;
-                          else if (rookieVal) factor = settings.rookie_factor;
-                          else if (g === 1.5) factor = settings.exgrade_factor;
-                          else if (g === 1) factor = settings.vggrade_factor;
-                          else if (g === 0.8) factor = settings.gdgrade_factor;
-                          else if (g === 0.4) factor = settings.frgrade_factor;
-                          else if (g === 0.2) factor = settings.prgrade_factor;
-
-                          if (factor !== null) {
+                        {typeof card.market_factor === "number" ? (
+                          (() => {
+                            const f = card.market_factor;
                             let badgeClass = "badge-market-mid";
-                            if (factor >= 0.85) badgeClass = "badge-market-low";   // lighter
-                            else if (factor <= 0.5) badgeClass = "badge-market-high"; // darker
-
-                            return (
-                              <span className={`badge-market ${badgeClass}`}>
-                                {factor.toFixed(2)}
-                              </span>
-                            );
-                          }
-                          return null;
-                        })()}
+                            if (f >= 0.85) badgeClass = "badge-market-low";   // your old palette
+                            else if (f <= 0.5) badgeClass = "badge-market-high";
+                            return <span className={`badge-market ${badgeClass}`}>{f.toFixed(2)}</span>;
+                          })()
+                        ) : null}
                       </td>
 
                       {/* Card Value */}
                       <td className="value-col" style={{ textAlign: "center" }}>
-                        {settings && (() => {
-                          const books = [
-                            parseFloat(card.book_high) || 0,
-                            parseFloat(card.book_high_mid) || 0,
-                            parseFloat(card.book_mid) || 0,
-                            parseFloat(card.book_low_mid) || 0,
-                            parseFloat(card.book_low) || 0,
-                          ];
-
-                          const avgBook = books.reduce((a, b) => a + b, 0) / books.length;
-                          const g = parseFloat(card.grade) || 0;
-
-                          // Market factor logic (same as before)
-                          let factor = null;
-                          const isRookie = card.rookie === "*" || card.rookie === "1" || Number(card.rookie) === 1;
-
-                          if (g === 3 && isRookie) factor = settings.auto_factor;
-                          else if (g === 3) factor = settings.mtgrade_factor;
-                          else if (isRookie) factor = settings.rookie_factor;
-                          else if (g === 1.5) factor = settings.exgrade_factor;
-                          else if (g === 1) factor = settings.vggrade_factor;
-                          else if (g === 0.8) factor = settings.gdgrade_factor;
-                          else if (g === 0.4) factor = settings.frgrade_factor;
-                          else if (g === 0.2) factor = settings.prgrade_factor;
-
-                          const cardValue = factor !== null ? avgBook * g * factor : null;
-
-                          if (cardValue !== null) {
-                            // Round to nearest dollar
-                            const rounded = Math.round(cardValue);
-
-                            // Pick shade of green based on value
-                            let valueClass = "value-low";
-                            if (rounded >= 500) valueClass = "value-high";
-                            else if (rounded >= 200) valueClass = "value-mid";
-                            else if (rounded >= 50) valueClass = "value-lowmid";
-
-                            return (
-                            <span className={`badge badge-value ${valueClass}`}>
-                              ${rounded}
-                            </span>
-                            );
-                          }
-                          return null;
+                        {(() => {
+                          const rounded = Math.round(Number(card.value) || 0);
+                          let valueClass = "value-low";
+                          if (rounded >= 500) valueClass = "value-high";
+                          else if (rounded >= 200) valueClass = "value-mid";
+                          else if (rounded >= 50) valueClass = "value-lowmid";
+                          return <span className={`badge badge-value ${valueClass}`}>{fmtDollar(rounded)}</span>;
                         })()}
                       </td>
 
+                      {/* Card Image */}
                       <td className="image-col" style={{ textAlign: "center" }}>
                         {card.front_image ? (
                           <img

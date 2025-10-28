@@ -32,7 +32,7 @@ class Card(Base):
     card_number = Column(String, nullable=True)
     rookie = Column(Boolean, default=False)
 
-    # ✅ grade stored as float, matches schema & factor logic
+    # grade stored as float, matches schema & factor logic
     grade = Column(Float, nullable=True)
 
     # Book values
@@ -41,6 +41,9 @@ class Card(Base):
     book_mid = Column(Float, nullable=True)
     book_low_mid = Column(Float, nullable=True)
     book_low = Column(Float, nullable=True)
+
+    # Computed card value (backend valuation)
+    value = Column(Float, nullable=True)
 
     # Image paths (relative URLs)
     front_image = Column(String, nullable=True)
