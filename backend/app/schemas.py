@@ -15,6 +15,9 @@ class CardBase(BaseModel):
     book_mid: Optional[float] = None
     book_low_mid: Optional[float] = None
     book_low: Optional[float] = None
+    market_factor: Optional[float] = None
+    value: Optional[float] = None
+
 
     # ✅ Always return relative paths
     front_image: Optional[str] = None

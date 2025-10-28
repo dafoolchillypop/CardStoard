@@ -1,10 +1,10 @@
 # Standard library
 import io, os, csv, shutil, json
-from pathlib import Path
+from pathlib import Path as FSPath
 from typing import Optional
 
 # Third-party
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -15,6 +15,9 @@ from ..database import get_db
 # Auth imports
 from ..auth.security import get_current_user
 from ..models import Card, User
+
+# Card value/factor
+from ..services.card_value import calculate_card_value, calculate_market_factor, pick_avg_book
 
 # OCR / Card Identification
 #from app.services.image_pipeline import run_crop_pipeline, CardCropError, run_ocr, structured_ocr
@@ -29,7 +32,7 @@ UPLOAD_DIR = os.path.join(BASE_DIR, "static", "cards")
 os.makedirs(UPLOAD_DIR, exist_ok=True)   # ✅ ensure dir exists
 
 # Dictionary JSON
-DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "players.json"
+DATA_PATH = FSPath(__file__).resolve().parent.parent / "data" / "players.json"
 
 with open(DATA_PATH, "r") as f:
     PLAYER_DICTIONARY = json.load(f)
@@ -174,8 +177,28 @@ def create_card(card: schemas.CardCreate, db: Session = Depends(get_db), current
 
 # List all cards
 @router.get("/", response_model=list[schemas.Card])
-def read_cards(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current: User = Depends(get_current_user),):
-    cards = db.query(models.Card).filter(Card.user_id == current.id).offset(skip).limit(limit).all()
+def read_cards(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    cards = (
+        db.query(models.Card)
+        .filter(Card.user_id == current.id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    # attach market_factor (backend calc) to each card instance
+    settings = db.query(models.GlobalSettings).filter(
+        models.GlobalSettings.user_id == current.id
+    ).first()
+
+    for c in cards:
+        c.market_factor = calculate_market_factor(c, settings) if settings else None
+
     return cards
 
 # Count cards
@@ -223,10 +246,26 @@ async def smart_fill(
     
 # Read one card
 @router.get("/{card_id}", response_model=schemas.Card)
-def read_card(card_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user),):
-    card = db.query(models.Card).filter(Card.user_id == current.id).filter(models.Card.id == card_id).first()
+def read_card(
+    card_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    card = (
+        db.query(models.Card)
+        .filter(Card.user_id == current.id)
+        .filter(models.Card.id == card_id)
+        .first()
+    )
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
+
+    # attach market_factor to single card
+    settings = db.query(models.GlobalSettings).filter(
+        models.GlobalSettings.user_id == current.id
+    ).first()
+    card.market_factor = calculate_market_factor(card, settings) if settings else None
+
     return card
 
 # Update a card
@@ -238,6 +277,27 @@ def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends
 
     for field, value in updated.dict(exclude_unset=True).items():
         setattr(card, field, value)
+
+    # Recalculate market factor and value after update
+    settings = (
+        db.query(models.GlobalSettings)
+        .filter(models.GlobalSettings.user_id == current.id)
+        .first()
+    )
+    if settings:
+        from ..services.card_value import (
+            calculate_market_factor,
+            pick_avg_book,
+            calculate_card_value,
+        )
+
+        avg_book = pick_avg_book(card)
+        g = float(card.grade) if card.grade is not None else None
+        factor = calculate_market_factor(card, settings)
+        value = calculate_card_value(avg_book, g, factor)
+
+        card.market_factor = factor
+        card.value = value
 
     db.commit()
     db.refresh(card)
@@ -334,28 +394,49 @@ def delete_card(
 #            status_code=500
 #        )
 
-# Calculate Market Factor
-def calculate_market_factor(card, settings):
-    # grade and rookie come from card
-    g = float(card.grade) if card.grade else None
-    rookie = bool(card.rookie)
+@router.post("/{card_id}/value", response_model=schemas.Card)
+def compute_and_save_card_value(
+    card_id: int = Path(..., ge=1),
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    """
+    Compute value using:
+      avg_book  = pick_avg_book(card)   (prefers book_mid)
+      g         = card.grade
+      factor    = calculate_market_factor(card, settings)
 
-    if g == 3 and rookie:
-        return settings.auto_factor
-    elif g == 3:
-        return settings.mtgrade_factor
-    elif rookie:
-        return settings.rookie_factor
-    elif g == 1.5:
-        return settings.exgrade_factor
-    elif g == 1:
-        return settings.vggrade_factor
-    elif g == 0.8:
-        return settings.gdgrade_factor
-    elif g == 0.4:
-        return settings.frgrade_factor
-    elif g == 0.2:
-        return settings.prgrade_factor
-    else:
-        return None
+    Persist to cards.value and return updated card.
+    """
+    # 1) Load the card (scoped to current user)
+    card = db.query(models.Card).filter(
+        models.Card.id == card_id,
+        models.Card.user_id == current.id
+    ).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
 
+    # 2) Load settings for this user
+    settings = db.query(models.GlobalSettings).filter(
+        models.GlobalSettings.user_id == current.id
+    ).first()
+    if not settings:
+        # You can choose to treat missing settings as default values.
+        # Here we error to make it explicit.
+        raise HTTPException(status_code=400, detail="Global settings not found for user")
+
+    # 3) Build inputs for valuation
+    avg_book = pick_avg_book(card)
+    g = float(card.grade) if card.grade is not None else None
+    factor = calculate_market_factor(card, settings)
+
+    # 4) Compute via service
+    value = calculate_card_value(avg_book, g, factor)
+
+    # 5) Persist and return
+    card.value = value
+    card.market_factor = factor
+    db.add(card)
+    db.commit()
+    db.refresh(card)
+    return card
