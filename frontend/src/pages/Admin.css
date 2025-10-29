@@ -83,3 +83,18 @@ button[type="submit"] {
 button[type="submit"]:hover {
   background-color: #1565c0;
 }
+
+.modal-overlay {
+  animation: fadeIn 0.2s ease-in-out;
+}
+.modal-content {
+  animation: popIn 0.2s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
-from datetime import datetime
 from app import models
 from app.database import get_db
 from app.routes.auth import get_current_user
@@ -10,12 +9,20 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 @router.get("/")
 def get_analytics(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    # --- Totals ---
-    total_cards = db.query(models.Card).filter_by(user_id=current_user.id).count()
-    total_value = db.query(
-        func.coalesce(func.sum(models.Card.book_mid), 0)
-    ).filter_by(user_id=current_user.id).scalar()
+    
+    # --- Collection Totals ---
+    total_cards = (
+        db.query(func.count(models.Card.id))
+        .filter(models.Card.user_id == current_user.id)
+        .scalar()
+    )
 
+    total_value = (
+        db.query(func.coalesce(func.sum(models.Card.value), 0))
+        .filter(models.Card.user_id == current_user.id)
+        .scalar()
+    )
+    
     # --- Breakdown by Brand ---
     by_brand = (
         db.query(models.Card.brand, func.count(models.Card.id), func.sum(models.Card.book_mid))

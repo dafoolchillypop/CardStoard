@@ -7,6 +7,8 @@ import "./Admin.css";
 
 export default function Admin() {
   const [settings, setSettings] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   useEffect(() => {
     api.get("/settings/")
@@ -128,6 +130,37 @@ export default function Admin() {
             </div>
           </div>
 
+          {/* 💰 Apply Valuation Button */}
+          <div style={{ marginTop: "1rem", textAlign: "center" }}>
+            <button
+              onClick={async () => {
+                if (!window.confirm("Recalculate valuation for ALL cards now?")) return;
+                try {
+                  const res = await api.post("/cards/revalue-all");
+                  setModalMessage(res.data.message || `💰 Revalued ${res.data.updated} cards.`);
+                  setShowModal(true);
+                } catch (err) {
+                  console.error(err);
+                  setModalMessage("❌ Error applying valuation. See console for details.");
+                  setShowModal(true);
+                }
+              }}
+              style={{
+                backgroundColor: "#007bff",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                padding: "0.5rem 1rem",
+                cursor: "pointer",
+                fontSize: "0.95rem",
+                marginTop: "0.5rem",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
+              }}
+            >
+              💰 Apply Global Valuation
+            </button>
+          </div>
+
           {/* Era Settings */}
           <div className="card-section">
             <h3>Era Settings</h3>
@@ -148,6 +181,54 @@ export default function Admin() {
 
           <button type="submit">Save Settings</button>
         </form>
+
+        {showModal && (
+          <div
+            className="modal-overlay"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: "rgba(0,0,0,0.4)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 9999,
+            }}
+            onClick={() => setShowModal(false)}
+          >
+            <div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "#f9f9f9",
+                borderRadius: "12px",
+                padding: "1.5rem 2rem",
+                width: "320px",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+                textAlign: "center",
+              }}
+            >
+              <h3 style={{ marginBottom: "0.75rem", color: "#333" }}>Valuation Complete</h3>
+              <p style={{ color: "#444", marginBottom: "1.5rem" }}>{modalMessage}</p>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{
+                  backgroundColor: "#007bff",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  padding: "0.4rem 1rem",
+                  cursor: "pointer",
+                }}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

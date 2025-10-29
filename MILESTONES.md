@@ -1,8 +1,44 @@
 # Project Milestones
 
-This document tracks major snapshots and feature milestones in the CardStoard project.
+**This document tracks major snapshots and feature milestones in the CardStoard project.**
 
----
+**<->**
+
+## v0.8 (2025-10-27)
+- **Move valuation logic and market factor calculations to the backend**
+
+  ### Core Backend Changes
+    - **Added** `backend/app/services/card_value.py`:
+      - Implements `calculate_card_value()`, `calculate_market_factor()`, and `pick_avg_book()` for unified backend valuation.
+      - Formula now mirrors frontend logic (`avgBook * grade * factor`) and rounds to nearest dollar.
+    - **Updated** `backend/app/routes/cards.py`:
+      - `/cards/{id}/value` route now computes and persists card values server-side.
+      - Each card now includes `market_factor` in API responses.
+      - Added internal helper calls for valuation and settings lookup.
+    - **Refactored Models/Schemas:**
+      - Consolidated redundant model files under unified structure.
+      - Ensured all valuation fields (`book_*`, `grade`, `value`, `market_factor`) are accessible via ORM and API.
+
+  ### Frontend Updates
+    - **ListCards.jsx**
+      - Updated to display backend-provided `market_factor` and `value`.
+      - Still computes client-side average book values for UI parity.
+      - Added dynamic sorting, paging, and live total bar refinements.
+    - **UpdateCard.jsx**
+      - Now triggers backend revaluation automatically on grade or book value updates.
+      - Seamless navigation back to `ListCards` reflects updated values.
+
+  ### Utility Scripts
+    - **`utils/update_values.sh`**
+      - Batch revaluation script for all cards (CLI executable).
+      - Includes progress output and cookie-based authentication.
+    - **`utils/validate_cards.py`**
+      - Validation tool to flag potential data anomalies (e.g. `$0` cards).
+
+  ### Valuation Logic Summary
+    avg_book = mean([book_high, book_high_mid, book_mid, book_low_mid, book_low])
+    factor = based on grade and rookie status
+    value = round(avg_book * grade * factor)
 
 ## v0.7 (2025-10-16)
 - **Smartfill, seed prep, EC2 DB exposure, profile admin**

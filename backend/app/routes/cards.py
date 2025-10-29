@@ -161,6 +161,24 @@ async def import_cards(
 
     db.add_all(new_cards)
     db.commit()
+
+    # Apply valuation
+    settings = db.query(models.GlobalSettings).filter(
+        models.GlobalSettings.user_id == current.id
+    ).first()
+
+    if settings:
+        for card in new_cards:
+            avg_book = pick_avg_book(card)
+            g = float(card.grade) if card.grade else None
+            factor = calculate_market_factor(card, settings)
+            value = calculate_card_value(avg_book, g, factor)
+
+            card.value = value
+            card.market_factor = factor
+
+        db.commit()
+
     return {
     "imported": len(new_cards),
     "message": f"Successfully imported {len(new_cards)} cards."
@@ -440,3 +458,33 @@ def compute_and_save_card_value(
     db.commit()
     db.refresh(card)
     return card
+
+@router.post("/revalue-all")
+def revalue_all_cards(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    """Recompute and persist values for all cards belonging to the current user."""
+    cards = db.query(models.Card).filter(models.Card.user_id == current.id).all()
+    if not cards:
+        return {"updated": 0, "message": "No cards found for user."}
+
+    settings = db.query(models.GlobalSettings).filter(
+        models.GlobalSettings.user_id == current.id
+    ).first()
+    if not settings:
+        raise HTTPException(status_code=400, detail="Global settings not found for user")
+
+    updated = 0
+    for card in cards:
+        avg_book = pick_avg_book(card)
+        g = float(card.grade) if card.grade else None
+        factor = calculate_market_factor(card, settings)
+        value = calculate_card_value(avg_book, g, factor)
+
+        card.value = value
+        card.market_factor = factor
+        updated += 1
+
+    db.commit()
+    return {"updated": updated, "message": f"✅ Revalued {updated} cards."}

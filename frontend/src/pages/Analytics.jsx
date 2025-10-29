@@ -1,6 +1,5 @@
 // src/pages/Analytics.jsx
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader"
 import {
@@ -98,7 +97,6 @@ export default function Analytics() {
         <div className="summary-box">
           Unique Players: {stats.by_player.length}
         </div>
-        <div className="summary-box">Brands: {stats.by_brand.length}</div>
       </div>
 
       {/* ✅ Value Trend */}
