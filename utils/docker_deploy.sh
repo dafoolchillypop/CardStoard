@@ -96,13 +96,13 @@ check_database() {
   fi
 }
 
-# --- Helper: Backend check (with retries) ---
+# --- Helper: Backend check (internal container health) ---
 check_backend() {
-  echo -e "\n${BLUE}🔍 Checking backend API health...${NC}"
+  echo -e "\n${BLUE}🔍 Checking backend API health (inside container)...${NC}"
   for i in {1..10}; do
-    STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/health" || echo "000")
+    STATUS=$(docker exec stoarback curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health || echo "000")
     if [[ "$STATUS" == "200" ]]; then
-      echo -e "${GREEN}✅ Backend API responding correctly (HTTP 200).${NC}"
+      echo -e "${GREEN}✅ Backend API responding correctly inside container (HTTP 200).${NC}"
       return 0
     fi
     echo "⏳ Attempt $i/10: Backend not ready (HTTP $STATUS)"
