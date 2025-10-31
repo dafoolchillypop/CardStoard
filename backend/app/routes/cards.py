@@ -2,22 +2,20 @@
 import io, os, csv, shutil, json
 from pathlib import Path as FSPath
 from typing import Optional
+from datetime import datetime
 
 # Third-party
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 # Local
-from .. import models, schemas
-from ..database import get_db
-
-# Auth imports
-from ..auth.security import get_current_user
-from ..models import Card, User
-
-# Card value/factor
-from ..services.card_value import calculate_card_value, calculate_market_factor, pick_avg_book
+from app import models, schemas
+from app.database import get_db
+from app.auth.security import get_current_user
+from app.models import Card, User, ValuationHistory
+from app.services.card_value import calculate_card_value, calculate_market_factor, pick_avg_book
 
 # OCR / Card Identification
 #from app.services.image_pipeline import run_crop_pipeline, CardCropError, run_ocr, structured_ocr
@@ -412,6 +410,7 @@ def delete_card(
 #            status_code=500
 #        )
 
+# Calculate Card Value
 @router.post("/{card_id}/value", response_model=schemas.Card)
 def compute_and_save_card_value(
     card_id: int = Path(..., ge=1),
@@ -459,6 +458,7 @@ def compute_and_save_card_value(
     db.refresh(card)
     return card
 
+# Recalculate All Card Values
 @router.post("/revalue-all")
 def revalue_all_cards(
     db: Session = Depends(get_db),
@@ -486,5 +486,18 @@ def revalue_all_cards(
         card.market_factor = factor
         updated += 1
 
+    db.commit()
+    
+    total_value = db.query(func.coalesce(func.sum(models.Card.value), 0)).filter(models.Card.user_id == current.id).scalar()
+    card_count = db.query(func.count(models.Card.id)).filter(models.Card.user_id == current.id).scalar()
+
+    snapshot = ValuationHistory(
+        user_id=current.id,
+        timestamp=datetime.utcnow(),
+        total_value=float(total_value or 0),
+        card_count=card_count,
+    )
+    
+    db.add(snapshot)
     db.commit()
     return {"updated": updated, "message": f"✅ Revalued {updated} cards."}

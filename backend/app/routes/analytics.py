@@ -9,7 +9,7 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 @router.get("/")
 def get_analytics(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    
+
     # --- Collection Totals ---
     total_cards = (
         db.query(func.count(models.Card.id))
@@ -22,10 +22,14 @@ def get_analytics(db: Session = Depends(get_db), current_user: models.User = Dep
         .filter(models.Card.user_id == current_user.id)
         .scalar()
     )
-    
+
     # --- Breakdown by Brand ---
     by_brand = (
-        db.query(models.Card.brand, func.count(models.Card.id), func.sum(models.Card.book_mid))
+        db.query(
+            models.Card.brand,
+            func.count(models.Card.id),
+            func.coalesce(func.sum(models.Card.value), 0),
+        )
         .filter_by(user_id=current_user.id)
         .group_by(models.Card.brand)
         .all()
@@ -34,7 +38,11 @@ def get_analytics(db: Session = Depends(get_db), current_user: models.User = Dep
 
     # --- Breakdown by Year ---
     by_year = (
-        db.query(models.Card.year, func.count(models.Card.id), func.sum(models.Card.book_mid))
+        db.query(
+            models.Card.year,
+            func.count(models.Card.id),
+            func.coalesce(func.sum(models.Card.value), 0),
+        )
         .filter_by(user_id=current_user.id)
         .group_by(models.Card.year)
         .order_by(models.Card.year)
@@ -44,30 +52,32 @@ def get_analytics(db: Session = Depends(get_db), current_user: models.User = Dep
 
     # --- Breakdown by Player ---
     by_player = (
-        db.query(models.Card.last_name, models.Card.first_name, func.count(models.Card.id), func.sum(models.Card.book_mid))
+        db.query(
+            models.Card.last_name,
+            models.Card.first_name,
+            func.count(models.Card.id),
+            func.coalesce(func.sum(models.Card.value), 0),
+        )
         .filter_by(user_id=current_user.id)
         .group_by(models.Card.last_name, models.Card.first_name)
         .all()
     )
     by_player_out = [
-        {"name": f"{fn} {ln}", "count": c, "value": float(v or 0)}
+        {"name": f"{fn} {ln}".strip(), "count": c, "value": float(v or 0)}
         for ln, fn, c, v in by_player
     ]
 
-    # --- Trend by Month (creation + updates) ---
+    # --- Inventory Trend (creation + updates) ---
     trend_created = (
         db.query(
             extract("year", models.Card.created_at).label("year"),
             extract("month", models.Card.created_at).label("month"),
             func.count(models.Card.id).label("count"),
-            func.sum(models.Card.book_mid).label("value"),
+            func.coalesce(func.sum(models.Card.value), 0).label("value"),
         )
-        .filter(models.Card.user_id == current_user.id,
-                models.Card.created_at.isnot(None))
-        .group_by(extract("year", models.Card.created_at),
-                extract("month", models.Card.created_at))
-        .order_by(extract("year", models.Card.created_at),
-                extract("month", models.Card.created_at))
+        .filter(models.Card.user_id == current_user.id, models.Card.created_at.isnot(None))
+        .group_by(extract("year", models.Card.created_at), extract("month", models.Card.created_at))
+        .order_by(extract("year", models.Card.created_at), extract("month", models.Card.created_at))
         .all()
     )
 
@@ -76,36 +86,46 @@ def get_analytics(db: Session = Depends(get_db), current_user: models.User = Dep
             extract("year", models.Card.updated_at).label("year"),
             extract("month", models.Card.updated_at).label("month"),
             func.count(models.Card.id).label("count"),
-            func.sum(models.Card.book_mid).label("value"),
+            func.coalesce(func.sum(models.Card.value), 0).label("value"),
         )
-        .filter(models.Card.user_id == current_user.id,
-                models.Card.updated_at.isnot(None))
-        .group_by(extract("year", models.Card.updated_at),
-                extract("month", models.Card.updated_at))
-        .order_by(extract("year", models.Card.updated_at),
-                extract("month", models.Card.updated_at))
+        .filter(models.Card.user_id == current_user.id, models.Card.updated_at.isnot(None))
+        .group_by(extract("year", models.Card.updated_at), extract("month", models.Card.updated_at))
+        .order_by(extract("year", models.Card.updated_at), extract("month", models.Card.updated_at))
         .all()
     )
 
-    # Merge into dictionary keyed by YYYY-MM
     trend_dict = {}
-
     for y, m, c, v in trend_created:
         key = f"{int(y):04d}-{int(m):02d}"
-        if key not in trend_dict:
-            trend_dict[key] = {"month": key, "count": 0, "value": 0}
+        trend_dict.setdefault(key, {"month": key, "count": 0, "value": 0})
         trend_dict[key]["count"] += c
         trend_dict[key]["value"] += float(v or 0)
 
     for y, m, c, v in trend_updated:
         key = f"{int(y):04d}-{int(m):02d}"
-        if key not in trend_dict:
-            trend_dict[key] = {"month": key, "count": 0, "value": 0}
+        trend_dict.setdefault(key, {"month": key, "count": 0, "value": 0})
         trend_dict[key]["count"] += c
         trend_dict[key]["value"] += float(v or 0)
 
-    trend_out = sorted(trend_dict.values(), key=lambda x: x["month"])
+    trend_inventory = sorted(trend_dict.values(), key=lambda x: x["month"])
 
+    # --- Valuation Trend (from ValuationHistory) ---
+    valuation_trend = (
+        db.query(
+            func.to_char(models.ValuationHistory.timestamp, "YYYY-MM-DD").label("date"),
+            models.ValuationHistory.total_value,
+            models.ValuationHistory.card_count,
+        )
+        .filter(models.ValuationHistory.user_id == current_user.id)
+        .order_by(models.ValuationHistory.timestamp)
+        .all()
+    )
+
+    trend_valuation = [
+        {"month": d, "count": c, "value": float(v or 0)} for d, v, c in valuation_trend
+    ]
+
+    # --- Return Combined Analytics ---
     return {
         "total_cards": total_cards,
         "total_value": float(total_value or 0),
@@ -114,5 +134,6 @@ def get_analytics(db: Session = Depends(get_db), current_user: models.User = Dep
         "by_brand": by_brand_out,
         "by_year": by_year_out,
         "by_player": by_player_out,
-        "trend": trend_out,
+        "trend_inventory": trend_inventory,
+        "trend_valuation": trend_valuation,
     }

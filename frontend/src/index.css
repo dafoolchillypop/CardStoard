@@ -548,3 +548,12 @@ td.card-value-col {
   text-align: center;
   font-weight: bold;
 }
+
+.nav-btn.active {
+  font-weight: bold;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  transition: background 0.2s ease-in-out;
+}
+.nav-btn:hover {
+  opacity: 0.9;
+}

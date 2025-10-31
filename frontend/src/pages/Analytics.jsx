@@ -15,9 +15,23 @@ import {
   Bar,
 } from "recharts";
 
+// Dollar Formatting
 const fmtDollar = (n) => {
   const val = Math.round(Number(n || 0));
   return `$${val.toLocaleString()}`;
+};
+
+// Combined Trend Datasets
+const mergeTrends = (inventory = [], valuation = []) => {
+  const map = {};
+  inventory.forEach((i) => {
+    map[i.month] = { month: i.month, count: i.count, value: i.value };
+  });
+  valuation.forEach((v) => {
+    if (!map[v.month]) map[v.month] = { month: v.month, count: 0, value: 0 };
+    map[v.month].value = v.value;
+  });
+  return Object.values(map).sort((a, b) => a.month.localeCompare(b.month));
 };
 
 export default function Analytics() {
@@ -99,35 +113,112 @@ export default function Analytics() {
         </div>
       </div>
 
-      {/* ✅ Value Trend */}
+      // ✅ Trend Section with 3-way toggle (Inventory / Valuation / Combined)
       <div style={{ margin: "2rem 0" }}>
-        <h3>Value Trend</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={stats.trend}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="value" stroke="#167e30ff" name="Value" />
-           </LineChart>
+        <h3>Collection Trends</h3>
+
+        <div style={{ marginBottom: "1rem" }}>
+          <button
+            onClick={() => setActiveTrend("inventory")}
+            style={{
+              marginRight: "0.5rem",
+              padding: "0.4rem 1rem",
+              borderRadius: "8px",
+              border: "none",
+              cursor: "pointer",
+              backgroundColor: activeTrend === "inventory" ? "#517fd4" : "#ccc",
+              color: activeTrend === "inventory" ? "#fff" : "#000",
+            }}
+          >
+            📦 Inventory
+          </button>
+
+          <button
+            onClick={() => setActiveTrend("valuation")}
+            style={{
+              marginRight: "0.5rem",
+              padding: "0.4rem 1rem",
+              borderRadius: "8px",
+              border: "none",
+              cursor: "pointer",
+              backgroundColor: activeTrend === "valuation" ? "#167e30" : "#ccc",
+              color: activeTrend === "valuation" ? "#fff" : "#000",
+            }}
+          >
+            💰 Valuation
+          </button>
+
+          <button
+            onClick={() => setActiveTrend("combined")}
+            style={{
+              padding: "0.4rem 1rem",
+            borderRadius: "8px",
+            border: "none",
+            cursor: "pointer",
+            backgroundColor: activeTrend === "combined" ? "#444" : "#ccc",
+            color: activeTrend === "combined" ? "#fff" : "#000",
+            }}
+          >
+            📊 Combined
+          </button>
+        </div>
+
+        <ResponsiveContainer width="100%" height={320}>
+          {activeTrend === "inventory" && (
+            <BarChart data={stats.trend_inventory || stats.trend}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="#517fd4" name="Cards Added" />
+              <Bar dataKey="value" fill="#8baaf5" name="Value (Est.)" />
+            </BarChart>
+          )}
+
+          {activeTrend === "valuation" && (
+            <LineChart data={stats.trend_valuation || stats.trend}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip formatter={(v) => `$${Math.round(v).toLocaleString()}`} />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#167e30"
+                strokeWidth={2}
+                name="Total Value"
+              />
+            </LineChart>
+          )}
+
+          {activeTrend === "combined" && (
+            <ComposedChart data={mergeTrends(stats.trend_inventory, stats.trend_valuation)}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis yAxisId="left" label={{ value: "Cards", angle: -90, position: "insideLeft" }} />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                label={{ value: "Value ($)", angle: -90, position: "insideRight" }}
+              />
+              <Tooltip formatter={(v, n) => (n === "Value" ? fmtDollar(v) : v)} />
+              <Legend />
+              <Bar yAxisId="left" dataKey="count" fill="#517fd4" name="Cards Added" />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="value"
+                stroke="#167e30"
+                strokeWidth={2}
+                name="Total Value"
+              />
+            </ComposedChart>
+          )}
         </ResponsiveContainer>
       </div>
 
-      {/* ✅ Count Trend */}
-      <div style={{ margin: "2rem 0" }}>
-        <h3>Inventory Trend</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={stats.trend}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="count" fill="#517fd4ff" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
 
       {/* ✅ Breakdown by Brand */}
       <div style={{ margin: "2rem 0" }}>
