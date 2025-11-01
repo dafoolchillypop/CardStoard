@@ -47,22 +47,34 @@ class CardStoardUser(HttpUser):
         }
         self.client.post("/cards/", json=card, name="POST /cards")
 
-    @task(2)
+        @task(2)
     def update_random_card(self):
         """Fetch and update a random card if available"""
-        cards = self.client.get("/cards/?limit=10").json()
-        if cards:
+        resp = self.client.get("/cards/?limit=10", name="GET /cards (for update)")
+        try:
+            cards = resp.json()
+            if not isinstance(cards, list) or not cards:
+                return
             card_id = random.choice(cards).get("id")
-            update = {"grade": random.choice([3.0, 1.5, 1.0])}
-            self.client.put(f"/cards/{card_id}", json=update, name="PUT /cards/{id}")
+            if card_id:
+                update = {"grade": random.choice([3.0, 1.5, 1.0])}
+                self.client.put(f"/cards/{card_id}", json=update, name="PUT /cards/{id}")
+        except Exception as e:
+            print(f"[WARN] update_random_card failed: {e}")
 
     @task(2)
     def revalue_one_card(self):
-        """Recalculate one card’s value (fix: correct POST verb)"""
-        cards = self.client.get("/cards/?limit=5").json()
-        if cards:
+        """Recalculate one card’s value (fix: correct POST verb, safe json parse)"""
+        resp = self.client.get("/cards/?limit=5", name="GET /cards (for revalue)")
+        try:
+            cards = resp.json()
+            if not isinstance(cards, list) or not cards:
+                return
             card_id = random.choice(cards).get("id")
-            self.client.post(f"/cards/{card_id}/value", name="POST /cards/{id}/value")
+            if card_id:
+                self.client.post(f"/cards/{card_id}/value", name="POST /cards/{id}/value")
+        except Exception as e:
+            print(f"[WARN] revalue_one_card failed: {e}")
 
     @task(2)
     def revalue_all(self):
