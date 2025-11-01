@@ -47,7 +47,7 @@ class CardStoardUser(HttpUser):
         }
         self.client.post("/cards/", json=card, name="POST /cards")
 
-        @task(2)
+    @task(2)
     def update_random_card(self):
         """Fetch and update a random card if available"""
         resp = self.client.get("/cards/?limit=10", name="GET /cards (for update)")
