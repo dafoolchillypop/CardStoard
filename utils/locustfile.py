@@ -22,11 +22,13 @@ class CardStoardUser(HttpUser):
     def on_start(self):
         """Register/login once and persist session cookies."""
         self.email = f"loadtest_{random_string()}@example.com"
+        self.username = self.email.split("@")[0]
         self.password = "Password123!"
 
         # Try to register (ignore duplicates)
         reg = self.client.post("/auth/register", json={
             "email": self.email,
+            "username": self.username,
             "password": self.password
         })
         if reg.status_code not in [200, 201]:
@@ -39,7 +41,7 @@ class CardStoardUser(HttpUser):
         })
         if login.status_code == 200:
             self.save_cookies(login)
-            print(f"[INFO] Logged in as {self.email}")
+            print(f"[INFO] Logged in as {self.username}")
         else:
             print(f"[ERROR] login failed {login.status_code}: {login.text}")
 
