@@ -97,7 +97,16 @@ def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
     set_auth_cookie(response, "access_token", access)
     set_auth_cookie(response, "refresh_token", refresh)
 
-    return {"ok": True}
+    return {
+        "ok": True,
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "is_verified": user.is_verified,
+            "is_active": user.is_active,
+        },
+    }
 
 #--Verification--#
 
@@ -148,9 +157,7 @@ def refresh(request: Request, response: Response):
 
 @router.post("/logout")
 def logout(response: Response):
-    clear_auth_cookie(response, "access_token")
-    clear_auth_cookie(response, "refresh_token")
-
+    clear_auth_cookie(response)
     return {"ok": True, "message": "Logged out"}
 
 # ----- MFA enable/verify -----

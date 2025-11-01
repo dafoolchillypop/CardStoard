@@ -19,6 +19,29 @@
   margin-bottom: 1rem;
 }
 
+/* ✅ Fix: button should size to its text, not full width */
+.verify-container .nav-btn {
+  display: inline-block;       /* not full-width */
+  width: auto;                 /* shrink to fit */
+  margin: 0 auto;              /* center horizontally */
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #0055cc, #007bff);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 85, 204, 0.3);
+  transition: all 0.25s ease-in-out;
+}
+
+.verify-container .nav-btn:hover {
+  background: linear-gradient(135deg, #0044aa, #0066dd);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 8px rgba(0, 85, 204, 0.4);
+}
+
 .icon-check {
   width: 80px;
   height: 80px;

@@ -4,6 +4,65 @@
 
 **<->**
 
+## v0.9 (2025-10-31)
+- **Authentication, Analytics, and UI Refinements**
+
+  ### Core Backend Changes
+  - **Auth & Cookies**
+    - Reworked `clear_auth_cookie()` to properly remove tokens across all domains and environments (localhost and production).
+    - Standardized cookie attributes (`SameSite`, `Secure`, `Domain`, and `Path`) for consistent login/logout behavior.
+    - Improved `/auth/refresh` handling to automatically reissue access tokens when expired.
+    - Hardened session flow to prevent stale cookies from restoring invalid sessions.
+    - Fixed inconsistent username/email display — `/auth/me` now returns both reliably.
+  - **Analytics**
+    - Enhanced `/analytics/` to support separate trend sets:
+      - `trend_inventory` — monthly additions.
+      - `trend_valuation` — valuation updates.
+    - Added internal utilities to merge and normalize data for consistent charting output.
+
+  ### Frontend Updates
+  - **Analytics.jsx**
+    - Added 3-way toggle for chart view:
+      - *Inventory* (card counts)
+      - *Valuation* (value history)
+      - *Combined* (dual Y-axis chart)
+    - Fixed double-count bug in inventory aggregation.
+    - Improved chart readability and alignment:
+      - Blue axis/labels for *cards*
+      - Green axis/labels for *value*
+      - Wider layout to prevent clipping of axis labels.
+  - **AppHeader.jsx**
+    - Moved navigation buttons (Add Card, List Cards, Analytics, Admin) from Home page into header bar.
+    - Username now displayed in upper right instead of email address.
+    - Buttons evenly spaced with modern hover and gradient styling.
+  - **VerifySuccess.jsx**
+    - Rebuilt email verification success page:
+      - Centered layout with app logo and animated checkmark.
+      - Normal-width "Continue to Login" button.
+      - Auto-redirect after 5 seconds.
+  - **Home.jsx**
+    - Simplified to focus on logo and tagline.
+    - Navigation moved to header.
+  - **AuthContext.jsx**
+    - Added `/` to `publicRoutes` to fix “Loading session” hang after logout.
+    - Improved initial login detection and state handling.
+  - **api.js**
+    - Dynamic base URL detection for local vs. production.
+    - Added automatic token refresh support (via `/auth/refresh`).
+    - Handles session expiration gracefully without breaking navigation.
+
+  ### Utility & Deployment
+  - **docker_deploy.sh**
+    - Integrated `--check` validation to confirm container health (DB, backend, frontend).
+  - Backend & frontend validation both pass through automated dry-run tests.
+  - Deployment logs include timestamps and clear stage outputs.
+
+  ### Stability Highlights
+  - Logout now fully clears session cookies.
+  - Login, logout, and re-login sequences work seamlessly.
+  - Analytics charts render cleanly with correct data.
+  - All frontend routes consistent with backend session state.
+
 ## v0.8 (2025-10-27)
 - **Move valuation logic and market factor calculations to the backend**
 

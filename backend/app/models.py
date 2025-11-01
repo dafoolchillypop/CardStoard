@@ -83,3 +83,12 @@ class GlobalSettings(Base):
     modern_era_year = Column(Integer, default=1980)
     vintage_era_factor = Column(Float, default=1.00)
     modern_era_factor = Column(Float, default=1.00)
+
+class ValuationHistory(Base):
+    __tablename__ = "valuation_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+    total_value = Column(Float, nullable=False)
+    card_count = Column(Integer, nullable=False)

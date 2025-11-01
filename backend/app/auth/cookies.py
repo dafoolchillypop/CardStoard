@@ -39,6 +39,17 @@ def set_refresh_cookie(response: Response, value: str):
     )
 
 def clear_auth_cookie(response: Response):
-    kwargs = _cookie_kwargs()
-    response.delete_cookie("access_token", **kwargs)
-    response.delete_cookie("refresh_token", **kwargs)
+    """
+    Forcefully clear both access and refresh tokens for all environments.
+    Ensures same attributes used for set_cookie but broad enough to cover localhost.
+    """
+    base_kwargs = _cookie_kwargs()
+
+    # normal delete
+    response.delete_cookie("access_token", **base_kwargs)
+    response.delete_cookie("refresh_token", **base_kwargs)
+
+    # extra safety: also clear with domain=None and domain="cardstoard.com"
+    for domain in [None, "cardstoard.com"]:
+        response.delete_cookie("access_token", path="/", domain=domain)
+        response.delete_cookie("refresh_token", path="/", domain=domain)
