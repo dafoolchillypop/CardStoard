@@ -1,29 +1,56 @@
-# utils/locustfile_v1.py
+# utils/locustfile_v1.1.py
 from locust import HttpUser, task, between
-import random
-import string
+import random, string, json
 
+# ---------- Helpers ----------
 def random_string(n=6):
     return ''.join(random.choices(string.ascii_lowercase, k=n))
 
+# ---------- Main User ----------
 class CardStoardUser(HttpUser):
     wait_time = between(1, 3)
 
+    # ---------------------------
+    # Session + Auth Management
+    # ---------------------------
+    def save_cookies(self, response):
+        """Persist all cookies into the current session."""
+        if hasattr(response, "cookies"):
+            for cookie in response.cookies:
+                self.client.cookies.set(cookie.name, cookie.value)
+
     def on_start(self):
-        """Each user logs in once and reuses the session cookies."""
-        self.email = f"testuser_{random_string()}@example.com"
+        """Register/login once and persist session cookies."""
+        self.email = f"loadtest_{random_string()}@example.com"
         self.password = "Password123!"
 
-        # Try login first; if fail, register then login
-        login_res = self.client.post("/auth/login", json={"email": self.email, "password": self.password})
-        if login_res.status_code != 200:
-            self.client.post("/auth/register", json={"email": self.email, "password": self.password})
-            self.client.post("/auth/login", json={"email": self.email, "password": self.password})
+        # Try to register (ignore duplicates)
+        reg = self.client.post("/auth/register", json={
+            "email": self.email,
+            "password": self.password
+        })
+        if reg.status_code not in [200, 201]:
+            print(f"[WARN] registration failed ({reg.status_code}) {reg.text}")
 
-        # Save session cookies automatically
-        self.client.cookies = self.client.cookies
+        # Log in and persist cookies
+        login = self.client.post("/auth/login", json={
+            "email": self.email,
+            "password": self.password
+        })
+        if login.status_code == 200:
+            self.save_cookies(login)
+            print(f"[INFO] Logged in as {self.email}")
+        else:
+            print(f"[ERROR] login failed {login.status_code}: {login.text}")
 
-    # --- Core User Behaviors ---
+        # Validate session
+        me = self.client.get("/auth/me")
+        if me.status_code != 200:
+            print(f"[WARN] Session validation failed ({me.status_code}) {me.text}")
+
+    # ---------------------------
+    # Core User Behavior Tasks
+    # ---------------------------
 
     @task(5)
     def list_cards(self):
@@ -43,57 +70,70 @@ class CardStoardUser(HttpUser):
             "book_high": random.uniform(10, 50),
             "book_mid": random.uniform(5, 25),
             "book_low": random.uniform(1, 10),
-            "grade": random.choice([3.0, 1.5, 1.0, 0.8])
+            "grade": random.choice([3.0, 1.5, 1.0, 0.8]),
         }
         self.client.post("/cards/", json=card, name="POST /cards")
 
     @task(2)
     def update_random_card(self):
-        """Fetch and update a random card if available"""
-        resp = self.client.get("/cards/?limit=10", name="GET /cards (for update)")
+        """Fetch and update a random card"""
+        resp = self.client.get("/cards/?limit=10", name="GET /cards (update)")
         try:
             cards = resp.json()
-            if not isinstance(cards, list) or not cards:
-                return
-            card_id = random.choice(cards).get("id")
-            if card_id:
-                update = {"grade": random.choice([3.0, 1.5, 1.0])}
-                self.client.put(f"/cards/{card_id}", json=update, name="PUT /cards/{id}")
+            if isinstance(cards, list) and cards:
+                card_id = random.choice(cards).get("id")
+                if card_id:
+                    update = {"grade": random.choice([3.0, 1.5, 1.0])}
+                    self.client.put(f"/cards/{card_id}", json=update, name="PUT /cards/{id}")
         except Exception as e:
-            print(f"[WARN] update_random_card failed: {e}")
+            print(f"[WARN] update_random_card: {e}")
+
+    @task(2)
+    def delete_random_card(self):
+        """Occasionally delete a card"""
+        resp = self.client.get("/cards/?limit=5", name="GET /cards (delete)")
+        try:
+            cards = resp.json()
+            if isinstance(cards, list) and cards:
+                card_id = random.choice(cards).get("id")
+                if card_id:
+                    self.client.delete(f"/cards/{card_id}", name="DELETE /cards/{id}")
+        except Exception as e:
+            print(f"[WARN] delete_random_card: {e}")
 
     @task(2)
     def revalue_one_card(self):
-        """Recalculate one card’s value (fix: correct POST verb, safe json parse)"""
-        resp = self.client.get("/cards/?limit=5", name="GET /cards (for revalue)")
+        """Recalculate one card’s value"""
+        resp = self.client.get("/cards/?limit=5", name="GET /cards (revalue one)")
         try:
             cards = resp.json()
-            if not isinstance(cards, list) or not cards:
-                return
-            card_id = random.choice(cards).get("id")
-            if card_id:
-                self.client.post(f"/cards/{card_id}/value", name="POST /cards/{id}/value")
+            if isinstance(cards, list) and cards:
+                card_id = random.choice(cards).get("id")
+                if card_id:
+                    self.client.post(f"/cards/{card_id}/value", name="POST /cards/{id}/value")
         except Exception as e:
-            print(f"[WARN] revalue_one_card failed: {e}")
+            print(f"[WARN] revalue_one_card: {e}")
 
-    @task(2)
+    @task(1)
     def revalue_all(self):
-        """Trigger global revaluation (less frequent)"""
+        """Trigger full revaluation"""
         self.client.post("/cards/revalue-all", name="POST /cards/revalue-all")
 
-    @task(3)
-    def analytics_page(self):
-        """Get analytics summary"""
-        self.client.get("/analytics/", name="GET /analytics")
-
     @task(2)
-    def admin_settings(self):
-        """Check settings"""
-        self.client.get("/settings/", name="GET /settings")
+    def analytics_page(self):
+        """Access analytics endpoint"""
+        self.client.get("/analytics/", name="GET /analytics")
 
     @task(1)
     def logout_and_relogin(self):
-        """Occasionally log out and back in to test session refresh"""
-        self.client.post("/auth/logout", name="POST /auth/logout")
-        self.client.post("/auth/login", json={"email": self.email, "password": self.password}, name="POST /auth/login (relogin)")
-
+        """Log out and log back in"""
+        logout = self.client.post("/auth/logout", name="POST /auth/logout")
+        if logout.status_code == 200:
+            login = self.client.post("/auth/login", json={
+                "email": self.email,
+                "password": self.password
+            }, name="POST /auth/login (relogin)")
+            if login.status_code == 200:
+                self.save_cookies(login)
+        else:
+            print(f"[WARN] logout failed ({logout.status_code})")
