@@ -12,23 +12,28 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(null); // null = unknown
   const [user, setUser] = useState(null);
 
-  const logout = (msg = null) => {
-    console.log("Logging out...");
+  const logout = async (msg = null) => {
+    try {
+      await api.post("/auth/logout"); // clear cookies on backend
+    } catch (err) {
+      console.warn("Logout API failed (may already be expired).");
+    }
+
     setIsLoggedIn(false);
     setUser(null);
 
-    if (msg) alert(msg);
-
-    // Clear cookies
+    // Just in case: remove any non-HttpOnly cookies
     document.cookie.split(";").forEach((c) => {
       document.cookie = c
         .replace(/^ +/, "")
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
+
+    if (msg) alert(msg);
   };
 
   useEffect(() => {
-    const publicRoutes = ["/login", "/register", "/verify-success", "/verify-error", "/forgot-password"];
+    const publicRoutes = ["/", "/login", "/register", "/verify-success", "/verify-error", "/forgot-password"];
     if (publicRoutes.includes(window.location.pathname)) {
       setIsLoggedIn(false);
       return; // ✅ Don’t trigger /auth/me on public routes

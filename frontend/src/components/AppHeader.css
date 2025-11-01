@@ -15,7 +15,37 @@
   align-items: center;
 }
 
-/* ✅ True center alignment */
+/* --- Navigation Buttons (Center Section) --- */
+.app-header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem; /* ⬅️ NEW: even spacing between buttons */
+}
+
+.app-header-center a {
+  text-decoration: none;
+}
+
+.app-header-center .header-btn {
+  min-width: 120px; /* ⬅️ NEW: consistent button width */
+  padding: 0.5rem 1.1rem;
+}
+
+/* Responsive fix for smaller screens */
+@media (max-width: 1000px) {
+  .app-header-center {
+    position: static;
+    transform: none;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+}
+
 .app-header-center {
   position: absolute;
   left: 50%;
