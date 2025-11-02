@@ -32,13 +32,27 @@ def parse_args():
 # Helpers
 # ------------------------------------------------------------
 def reset_loadtest_users(conn):
-    """Deletes all load-test users and cascades to dependent tables."""
-    print("🧹 Clearing existing load-test users...")
+    """Deletes all load-test users and their dependent records (cards, settings)."""
+    print("🧹 Clearing existing load-test users and related data...")
+
     with conn.cursor() as cur:
-        cur.execute("DELETE FROM users WHERE email LIKE '%@loadtest.cardstoard.com'")
+        # Step 1: Identify user IDs to remove
+        cur.execute("SELECT id FROM users WHERE email LIKE '%@loadtest.cardstoard.com'")
+        user_ids = [row[0] for row in cur.fetchall()]
+        if not user_ids:
+            print("✅ No existing load-test users found.")
+            return
+
+        # Step 2: Delete dependent records first (cards, settings, etc.)
+        cur.execute("DELETE FROM cards WHERE user_id = ANY(%s)", (user_ids,))
+        cur.execute("DELETE FROM global_settings WHERE user_id = ANY(%s)", (user_ids,))
+
+        # Step 3: Delete users
+        cur.execute("DELETE FROM users WHERE id = ANY(%s)", (user_ids,))
         deleted = cur.rowcount
         conn.commit()
-    print(f"✅ Removed {deleted} old load-test users (if any).")
+
+    print(f"✅ Removed {deleted} load-test users and their related data.")
 
 def insert_users(conn, n_users, plain_password="TestPass123!"):
     users = []
