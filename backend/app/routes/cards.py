@@ -184,12 +184,27 @@ async def import_cards(
 
 # Create a card
 @router.post("/", response_model=schemas.Card)
-def create_card(card: schemas.CardCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user),):
-    db_card = models.Card(**card.dict(), user_id=current.id)
-    db.add(db_card)
-    db.commit()
-    db.refresh(db_card)
-    return db_card
+def create_card(
+    card: schemas.CardCreate,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    try:
+        # ✅ Exclude computed-only fields that aren't in the DB model
+        data = card.dict(exclude_unset=True)
+        data.pop("market_factor", None)
+        data.pop("value", None)
+
+        db_card = models.Card(**data, user_id=current.id)
+        db.add(db_card)
+        db.commit()
+        db.refresh(db_card)
+        return db_card
+
+    except Exception as e:
+        db.rollback()
+        print(f"[ERROR] Card creation failed for user {current.id}: {repr(e)}")
+        raise HTTPException(status_code=500, detail="Card creation failed.")
 
 # List all cards
 @router.get("/", response_model=list[schemas.Card])
