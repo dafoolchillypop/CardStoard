@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 db_seeder_v0.9.py — Auto-generates verified test users and cards for load testing.
+Safely resets existing load-test users when --reset-loadtest is used.
 """
 
 import argparse, time, random, json, uuid, os
@@ -12,14 +13,32 @@ from passlib.hash import bcrypt
 
 fake = Faker()
 
+# ------------------------------------------------------------
+# CLI args
+# ------------------------------------------------------------
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--db", required=True)
     p.add_argument("--users", type=int, default=10)
     p.add_argument("--cards", type=int, default=100)
     p.add_argument("--rate", type=int, default=0)
-    p.add_argument("--out", default="utils/loadtest/seeded_users.txt", help="output file for seeded emails")
+    p.add_argument("--out", default="utils/loadtest/seeded_users.txt",
+                   help="output file for seeded emails")
+    p.add_argument("--reset-loadtest", action="store_true",
+                   help="delete existing @loadtest.cardstoard.com users before reseeding")
     return p.parse_args()
+
+# ------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------
+def reset_loadtest_users(conn):
+    """Deletes all load-test users and cascades to dependent tables."""
+    print("🧹 Clearing existing load-test users...")
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM users WHERE email LIKE '%@loadtest.cardstoard.com'")
+        deleted = cur.rowcount
+        conn.commit()
+    print(f"✅ Removed {deleted} old load-test users (if any).")
 
 def insert_users(conn, n_users, plain_password="TestPass123!"):
     users = []
@@ -40,6 +59,12 @@ def insert_users(conn, n_users, plain_password="TestPass123!"):
     return rows
 
 def insert_settings(conn, user_id):
+    """Safely insert default GlobalSettings for a user, skipping if already present."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT 1 FROM global_settings WHERE user_id = %s", (user_id,))
+        if cur.fetchone():
+            return  # already exists
+
     sql = """
       INSERT INTO global_settings (
         user_id, enable_smart_fill, app_name, card_makes, card_grades,
@@ -50,7 +75,6 @@ def insert_settings(conn, user_id):
       VALUES (%s, true, 'CardStoard', %s, %s,
               0.80, 1.00, 0.85, 0.75, 0.60, 0.55, 0.50, 0.40,
               1970, 1980, 1.00, 1.00)
-      ON CONFLICT (user_id) DO NOTHING
     """
     makes = ['Topps', 'Donruss', 'Fleer', 'Bowman']
     grades = ['3', '1.5', '1', '0.8', '0.4', '0.2']
@@ -97,6 +121,9 @@ def insert_cards(conn, user_id, cards, rate=0):
         count += len(batch)
     return count
 
+# ------------------------------------------------------------
+# Main
+# ------------------------------------------------------------
 def main():
     args = parse_args()
     conn = psycopg2.connect(args.db)
@@ -104,6 +131,9 @@ def main():
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     try:
+        if args.reset_loadtest:
+            reset_loadtest_users(conn)
+
         users = insert_users(conn, args.users)
         total_cards = args.users * args.cards
         print(f"✅ Created {len(users)} users; seeding {total_cards} cards...")

@@ -2,7 +2,7 @@ from locust import HttpUser, between, task, TaskSet
 import random, os
 
 TEST_PASSWORD = "TestPass123!"
-USER_FILE = "utils/seeded_users.txt"
+USER_FILE = "utils/loadtest/seeded_users.txt"
 
 def load_seeded_users():
     if not os.path.exists(USER_FILE):
