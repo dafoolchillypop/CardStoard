@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument("--mode", choices=["all", "crud", "auth", "value"], default="all")
 args, unknown = parser.parse_known_args()
 MODE = args.mode
+print(f"🔧 Running Locust in MODE = {MODE.upper()}")
 
 def load_seeded_users():
     if not os.path.exists(USER_FILE):
@@ -23,7 +24,6 @@ SEED_USERS = load_seeded_users()
 
 class UserBehavior(TaskSet):
     def on_start(self):
-        print(f"🔧 Running Locust in MODE = {MODE.upper()}")
         self.user.email = random.choice(SEED_USERS)
         resp = self.client.post("/auth/login", json={
             "email": self.user.email, "password": TEST_PASSWORD
@@ -44,14 +44,38 @@ class UserBehavior(TaskSet):
                 "first_name": "Load",
                 "last_name": f"Tester{random.randint(1,9999)}",
                 "year": random.randint(1950, 1990),
-                "brand": random.choice(["Topps","Fleer","Donruss","Bowman"]),
-                "card_number": str(random.randint(1,999)),
+                "brand": random.choice(["Topps", "Fleer", "Donruss", "Bowman"]),
+                "card_number": str(random.randint(1, 999)),
                 "rookie": random.choice([True, False]),
-                "grade": random.choice([3,1.5,1,0.8])
+                "grade": random.choice([3, 1.5, 1, 0.8]),
             }
-            self.client.post("/cards/", json=payload, name="POST /cards")
+            resp = self.client.post("/cards/", json=payload, name="POST /cards")
+            if resp.status_code >= 400:
+                print(f"❌ Add card failed: {resp.status_code} {resp.text}")
 
-    # Mode: value
+        @task(2)
+        def update_card(self):
+            """Randomly update a card's grade or brand."""
+            cards = self.client.get("/cards/?limit=10").json()
+            if not isinstance(cards, list) or not cards:
+                return
+
+            card = random.choice(cards)
+            card_id = card.get("id")
+            if not card_id:
+                return
+
+            update_payload = {}
+            if random.random() < 0.5:
+                update_payload["grade"] = random.choice([3, 1.5, 1, 0.8])
+            else:
+                update_payload["brand"] = random.choice(["Topps", "Fleer", "Donruss", "Bowman"])
+
+            resp = self.client.put(f"/cards/{card_id}", json=update_payload, name="PUT /cards/{id}")
+            if resp.status_code >= 400:
+                print(f"❌ Update card failed ({card_id}): {resp.status_code} {resp.text}")
+
+    # Mode: analytics
     if MODE in ("all", "crud", "value"):
         @task(1)
         def analytics(self):
