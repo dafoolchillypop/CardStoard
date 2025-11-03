@@ -1,5 +1,5 @@
-from locust import HttpUser, between, task, TaskSet, events
-import random, os, sys, argparse
+from locust import HttpUser, between, task, TaskSet
+import random, os, sys, argparse, time
 
 TEST_PASSWORD = "TestPass123!"
 USER_FILE = "utils/loadtest/seeded_users.txt"
@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument("--mode", choices=["all", "crud", "auth", "value"], default="all")
 args, unknown = parser.parse_known_args()
 MODE = args.mode
-print(f"🔧 Running Locust in MODE = {MODE.upper()}")
+
 
 def load_seeded_users():
     if not os.path.exists(USER_FILE):
@@ -20,18 +20,55 @@ def load_seeded_users():
         raise ValueError(f"No users found in {USER_FILE}")
     return users
 
+
 SEED_USERS = load_seeded_users()
+
 
 class UserBehavior(TaskSet):
     def on_start(self):
+        print(f"🔧 Running Locust in MODE = {MODE.upper()}")
         self.user.email = random.choice(SEED_USERS)
+        self.login_user()
+
+    def login_user(self):
         resp = self.client.post("/auth/login", json={
-            "email": self.user.email, "password": TEST_PASSWORD
+            "email": self.user.email,
+            "password": TEST_PASSWORD
         })
         if resp.status_code not in (200, 204):
             print(f"⚠️ Login failed for {self.user.email}: {resp.status_code} {resp.text}")
+        else:
+            self.last_login = time.time()
 
-    # Mode: crud
+    def logout_user(self):
+        resp = self.client.post("/auth/logout", name="POST /auth/logout")
+        if resp.status_code not in (200, 204):
+            print(f"⚠️ Logout failed: {resp.status_code} {resp.text}")
+
+    # ------------------------
+    # AUTH MODE
+    # ------------------------
+    if MODE in ("all", "auth"):
+        @task(3)
+        def check_me(self):
+            """Verify current session."""
+            self.client.get("/auth/me", name="GET /auth/me")
+
+        @task(2)
+        def refresh_token(self):
+            """Refresh the access token."""
+            self.client.post("/auth/refresh", name="POST /auth/refresh")
+
+        @task(1)
+        def periodic_logout_login(self):
+            """Simulate logout and re-login to test cookie/session renewal."""
+            self.logout_user()
+            time.sleep(random.uniform(0.5, 2))
+            self.login_user()
+
+    # ------------------------
+    # CRUD MODE
+    # ------------------------
     if MODE in ("all", "crud"):
         @task(4)
         def list_cards(self):
@@ -55,37 +92,37 @@ class UserBehavior(TaskSet):
 
         @task(2)
         def update_card(self):
-            """Randomly update a card's grade or brand."""
             cards = self.client.get("/cards/?limit=10").json()
             if not isinstance(cards, list) or not cards:
                 return
-
             card = random.choice(cards)
             card_id = card.get("id")
             if not card_id:
                 return
-
-            update_payload = {}
-            if random.random() < 0.5:
-                update_payload["grade"] = random.choice([3, 1.5, 1, 0.8])
-            else:
-                update_payload["brand"] = random.choice(["Topps", "Fleer", "Donruss", "Bowman"])
-
+            update_payload = {"grade": random.choice([3, 1.5, 1, 0.8])}
             resp = self.client.put(f"/cards/{card_id}", json=update_payload, name="PUT /cards/{id}")
             if resp.status_code >= 400:
                 print(f"❌ Update card failed ({card_id}): {resp.status_code} {resp.text}")
 
-    # Mode: analytics
-    if MODE in ("all", "crud", "value"):
         @task(1)
-        def analytics(self):
-            self.client.get("/analytics/", name="GET /analytics")
+        def delete_card(self):
+            cards = self.client.get("/cards/?limit=5").json()
+            if not isinstance(cards, list) or not cards:
+                return
+            card = random.choice(cards)
+            card_id = card.get("id")
+            if not card_id:
+                return
+            resp = self.client.delete(f"/cards/{card_id}", name="DELETE /cards/{id}")
+            if resp.status_code >= 400 and resp.status_code != 404:
+                print(f"❌ Delete card failed ({card_id}): {resp.status_code} {resp.text}")
 
-    # Mode: value
+    # ------------------------
+    # VALUE MODE
+    # ------------------------
     if MODE in ("all", "value"):
         @task(2)
         def revalue_one(self):
-            """Recalculate value for a single random card."""
             cards = self.client.get("/cards/?limit=10").json()
             if isinstance(cards, list) and cards:
                 card_id = random.choice(cards).get("id")
@@ -94,8 +131,8 @@ class UserBehavior(TaskSet):
 
         @task(1)
         def revalue_all(self):
-            """Trigger full portfolio revaluation."""
             self.client.post("/cards/revalue-all", name="POST /cards/revalue-all")
+
 
 class SimulatedUser(HttpUser):
     tasks = [UserBehavior]
