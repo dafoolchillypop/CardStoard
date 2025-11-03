@@ -190,7 +190,7 @@ def create_card(
     current: User = Depends(get_current_user),
 ):
     try:
-        # ✅ Exclude computed-only fields that aren't in the DB model
+        # Exclude computed-only fields that aren't in the DB model
         data = card.dict(exclude_unset=True)
         data.pop("market_factor", None)
         data.pop("value", None)
