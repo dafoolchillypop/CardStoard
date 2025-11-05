@@ -1,0 +1,32 @@
+name: SonarCloud analysis
+
+on:
+  push:
+    branches:
+      - main
+      - release/*
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and analyze on SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          args: >
+            -Dsonar.organization=dafoolchillypop
+            -Dsonar.projectKey=09120912lkaslkas
+            -Dsonar.sources=backend,frontend
+            -Dsonar.exclusions=**/__pycache__/**,**/node_modules/**,**/*.pyc
+            -Dsonar.python.version=3.11
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
