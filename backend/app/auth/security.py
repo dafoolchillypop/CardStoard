@@ -1,4 +1,5 @@
-import datetime, jwt, bcrypt
+from datetime import datetime, timezone
+import jwt, bcrypt
 from fastapi import HTTPException, Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
@@ -13,7 +14,7 @@ def verify_password(pw: str, pw_hash: str) -> bool:
     return bcrypt.checkpw(pw.encode(), pw_hash.encode())
 
 def create_token(sub: int, kind: str = "access"):
-    now = datetime.datetime.utcnow()
+    now = datetime.now(timezone.utc)
     exp = now + (
         datetime.timedelta(minutes=cfg_settings.ACCESS_MIN)
         if kind == "access"

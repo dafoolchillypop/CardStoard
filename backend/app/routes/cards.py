@@ -2,7 +2,7 @@
 import io, os, csv, shutil, json
 from pathlib import Path as FSPath
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Third-party
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path
@@ -13,6 +13,7 @@ from werkzeug.utils import secure_filename
 
 # Local
 from app import models, schemas
+from app.constants import CARD_NOT_FOUND_MSG
 from app.database import get_db
 from app.auth.security import get_current_user
 from app.models import Card, User, ValuationHistory
@@ -49,7 +50,7 @@ def upload_front(
         models.Card.user_id == current.id,
     ).first()
     if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
     # Securely build filename + path
     safe_name = secure_filename(file.filename)
@@ -87,7 +88,7 @@ def upload_back(
         models.Card.user_id == current.id,
     ).first()
     if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
     # Securely build filename + path
     safe_name = secure_filename(file.filename)
@@ -307,7 +308,7 @@ def read_card(
         .first()
     )
     if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
     # attach market_factor to single card
     settings = db.query(models.GlobalSettings).filter(
@@ -322,7 +323,7 @@ def read_card(
 def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user),):
     card = db.query(models.Card).filter(Card.user_id == current.id).filter(models.Card.id == card_id).first()
     if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
     for field, value in updated.dict(exclude_unset=True).items():
         setattr(card, field, value)
@@ -387,7 +388,7 @@ def delete_card(
     ).first()
 
     if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
     # Delete associated images from disk (if present)
     for image_field in [card.front_image, card.back_image]:
@@ -464,7 +465,7 @@ def compute_and_save_card_value(
         models.Card.user_id == current.id
     ).first()
     if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
     # 2) Load settings for this user
     settings = db.query(models.GlobalSettings).filter(
@@ -526,7 +527,7 @@ def revalue_all_cards(
 
     snapshot = ValuationHistory(
         user_id=current.id,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
         total_value=float(total_value or 0),
         card_count=card_count,
     )

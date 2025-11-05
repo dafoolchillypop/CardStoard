@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, Boolean, Float, JSON, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from .database import Base
+from app.constants import USER_ID_REF
 
 class User(Base):
     __tablename__ = "users"
@@ -13,7 +14,7 @@ class User(Base):
     mfa_secret = Column(String(32), nullable=True)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     # Relationships
     cards = relationship("Card", back_populates="user", cascade="all, delete-orphan")
@@ -23,7 +24,7 @@ class Card(Base):
     __tablename__ = "cards"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey(USER_ID_REF), nullable=False)
 
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
@@ -50,8 +51,8 @@ class Card(Base):
     back_image = Column(String, nullable=True)
 
     # Action timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
     # Relationships
     user = relationship("User", back_populates="cards")
@@ -60,7 +61,7 @@ class GlobalSettings(Base):
     __tablename__ = "global_settings"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey(USER_ID_REF), nullable=False)
     enable_smart_fill = Column(Boolean, default=False)
 
     # Relationships
@@ -88,7 +89,7 @@ class ValuationHistory(Base):
     __tablename__ = "valuation_history"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+    user_id = Column(Integer, ForeignKey(USER_ID_REF), nullable=False)
+    timestamp = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
     total_value = Column(Float, nullable=False)
     card_count = Column(Integer, nullable=False)
