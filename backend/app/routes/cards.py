@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from werkzeug.utils import secure_filename
 
 # Local
 from app import models, schemas
@@ -50,20 +51,29 @@ def upload_front(
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
 
-    # Build filename + filesystem path
-    filename = f"card_{card_id}_front_{file.filename}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
+    # Securely build filename + path
+    safe_name = secure_filename(file.filename)
+    filename = f"card_{card_id}_front_{safe_name}"
 
-    # Save file
+    upload_dir = Path(UPLOAD_DIR).resolve()
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    filepath = (upload_dir / filename).resolve()
+
+    # Ensure no path traversal outside upload directory
+    if not str(filepath).startswith(str(upload_dir)):
+        raise HTTPException(status_code=400, detail="Invalid file path")
+
+    # Save file safely
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # Always store relative path
+    # Store relative path in DB
     card.front_image = f"/static/cards/{filename}"
     db.commit()
     db.refresh(card)
 
     return {"message": "Front image uploaded", "front_image": card.front_image}
+
 
 @router.post("/{card_id}/upload-back")
 def upload_back(
@@ -79,8 +89,16 @@ def upload_back(
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
 
-    filename = f"card_{card_id}_back_{file.filename}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
+    # Securely build filename + path
+    safe_name = secure_filename(file.filename)
+    filename = f"card_{card_id}_back_{safe_name}"
+
+    upload_dir = Path(UPLOAD_DIR).resolve()
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    filepath = (upload_dir / filename).resolve()
+
+    if not str(filepath).startswith(str(upload_dir)):
+        raise HTTPException(status_code=400, detail="Invalid file path")
 
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
