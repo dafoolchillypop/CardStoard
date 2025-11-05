@@ -22,8 +22,8 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@v2
         with:
           args: >
-            -Dsonar.organization=dafoolchillypop
-            -Dsonar.projectKey=09120912lkaslkas
+            -Dsonar.organization=09120912lkaslkas
+            -Dsonar.projectKey=dafoolchillypop_CardStoard
             -Dsonar.sources=backend,frontend
             -Dsonar.exclusions=**/__pycache__/**,**/node_modules/**,**/*.pyc
             -Dsonar.python.version=3.11
