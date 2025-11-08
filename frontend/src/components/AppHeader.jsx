@@ -32,6 +32,9 @@ export default function AppHeader() {
             ➕ Add Card
           </button>
         </Link>
+        <Link to="/import-cards" className="header-btn">
+        📥 Import Cards
+        </Link>
         <Link to="/list-cards">
           <button className="header-btn" title="View all cards">
             📋 List Cards

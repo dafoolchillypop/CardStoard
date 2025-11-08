@@ -2,16 +2,18 @@
 import io, os, csv, shutil, json
 from pathlib import Path as FSPath
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Third-party
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from werkzeug.utils import secure_filename
 
 # Local
 from app import models, schemas
+from app.constants import CARD_NOT_FOUND_MSG
 from app.database import get_db
 from app.auth.security import get_current_user
 from app.models import Card, User, ValuationHistory
@@ -48,22 +50,31 @@ def upload_front(
         models.Card.user_id == current.id,
     ).first()
     if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
-    # Build filename + filesystem path
-    filename = f"card_{card_id}_front_{file.filename}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
+    # Securely build filename + path
+    safe_name = secure_filename(file.filename)
+    filename = f"card_{card_id}_front_{safe_name}"
 
-    # Save file
+    upload_dir = Path(UPLOAD_DIR).resolve()
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    filepath = (upload_dir / filename).resolve()
+
+    # Ensure no path traversal outside upload directory
+    if not str(filepath).startswith(str(upload_dir)):
+        raise HTTPException(status_code=400, detail="Invalid file path")
+
+    # Save file safely
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # Always store relative path
+    # Store relative path in DB
     card.front_image = f"/static/cards/{filename}"
     db.commit()
     db.refresh(card)
 
     return {"message": "Front image uploaded", "front_image": card.front_image}
+
 
 @router.post("/{card_id}/upload-back")
 def upload_back(
@@ -77,10 +88,18 @@ def upload_back(
         models.Card.user_id == current.id,
     ).first()
     if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
-    filename = f"card_{card_id}_back_{file.filename}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
+    # Securely build filename + path
+    safe_name = secure_filename(file.filename)
+    filename = f"card_{card_id}_back_{safe_name}"
+
+    upload_dir = Path(UPLOAD_DIR).resolve()
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    filepath = (upload_dir / filename).resolve()
+
+    if not str(filepath).startswith(str(upload_dir)):
+        raise HTTPException(status_code=400, detail="Invalid file path")
 
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -289,7 +308,7 @@ def read_card(
         .first()
     )
     if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
     # attach market_factor to single card
     settings = db.query(models.GlobalSettings).filter(
@@ -304,7 +323,7 @@ def read_card(
 def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user),):
     card = db.query(models.Card).filter(Card.user_id == current.id).filter(models.Card.id == card_id).first()
     if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
     for field, value in updated.dict(exclude_unset=True).items():
         setattr(card, field, value)
@@ -369,7 +388,7 @@ def delete_card(
     ).first()
 
     if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
     # Delete associated images from disk (if present)
     for image_field in [card.front_image, card.back_image]:
@@ -446,7 +465,7 @@ def compute_and_save_card_value(
         models.Card.user_id == current.id
     ).first()
     if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
     # 2) Load settings for this user
     settings = db.query(models.GlobalSettings).filter(
@@ -508,7 +527,7 @@ def revalue_all_cards(
 
     snapshot = ValuationHistory(
         user_id=current.id,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
         total_value=float(total_value or 0),
         card_count=card_count,
     )

@@ -5,7 +5,7 @@ Safely resets existing load-test users when --reset-loadtest is used.
 """
 
 import argparse, time, random, json, uuid, os
-from datetime import datetime
+from datetime import datetime, timezone
 from faker import Faker
 import psycopg2
 from psycopg2.extras import execute_values
@@ -56,7 +56,7 @@ def reset_loadtest_users(conn):
 
 def insert_users(conn, n_users, plain_password="TestPass123!"):
     users = []
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     for _ in range(n_users):
         username = fake.user_name() + "_" + uuid.uuid4().hex[:6]
         email = f"{username}@loadtest.cardstoard.com"
@@ -97,7 +97,7 @@ def insert_settings(conn, user_id):
         conn.commit()
 
 def generate_card(user_id):
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     brand = random.choice(['Topps', 'Donruss', 'Fleer', 'Bowman'])
     grade = random.choice([3, 1.5, 1, 0.8, 0.4, 0.2])
     rookie = random.choice([True, False])

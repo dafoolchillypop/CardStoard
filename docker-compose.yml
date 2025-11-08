@@ -2,8 +2,6 @@ services:
   backend:
     build: ./backend
     container_name: stoarback
-    env_file:
-      - ./backend/.env
     ports:
       - "8000:8000"
     volumes:
@@ -13,34 +11,52 @@ services:
       stoardb:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@stoardb:5432/cardstoardb
-    command: sh -c "dockerize -wait tcp://stoardb:5432 -timeout 120s uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-  
+      # Core backend environment
+      DATABASE_URL: postgresql://postgres:postgres@stoardb:5432/cardstoardb
+
+      # Mail configuration pulled from your exported env vars
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_SERVER: ${MAIL_SERVER}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME}
+
+      # Base URLs (these exist in your .bashrc now)
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
+      REACT_APP_API_BASE: ${REACT_APP_API_BASE}
+
+    command: >
+      sh -c "dockerize -wait tcp://stoardb:5432 -timeout 120s
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
   frontend:
     build: ./frontend
     container_name: stoarfront
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app       # mount project code
-      - /app/node_modules     # keep node_modules inside container
+      - ./frontend:/app        # mount project code
+      - /app/node_modules      # keep node_modules inside container
     environment:
       - CHOKIDAR_USEPOLLING=true
+      - VITE_API_URL=${REACT_APP_API_BASE}
     depends_on:
       - backend
 
-  stoardb:   # ✅ match the service name everywhere
+  stoardb:
     image: postgres:15
     container_name: stoardb
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: cardstoardb   # ✅ auto-create your DB
+      POSTGRES_DB: cardstoardb
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck: # ✅ address timing issues with db startup dependancy
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       retries: 5

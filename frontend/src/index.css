@@ -33,7 +33,6 @@ body {
   text-align: center;
   font-size: 2rem;   /* larger size for emphasis */
   margin-bottom: 1.5rem;
-  color: #333;       /* darker text for readability */
 }
 /* Shadow box should also be full width */
 .card-section {

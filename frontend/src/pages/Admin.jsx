@@ -145,23 +145,12 @@ export default function Admin() {
                   setShowModal(true);
                 }
               }}
-              style={{
-                backgroundColor: "#007bff",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                padding: "0.5rem 1rem",
-                cursor: "pointer",
-                fontSize: "0.95rem",
-                marginTop: "0.5rem",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
-              }}
-            >
-              💰 Apply Global Valuation
+              className="val-btn">
+              💰 Apply Global Valuation 💰
             </button>
           </div>
 
-          {/* Era Settings */}
+          {/* Era Settings
           <div className="card-section">
             <h3>Era Settings</h3>
             <label>Vintage Era Year</label>
@@ -176,11 +165,11 @@ export default function Admin() {
             <label>Modern Era Factor</label>
             <input type="number" step="0.01" name="modern_era_factor" value={settings.modern_era_factor} onChange={handleChange} />
           </div>
-
-          <Link className="nav-btn" to="/import-cards">📂 Import Cards</Link>
+          */}
 
           <button type="submit">Save Settings</button>
         </form>
+        
 
         {showModal && (
           <div

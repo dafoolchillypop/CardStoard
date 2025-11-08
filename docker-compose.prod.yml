@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   stoardb:
     image: postgres:15
@@ -24,16 +22,31 @@ services:
       context: ./backend
       dockerfile: Dockerfile.prod
     container_name: stoarback
-    env_file:
-      - ./backend/.env.prd
     restart: unless-stopped
     depends_on:
       stoardb:
         condition: service_healthy
     environment:
+      # Database
       DATABASE_URL: postgresql://postgres:postgres@stoardb:5432/cardstoardb
-      FRONTEND_ORIGIN: https://cardstoard.com
+
+      # Application environment
       ENV: prod
+      FRONTEND_ORIGIN: https://cardstoard.com
+
+      # Mail configuration (pulled from EC2 exports)
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_SERVER: ${MAIL_SERVER}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME}
+
+      # Base URLs
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
+      REACT_APP_API_BASE: ${REACT_APP_API_BASE}
+
     expose:
       - "8000"
     healthcheck:
@@ -47,6 +60,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
+        # this is read at build time for the React app
         REACT_APP_API_BASE: "https://cardstoard.com/api"
     container_name: cardstoard-frontend
     restart: unless-stopped
