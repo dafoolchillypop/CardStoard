@@ -4,6 +4,49 @@
 
 **<->**
 
+## v1.0 — Production Release (November 2025)
+**Status:** Complete  
+**Focus:** Stability, Security, Deployment Integrity, and UI/UX polish  
+
+### Major Deliverables
+- **Security Cleanup**
+  - Removed all `.env` secrets from backend and frontend repositories.
+  - Migrated all credentials and API keys to environment variables (local + EC2).
+  - Validated secure email and database connection configuration via Docker Compose.
+
+- **SonarCloud Integration**
+  - Configured GitHub Actions workflow for automated SonarCloud analysis.
+  - Achieved **0 Security**, **0 Reliability**, and only minor maintainability issues.
+  - Cleaned repository of `__pycache__` and `.pyc` artifacts.
+  - Updated `.gitignore` to ensure clean repo state.
+
+- **Backend Enhancements**
+  - Replaced unsafe file path construction with `secure_filename`.
+  - Replaced `datetime.utcnow()` with timezone-aware UTC (`datetime.now(timezone.utc)`).
+  - Standardized configuration using Pydantic `BaseSettings`.
+  - Added `/health` endpoint for deployment monitoring and automated smoke tests.
+
+- **Frontend / UI-UX**
+  - Reduced spacing in Admin sections; refined layout alignment.
+  - Resized Valuation, Import, and Save Settings buttons to uniform sizing.
+  - Temporarily hid ERA settings (planned for v1.1).
+  - Evaluated Import function placement and consistency across navigation bar.
+  - Verified responsive layout and usability across devices.
+
+- **Deployment Automation**
+  - Created `utils/docker_deploy.sh` with modes:
+    - `--env test|prod`
+    - `--check` (validation only)
+    - `--deploy` (rebuild only)
+  - Added automated DB, backend, and frontend health validation routines.
+  - Verified successful smoke test: HTTP 200 responses for all services.
+  - Logged deploy sessions for traceability under `utils/logs/`.
+
+- **Analytics**
+  - Implemented combined inventory + valuation trends with Recharts.
+  - Added sortable breakdowns by **Brand**, **Year**, and **Player**.
+  - Standardized dollar formatting and dynamic tooltips.
+
 ## v0.9 (2025-10-31)
 - **Authentication, Analytics, and UI Refinements**
 
