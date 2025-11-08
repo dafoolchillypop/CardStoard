@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import jwt, bcrypt
 from fastapi import HTTPException, Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -16,9 +16,9 @@ def verify_password(pw: str, pw_hash: str) -> bool:
 def create_token(sub: int, kind: str = "access"):
     now = datetime.now(timezone.utc)
     exp = now + (
-        datetime.timedelta(minutes=cfg_settings.ACCESS_MIN)
+        timedelta(minutes=cfg_settings.ACCESS_MIN)
         if kind == "access"
-        else datetime.timedelta(days=cfg_settings.REFRESH_DAYS)
+        else timedelta(days=cfg_settings.REFRESH_DAYS)
     )
     return jwt.encode(
         {"sub": sub, "type": kind, "exp": exp},
