@@ -1,0 +1,23 @@
+
+[1m[1;34m🚀 CardStoard Deployment (TEST Environment)[0m
+[1;34m===========================================[0m
+🕒 Started at: Sat Nov  8 15:49:28 EST 2025
+📄 Log file: [1;33m./utils/logs/deploy_test_20251108_154928.log[0m
+
+[1;33m🔍 Running in DRY-RUN validation mode — no rebuild or restart will occur.[0m
+
+[1;33m🏁 Performing validation checks only...[0m
+
+[1;34m🧠 Checking PostgreSQL health...[0m
+[0;32m✅ PostgreSQL is ready and accepting connections.[0m
+
+[1;34m🔍 Checking backend API health (inside container)...[0m
+[0;32m✅ Backend API responding correctly inside container (HTTP 200).[0m
+
+[1;34m🌐 Checking frontend / Nginx routing...[0m
+[0;32m✅ Frontend responding correctly (HTTP 200).[0m
+
+[0;32m✅ All systems operational. (Dry run complete)[0m
+🕒 Completed at: Sat Nov  8 15:49:28 EST 2025
+📄 Log saved to: [1;33m./utils/logs/deploy_test_20251108_154928.log[0m
+
