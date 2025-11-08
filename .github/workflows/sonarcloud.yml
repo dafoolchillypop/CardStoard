@@ -63,6 +63,9 @@ jobs:
             # mandatory
             -Dsonar.projectKey=dafoolchillypop_CardStoard
             -Dsonar.organization=09120912lkaslkas
+            -Dsonar.sources=backend/app,frontend/src,utils/
+            -Dsonar.python.version=3.11
+            -Dsonar.exclusions=**/__pycache__/**,**/*.pyc,**/node_modules/**,**/build/**
             # Comma-separated paths to directories containing main source files.
             #-Dsonar.sources= # optional, default is project base directory
             # Comma-separated paths to directories containing test source files.
