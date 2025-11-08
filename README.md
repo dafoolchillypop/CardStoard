@@ -1,133 +1,114 @@
-# 🏷️ CardStoard
+# 🧾 CardStoard
 
-CardStoard is a full-stack web application for **managing, tracking, and valuing a baseball card collection**.  
-It combines a **FastAPI backend** with a **React frontend**, fully containerized using **Docker** and deployable on **AWS EC2**.
+CardStoard is a full-stack web application for managing, tracking, and valuing a baseball card collection.  
+It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployable on **AWS EC2**.
 
-## 🚀 Overview
+---
 
-**CardStoard v1.0** is the first production-ready release, emphasizing:
-- ✅ **Security & Config Integrity** (no plain-text credentials)
-- ⚙️ **Reliable Deployments** (Docker-based automation & validation)
-- 🧠 **Data-Driven Valuations** (historical sales analysis)
-- 🎨 **Improved UI/UX** (refined Admin panel and analytics)
-- 📈 **Actionable Insights** (collection trends by brand, year, player)
+## 🗂️ Repository Overview
+
+| Layer | Directory | Purpose / Key Contents |
+|--------|------------|-------------------------|
+| **Backend** | `backend/app/` | FastAPI core (auth, routes, models, services) |
+|  | `backend/app/routes/` | REST endpoints: auth, analytics, cards, account |
+|  | `backend/app/services/` | Business logic: valuations, parsing, fuzzy match |
+|  | `backend/app/models/` | SQLAlchemy entities (card, user, base) |
+|  | `backend/app/schemas/` | Pydantic data models for validation & API I/O |
+| **Frontend** | `frontend/src/` | React client app root |
+|  | `frontend/src/pages/` | Full-page React views (Home, Admin, Analytics, etc.) |
+|  | `frontend/src/components/` | Reusable UI components (forms, modals, tables) |
+| **DevOps** | `utils/` | Docker deploy + validation scripts |
+|  | `.github/workflows/` | SonarCloud code quality workflow |
+| **Assets** | `frontend/public/`, `backend/app/static/` | Public and uploaded images |
+| **Config** | `.env*`, `docker-compose*.yml` | Environment configs for dev and prod |
+
+---
+
+## 🚀 Features
+
+- **Inventory Management** — Add, edit, and delete cards with images  
+- **Image Handling** — Upload front/back scans (future AI pipeline planned)  
+- **Player & Card Reference** — Preloaded datasets for validation and quick-add  
+- **Authentication** — Email verification, secure login, JWT, MFA-ready  
+- **Valuation Engine** — Historical sales data + fuzzy player/card matching  
+- **Admin Tools** — Manage users, view analytics, adjust global factors  
+- **Analytics Dashboard** — Track inventory count and valuation trends over time  
+- **Deployment Ready** — Works seamlessly on AWS EC2, Nginx, and Docker Compose  
+
+---
 
 ## 🖥️ Tech Stack
 
-| Layer | Technology |
-|-------|-------------|
-| **Backend** | FastAPI, SQLAlchemy, PostgreSQL |
-| **Frontend** | React, Context API, Axios |
-| **DevOps** | Docker, Nginx, AWS EC2 (t3.micro) |
-| **CI/CD** | GitHub Actions + SonarCloud |
-| **Utilities** | Python shell tools, deployment scripts |
+| Layer | Technologies |
+|--------|---------------|
+| **Backend** | FastAPI · SQLAlchemy · PostgreSQL |
+| **Frontend** | React · Context API · Axios |
+| **Infrastructure** | Docker · Nginx · AWS EC2 (t3.micro) |
+| **Utilities** | Python shell scripts for seeding, deploy validation |
+| **CI/CD** | SonarCloud Quality Gate via GitHub Actions |
 
-## 📂 Project Structure
-
-CardStoard/
-├── backend/ # FastAPI app (models, routes, auth, services)
-├── frontend/ # React client (pages, components, api)
-├── utils/ # Shell + deployment scripts
-├── docker-compose.yml # Local test environment
-├── docker-compose.prod.yml # Production setup (Nginx + EC2)
-└── .github/workflows/sonarcloud.yml # CI quality analysis
-
-📘 See [STRUCTURE.md](STRUCTURE.md) for a detailed inventory of backend and frontend modules.
+---
 
 ## ⚡ Quick Start
 
 ### 1️⃣ Clone the repository
-
+```bash
 git clone https://github.com/dafoolchillypop/CardStoard.git
 cd CardStoard
-2️⃣ Set environment variables
-Make sure these are exported in your shell (.bashrc or .env.local):
 
-export MAIL_USERNAME="cardstoard@gmail.com"
-export MAIL_PASSWORD="your-app-password"
-export MAIL_FROM="cardstoard@gmail.com"
-export MAIL_SERVER="smtp.gmail.com"
-export MAIL_PORT=587
-export MAIL_FROM_NAME="CardStoard"
-export BACKEND_BASE_URL="http://localhost:8000"
-export FRONTEND_BASE_URL="http://localhost:3000"
-export REACT_APP_API_BASE="http://localhost:8000"
-
-3️⃣ Run locally (Test)
+2️⃣ Local Development
 docker-compose up --build
+Frontend → http://localhost:3000
 
-4️⃣ Deploy to production (EC2)
-docker-compose -f docker-compose.prod.yml up -d --build
+Backend API → http://localhost:8000
 
-5️⃣ Validate health
-curl -s http://localhost:8000/health
-# -> {"status":"ok"}
-Access:
+3️⃣ Production (EC2 / Remote)
+docker-compose -f docker-compose.prod.yml up --build -d
+Frontend → https://cardstoard.com
 
-Frontend: http://localhost:3000
+Backend API → https://cardstoard.com/api
 
-Backend API: http://localhost:8000
+🧠 Environment & Deployment
+Environment variables are never stored in .env files in production.
+All secrets (mail credentials, JWT, API keys) are injected via EC2 environment exports.
 
-🧠 Key Features
-💾 Inventory Management
-Add, edit, and delete card entries with attributes and images.
+Use helper scripts for deployment and validation:
+./utils/docker_deploy.sh --env test --check     # Dry-run validation
+./utils/docker_deploy.sh --env prod             # Full production deploy
+📈 Analytics Example
+The Analytics Dashboard provides:
 
-Image uploads stored securely under /static/cards/.
+Monthly inventory growth (card count)
 
-🔍 Valuation Engine
-Calculates card value using recent market sales.
+Collection valuation over time
 
-Handles ungraded (“raw”) cards with fuzzy-matching logic.
+Brand, Year, and Player breakdown tables
 
-Excludes slabbed and shipping cost data automatically.
+Combined trend overlay (inventory + valuation)
 
-🧮 Analytics Dashboard
-Collection summaries by player, year, and brand.
+🗺️ Roadmap (v1.x → v2.0)
+Version	Focus
+v1.0	Stable FastAPI/React stack, SonarCloud integration, analytics UI
+v1.1	Reintroduce AI image pipeline & card detection
+v1.2	eBay API & 3rd-party valuation feeds
+v1.3	Mobile-friendly responsive layout
+v1.4	Advanced trend analytics, custom user dashboards
 
-Combined inventory + valuation trend charts (monthly basis).
+🧩 Integration Targets
+ eBay sold listings (via Finding API)
 
-Sortable tables with inline UI arrows for intuitive insights.
+ Beckett & CardLadder APIs (valuation normalization)
 
-🛠️ Admin Tools
-Manage users, system multipliers, and valuation settings.
+ Google Vision / OCR for image recognition
 
-ERA settings hidden (planned for v1.1).
-
-Consistent action button sizing and improved layout spacing.
-
-🧰 DevOps & CI
-Secure configuration via environment variables (no .env secrets).
-
-Automated validation via utils/docker_deploy.sh:
-
---env test|prod
-
---check (validation-only)
-
---deploy (skip validation)
-
-SonarCloud integration:
-
-
-✅ 0 Security, ✅ 0 Reliability, minor maintainability improvements tracked for v1.1.
-
-🧭 Roadmap
-Version	Focus	Status
-v1.0	Stability, Security, Deployment Integrity	✅ Released
-v1.1	Maintainability Refactors, ERA Settings, AI OCR	🚧 In Progress
-v1.2+	Partner Integrations, Scalability, Image Recognition	🔜 Planned
-
-Coming Soon:
-🔐 MFA / TOTP Authentication
-
-🤝 Beckett & eBay API integrations
-
-📱 Mobile-friendly UI
-
-🧠 AI-based image identification
-
-📊 Expanded analytics & market insights
+ Webhooks for email and alert delivery
 
 🧾 License
-This project is for personal/hobby development.
+This project is developed for personal and hobbyist use.
 © 2025 CardStoard — All rights reserved.
+
+🔖 Version: v1.0
+📅 Release Date: November 2025
+✅ Verified Components: Backend, Frontend, Database, Deployment, SonarCloud
+
+---
