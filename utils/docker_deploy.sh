@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # CardStoard Environment-Aware Deployment Script (v0.9.1)
 # Modes:
 #   (default)  Full rebuild + validation
