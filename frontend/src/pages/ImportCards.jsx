@@ -44,6 +44,20 @@ export default function ImportCards() {
         <h2>Import Cards</h2>
         <p className="import-subtitle">Upload your CSV file to bulk import card data</p>
 
+        {/* ⭐ NEW: Link to Import Help */}
+        <p style={{ marginBottom: "1.5rem", fontSize: "1rem" }}>
+          <p style={{ marginBottom: "1.5rem", fontSize: "1rem" }}>
+          Need{" "}
+            <Link
+              to="/import-help"
+              style={{ color: "#0066cc", textDecoration: "underline" }}
+            >
+              help
+            </Link>
+            ?
+          </p>
+        </p>
+
         <div className="import-box">
           <input
             type="file"

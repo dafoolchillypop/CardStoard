@@ -18,6 +18,8 @@ import Account from "./pages/Account";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
+import About from "./pages/About.jsx";
+import ImportHelp from "./pages/ImportHelp.jsx";
 
 import "./index.css";
 
@@ -44,6 +46,7 @@ function AppRouter() {
       {isLoggedIn && (
         <>
           <Route path="/" element={<ProtectedRoute><App /></ProtectedRoute>} />
+          <Route path="/about" element={<About />} />
           <Route path="/add-card" element={<ProtectedRoute><AddCard /></ProtectedRoute>} />
           <Route path="/list-cards" element={<ProtectedRoute><ListCards /></ProtectedRoute>} />
           <Route path="/update-card/:id" element={<ProtectedRoute><UpdateCard /></ProtectedRoute>} />
@@ -53,6 +56,7 @@ function AppRouter() {
           <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
           <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
           <Route path="/import-cards" element={<ProtectedRoute><ImportCards /></ProtectedRoute>} />
+          <Route path="/import-help" element={<ProtectedRoute><ImportHelp /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </>
       )}

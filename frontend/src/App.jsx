@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import AppHeader from "./components/AppHeader";
 import { AuthContext } from "./context/AuthContext";
+import { Link } from "react-router-dom";
 
 export default function Home() {
   const { isLoggedIn, user } = useContext(AuthContext);
@@ -33,12 +34,28 @@ export default function Home() {
         {/* ✅ Tagline */}
         <div
           style={{
-            margin: "1rem auto 2rem",
+            margin: "1rem auto 0.5rem",
             fontSize: "1.15rem",
             color: "#555",
           }}
         >
           Track cards 📇 | Manage inventory 📦 | Monitor value 📈
+        </div>
+
+        {/* ⭐ NEW — About link */}
+        <div style={{ marginTop: "0.5rem", marginBottom: "2rem" }}>
+          <Link
+            to="/about"
+            style={{
+              color: "#167e30",
+              fontWeight: "bold",
+              textDecoration: "underline",
+              fontSize: "1rem",
+              cursor: "pointer",
+            }}
+          >
+            About CardStoard
+          </Link>
         </div>
 
         {/* ✅ Quick user summary (if logged in) */}
