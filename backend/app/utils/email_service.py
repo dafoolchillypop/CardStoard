@@ -1,6 +1,8 @@
 # app/utils/email_service.py
+
 import os
 import smtplib
+import email.utils
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -13,30 +15,39 @@ MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "CardStoard")
 
 def send_email(to_address: str, subject: str, body: str, html: str | None = None) -> bool:
     """
-    Send a plain-text or HTML email using Gmail SMTP credentials.
-    Returns True if successful, False otherwise.
+    Production-safe Gmail SMTP sender.
+    Adds Message-ID, Date, RFC-compliant headers, UTF-8 handling, and a proper envelope sender.
     """
+
     try:
+        # RFC-compliant From header
         msg = MIMEMultipart("alternative")
-        msg["From"] = f"{MAIL_FROM_NAME} <{MAIL_FROM}>"
+        msg["From"] = email.utils.formataddr((MAIL_FROM_NAME, MAIL_FROM))
         msg["To"] = to_address
         msg["Subject"] = subject
 
-        # Plain text
-        msg.attach(MIMEText(body, "plain"))
-        # Optional HTML
+        # Required for Gmail → Gmail delivery
+        msg["Date"] = email.utils.formatdate(localtime=True)
+        msg["Message-ID"] = email.utils.make_msgid(domain="cardstoard.com")
+
+        # Plain text part
+        msg.attach(MIMEText(body, "plain", "utf-8"))
+
+        # Optional HTML part
         if html:
-            msg.attach(MIMEText(html, "html"))
+            msg.attach(MIMEText(html, "html", "utf-8"))
 
-        # Optional debug mode
-        if MAIL_SERVER.lower() == "debug":
-            print(f"\n📧 [DEBUG EMAIL]\nTo: {to_address}\nSubject: {subject}\nBody:\n{body}\n")
-            return True
-
+        # Send email through Gmail SMTP
         with smtplib.SMTP(MAIL_SERVER, MAIL_PORT) as server:
+            # Required for many Gmail auth setups
+            server.ehlo()
             server.starttls()
+            server.ehlo()
+
             server.login(MAIL_USERNAME, MAIL_PASSWORD)
-            server.send_message(msg)
+
+            # Send from MAIL_FROM (envelope sender) to avoid DMARC/ARC failures inside Gmail
+            server.sendmail(MAIL_FROM, [to_address], msg.as_string())
 
         print(f"✅ Email sent to {to_address}")
         return True
