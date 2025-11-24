@@ -21,6 +21,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
+    image: cardstoard-backend
     container_name: stoarback
     restart: unless-stopped
     depends_on:
@@ -62,7 +63,8 @@ services:
       args:
         # this is read at build time for the React app
         REACT_APP_API_BASE: "https://cardstoard.com/api"
-    container_name: cardstoard-frontend
+    image: cardstoard-frontend
+    container_name: stoarfront
     restart: unless-stopped
     ports:
       - "80:80"

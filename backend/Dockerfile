@@ -1,6 +1,6 @@
 # backend/Dockerfile
 
-# Use official Python slim image
+# Use official Python slim image (multi-arch, works on ARM and x86)
 FROM python:3.11-slim
 
 # Set working directory
@@ -14,11 +14,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
-# Install dockerize
-ENV DOCKERIZE_VERSION v0.7.0
-RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-    && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-    && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+# --- REMOVED dockerize (amd64-only, breaks on ARM) ---
+# ENV DOCKERIZE_VERSION v0.7.0
+# RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+#     && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+#     && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
 # Copy Python dependencies
 COPY requirements.txt .
@@ -32,5 +32,5 @@ COPY . .
 # Ensure upload dir exists
 RUN mkdir -p /code/app/static/cards
 
-# Default command: wait for DB, then start Uvicorn
-CMD ["sh", "-c", "dockerize -wait tcp://stoardb:5432 -timeout 60s uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
+# Start Uvicorn in dev mode with reload
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
