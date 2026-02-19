@@ -1,5 +1,7 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import List, Optional
+
+VALID_GRADES = {3.0, 1.5, 1.0, 0.8, 0.4, 0.2}
 
 class CardBase(BaseModel):
     first_name: str
@@ -8,7 +10,14 @@ class CardBase(BaseModel):
     brand: Optional[str] = None
     card_number: Optional[str] = None
     rookie: Optional[bool] = False
-    grade: Optional[float] = None
+    grade: float
+
+    @field_validator("grade")
+    @classmethod
+    def grade_must_be_valid(cls, v: float) -> float:
+        if v not in VALID_GRADES:
+            raise ValueError(f"grade must be one of {sorted(VALID_GRADES)}")
+        return v
 
     book_high: Optional[float] = None
     book_high_mid: Optional[float] = None
@@ -35,6 +44,13 @@ class CardUpdate(BaseModel):
     card_number: Optional[str] = None
     rookie: Optional[bool] = None
     grade: Optional[float] = None
+
+    @field_validator("grade")
+    @classmethod
+    def grade_must_be_valid(cls, v: Optional[float]) -> Optional[float]:
+        if v is not None and v not in VALID_GRADES:
+            raise ValueError(f"grade must be one of {sorted(VALID_GRADES)}")
+        return v
 
     book_high: Optional[float] = None
     book_high_mid: Optional[float] = None
