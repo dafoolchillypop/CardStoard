@@ -13,6 +13,7 @@ from werkzeug.utils import secure_filename
 
 # Local
 from app import models, schemas
+from app.schemas import VALID_GRADES
 from app.constants import CARD_NOT_FOUND_MSG
 from app.database import get_db
 from app.auth.security import get_current_user
@@ -154,6 +155,12 @@ async def import_cards(
     for row in reader:
         rownum += 1
         try:
+            grade = to_float(row["Grade"])
+            if grade is None or grade not in VALID_GRADES:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Row {rownum} ({row['First']} {row['Last']}): invalid grade '{row['Grade']}' — must be one of {sorted(VALID_GRADES)}"
+                )
             card = models.Card(
                 first_name=(row["First"] or "").strip(),
                 last_name=(row["Last"] or "").strip(),
@@ -166,10 +173,12 @@ async def import_cards(
                 book_mid=to_float(row["BookMid"]),
                 book_low_mid=to_float(row["BookLowMid"]),
                 book_low=to_float(row["BookLow"]),
-                grade=to_float(row["Grade"]),
-                user_id=current.id,   # ✅ tie to logged-in user
+                grade=grade,
+                user_id=current.id,
             )
             new_cards.append(card)
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Row {rownum} invalid: {e}")
 
