@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 
 export default function UpdateCard() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const listState = location.state || {};
 
   const [card, setCard] = useState(null);
   const [cardMakes, setCardMakes] = useState([]);
@@ -35,8 +37,9 @@ export default function UpdateCard() {
     e.preventDefault();
     api.put(`/cards/${id}`, card)
       .then(() => {
-        alert("Card updated successfully!");
-        navigate("/list-cards");
+        navigate("/list-cards", {
+          state: { ...listState, returnCardId: parseInt(id) },
+        });
       })
       .catch(err => console.error(err));
   };

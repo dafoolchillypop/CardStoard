@@ -14,9 +14,11 @@ const fmtDollar = (n) => {
 export default function ListCards() {
   const navigate = useNavigate();
   const location = useLocation();
+  const returnState = location.state || {};
+
   const [cards, setCards] = useState([]);
-  const [page, setPage] = useState(0);
-  const [limit, setLimit] = useState(25);
+  const [page, setPage] = useState(returnState.page ?? 0);
+  const [limit, setLimit] = useState(returnState.limit ?? 25);
   const [total, setTotal] = useState(0);
   const [settings, setSettings] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -24,7 +26,19 @@ export default function ListCards() {
   const [lastNameFilter, setLastNameFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
   const [gradeFilter, setGradeFilter] = useState("");
-  const [sortConfig, setSortConfig] = React.useState({ key: null, direction: "asc"});
+  const [sortConfig, setSortConfig] = React.useState(returnState.sortConfig ?? { key: null, direction: "asc" });
+  const [returnCardId, setReturnCardId] = useState(returnState.returnCardId ?? null);
+  const [pinnedCard, setPinnedCard] = useState(null);
+
+  // Fetch the updated card directly so it's always visible regardless of current page
+  useEffect(() => {
+    if (!returnCardId) { setPinnedCard(null); return; }
+    api.get(`/cards/${returnCardId}`)
+      .then(res => setPinnedCard(res.data))
+      .catch(() => setPinnedCard(null));
+  }, [returnCardId]);
+
+  const clearPin = () => { setReturnCardId(null); setPinnedCard(null); };
 
   // Load count once
   useEffect(() => {
@@ -50,6 +64,8 @@ export default function ListCards() {
   // Load page of cards when page/limit changes
   useEffect(() => {
     const fetchCards = async () => {
+      // When showing all records, wait until the count is loaded
+      if (limit === "all" && total === 0) return;
       try {
         const skip = page * (limit === "all" ? total : limit);
         const url =
@@ -63,10 +79,11 @@ export default function ListCards() {
       }
     };
     fetchCards();
-  }, [page, limit, location]);
+  }, [page, limit, location, total]);
 
   const handleLimitChange = (e) => {
     const value = e.target.value;
+    clearPin();
     if (value === "all") {
       setLimit("all");
       setPage(0);
@@ -75,13 +92,13 @@ export default function ListCards() {
       setPage(0);
     }
   };
-  
+
   const nextPage = () => {
-    if ((page + 1) * limit < total) setPage((prev) => prev + 1);
+    if ((page + 1) * limit < total) { clearPin(); setPage((prev) => prev + 1); }
   };
 
   const prevPage = () => {
-    setPage((prev) => Math.max(prev - 1, 0));
+    clearPin(); setPage((prev) => Math.max(prev - 1, 0));
   };
 
   const totalPages = limit === "all" ? 1 : Math.ceil(total / limit);
@@ -202,7 +219,15 @@ export default function ListCards() {
     return sortable;
   }, [filteredCards, sortConfig, settings]);
 
+  // Prepend the freshly-fetched pinned card; remove it from the page results if it also appears there
+  const displayedCards = React.useMemo(() => {
+    if (!pinnedCard) return sortedCards;
+    const rest = sortedCards.filter(c => Number(c.id) !== Number(pinnedCard.id));
+    return [pinnedCard, ...rest];
+  }, [sortedCards, pinnedCard]);
+
   const requestSort = (key) => {
+    clearPin();
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
       direction = "desc";
@@ -212,7 +237,7 @@ export default function ListCards() {
 
   // Add this near top of component body (after sortedCards is defined)
   const totalValue = React.useMemo(
-    () => sortedCards.reduce((sum, card) => sum + Math.round(Number(card.value) || 0), 0), [sortedCards]
+    () => displayedCards.reduce((sum, card) => sum + Math.round(Number(card.value) || 0), 0), [displayedCards]
   );
 
     return (
@@ -409,7 +434,7 @@ export default function ListCards() {
                 </tr>
               </thead>
               <tbody>
-                {sortedCards.map((card) => {
+                {displayedCards.map((card) => {
                   // --- Market Factor calculation (frontend-only) ---
                   const g = parseFloat(card.grade);
                   const rookieVal = card.rookie === "*" || card.rookie === "1" ||  Number(card.rookie) === 1 || card.rookie === true;
@@ -426,7 +451,14 @@ export default function ListCards() {
                   }
 
                   return (
-                     <tr key={card.id}>
+                     <tr
+                      key={card.id}
+                      style={Number(card.id) === Number(returnCardId) ? {
+                        backgroundColor: "#fffde7",
+                        outline: "2px solid #ffc107",
+                        transition: "background-color 0.5s"
+                      } : {}}
+                    >
                       <td className="fname-col">
                         <span>{card.first_name}</span>
                       </td>
@@ -529,8 +561,9 @@ export default function ListCards() {
                       {/* Actions */}
                       <td className="action-col actions-col" style={{ textAlign: "center" }}>
                         <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
-                          <Link 
-                            to={`/update-card/${card.id}`} 
+                          <Link
+                            to={`/update-card/${card.id}`}
+                            state={{ sortConfig, limit, page }}
                             className="small-btn"
                           >
                             Update
