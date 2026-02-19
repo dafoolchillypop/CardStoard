@@ -209,7 +209,6 @@ def create_card(
     current: User = Depends(get_current_user),
 ):
     try:
-        # Exclude computed-only fields that aren't in the DB model
         data = card.dict(exclude_unset=True)
         data.pop("market_factor", None)
         data.pop("value", None)
@@ -218,6 +217,20 @@ def create_card(
         db.add(db_card)
         db.commit()
         db.refresh(db_card)
+
+        # Compute market_factor and value from settings, same as update/import paths
+        settings = db.query(models.GlobalSettings).filter(
+            models.GlobalSettings.user_id == current.id
+        ).first()
+        if settings:
+            avg_book = pick_avg_book(db_card)
+            g = float(db_card.grade) if db_card.grade is not None else None
+            factor = calculate_market_factor(db_card, settings)
+            db_card.market_factor = factor
+            db_card.value = calculate_card_value(avg_book, g, factor)
+            db.commit()
+            db.refresh(db_card)
+
         return db_card
 
     except Exception as e:
