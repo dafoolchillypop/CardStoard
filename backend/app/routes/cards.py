@@ -205,6 +205,14 @@ async def import_cards(
 
         db.commit()
 
+        # Merge any new brands into card_makes
+        imported_brands = {c.brand for c in new_cards if c.brand}
+        existing_brands = set(settings.card_makes or [])
+        new_brands = imported_brands - existing_brands
+        if new_brands:
+            settings.card_makes = sorted(existing_brands | imported_brands)
+            db.commit()
+
     return {
     "imported": len(new_cards),
     "message": f"Successfully imported {len(new_cards)} cards."
