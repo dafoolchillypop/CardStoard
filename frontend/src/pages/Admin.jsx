@@ -37,11 +37,12 @@ export default function Admin() {
       .catch(err => console.error(err));
   };
 
-  const handleToggle = async () => {
+  const handleToggle = async (field) => {
     try {
-      const updated = { ...settings, enable_smart_fill: !settings.enable_smart_fill };
+      const updated = { ...settings, [field]: !settings[field] };
       const res = await api.put("/settings/", updated);
       setSettings(res.data);
+      window.dispatchEvent(new Event("settings-changed"));
     } catch (err) {
       console.error("Error updating settings:", err);
     }
@@ -61,9 +62,19 @@ export default function Admin() {
               type="checkbox"
               name="smart"
               checked={settings.enable_smart_fill}
-              onChange={handleToggle}
+              onChange={() => handleToggle("enable_smart_fill")}
             />
             <div className="smartfill-label">Smart Fill</div>
+          </div>
+
+        <div className="smartfill-container">
+            <input
+              type="checkbox"
+              name="chatbot"
+              checked={settings.chatbot_enabled ?? false}
+              onChange={() => handleToggle("chatbot_enabled")}
+            />
+            <div className="smartfill-label">Collection Assistant (Chatbot)</div>
           </div>
 
          <form className="settings-form" onSubmit={handleSubmit}>

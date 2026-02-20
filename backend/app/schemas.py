@@ -73,6 +73,7 @@ class GlobalSettingsBase(BaseModel):
     card_makes: Optional[List[str]] = ["Bowman","Donruss","Fleer","Score","Topps","Upper Deck"]
     card_grades: Optional[List[str]] = ["3","1.5","1","0.8","0.4","0.2"]
     enable_smart_fill: bool = False
+    chatbot_enabled: bool = False
 
     rookie_factor: Optional[float] = .80
     auto_factor: Optional[float] = 1.00
@@ -97,6 +98,7 @@ class GlobalSettingsUpdate(BaseModel):
     card_makes: Optional[List[str]] = None
     card_grades: Optional[List[str]] = None
     enable_smart_fill: Optional[bool] = None
+    chatbot_enabled: Optional[bool] = None
 
     rookie_factor: Optional[float] = None
     auto_factor: Optional[float] = None

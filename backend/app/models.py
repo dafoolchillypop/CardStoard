@@ -63,6 +63,7 @@ class GlobalSettings(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey(USER_ID_REF), nullable=False)
     enable_smart_fill = Column(Boolean, default=False)
+    chatbot_enabled = Column(Boolean, default=False)
 
     # Relationships
     user = relationship("User", back_populates="settings")
