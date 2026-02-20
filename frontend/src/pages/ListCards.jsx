@@ -411,26 +411,26 @@ export default function ListCards() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  <th>First</th>
-                  <th onClick={() => requestSort("last_name")} style={{ cursor: "pointer" }}>Last {sortConfig.key === "last_name" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}</th>
-                  <th onClick={() => requestSort("year")} style={{ cursor: "pointer" }}>Year {sortConfig.key === "year" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}</th>
+                  <th className="fname-col">First</th>
+                  <th className="lname-col" onClick={() => requestSort("last_name")} style={{ cursor: "pointer" }}>Last {sortConfig.key === "last_name" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}</th>
+                  <th className="year-col" onClick={() => requestSort("year")} style={{ cursor: "pointer" }}>Year {sortConfig.key === "year" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}</th>
                   <th className="brand-col">Brand</th>
                   <th className="card-number-col">Card #</th>
-                  <th className="rookie-col" style={{ textAlign: "center", width: 70 }}>Rookie</th>
+                  <th className="rookie-col" style={{ textAlign: "center", width: 55 }}>Rookie</th>
 
-                  <th className="grade-col" style={{ textAlign: "center", width: 90, cursor: "pointer" }}
+                  <th className="grade-col" style={{ textAlign: "center", width: 65, cursor: "pointer" }}
                       onClick={() => requestSort("grade")}>Grade {sortConfig.key === "grade" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}
                   </th>
-                  
-                  <th className="book-col" style={{ textAlign: "center", minWidth: 220 }}>Book</th>
-                  <th className="market-factor-col" style={{ textAlign: "center", width: 130 }}>Market Factor</th>
-                  
-                  <th className="card-value-col" style={{ textAlign: "center", width: 130, cursor: "pointer" }}
+
+                  <th className="book-col" style={{ textAlign: "center", minWidth: 180 }}>Book</th>
+                  <th className="market-factor-col" style={{ textAlign: "center", width: 80 }}>Market Factor</th>
+
+                  <th className="card-value-col" style={{ textAlign: "center", cursor: "pointer" }}
                       onClick={() => requestSort("card_value")}>Card Value {sortConfig.key === "card_value" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}
                   </th>
-                                      
-                  <th className="card-images-col" style={{ textAlign: "center", width: 140 }}>Images</th>                  
-                  <th className="action-col actions-col" style={{ textAlign: "center", width: 140 }}>Actions</th>
+
+                  <th className="card-images-col" style={{ textAlign: "center", width: 65 }}>Images</th>
+                  <th className="action-col actions-col" style={{ textAlign: "center", width: 130 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>

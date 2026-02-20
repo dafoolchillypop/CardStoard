@@ -53,8 +53,8 @@ body {
 
 table {
   border-collapse: collapse;
-  width: 100%;  /* ✅ stretch full width */
-  table-layout: fixed
+  width: 100%;
+  table-layout: auto;
 }
 
 .paging-controls {
@@ -257,22 +257,22 @@ button:active {
 /* Center Actions columns */
 .card-section td.actions-col {
   text-align: center;
-  width: 80px;
+  width: 130px;
 }
 
 /* Shrink and center rookie, grade, and values columns */
 .card-section td.rookie-col {
-  width: 150px;   /* adjust as needed */
+  width: 55px;
   text-align: center;
 }
 
 .card-section td.grade-col {
-  width: 150px;
+  width: 65px;
   text-align: center;
 }
 
 .card-section td.book-col {
-  width: 250px;  /* wide enough for badges in a row */
+  min-width: 180px;
   text-align: center;
 }
 
@@ -439,38 +439,53 @@ button:active {
   text-align: center;
 }
 
-td.year-col {
+td.year-col, th.year-col {
   text-align: center;
   vertical-align: middle;
-  width: 150px;
-  max-width: 150px;
+  width: 55px;
   white-space: nowrap;
 }
 
-/* Force brand and card number to be centered */
-td.fname-col, td.lname-col {
+td.fname-col, th.fname-col {
   font-weight: bold;
+  text-align: left;
+  vertical-align: middle;
+  width: 80px;
+  max-width: 80px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+td.lname-col, th.lname-col {
+  font-weight: bold;
+  text-align: left;
+  vertical-align: middle;
+  width: 110px;
+  max-width: 110px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+td.brand-col, th.brand-col {
   text-align: center;
   vertical-align: middle;
-  width: 150px;
-  max-width: 150px;
+  width: 90px;
   white-space: nowrap;
 }
 
-td.brand-col, th.brand-col,
 td.card-number-col, th.card-number-col {
   text-align: center;
   vertical-align: middle;
-  width: 150px;
-  max-width: 150px;
+  width: 65px;
   white-space: nowrap;
 }
 
-td.card-value-col {
+td.card-value-col, th.card-value-col {
   text-align: center;
   vertical-align: middle;
-  width: 150px;
-  max-width: 150px;
+  width: 85px;
   white-space: nowrap;
 }
 
