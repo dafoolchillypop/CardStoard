@@ -1,6 +1,7 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect, useContext } from "react";
 import api from "../api/api";
+import { setAuthContext } from "../utils/logoutHandler";
 
 export const AuthContext = createContext();
 
@@ -31,6 +32,11 @@ export const AuthProvider = ({ children }) => {
 
     if (msg) alert(msg);
   };
+
+  // Register logout handler so api.js interceptor can trigger logout
+  useEffect(() => {
+    setAuthContext({ logout });
+  }, []); // eslint-disable-line
 
   useEffect(() => {
     const publicRoutes = ["/", "/login", "/register", "/verify-success", "/verify-error", "/forgot-password"];

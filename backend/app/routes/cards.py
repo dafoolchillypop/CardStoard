@@ -13,6 +13,7 @@ from werkzeug.utils import secure_filename
 
 # Local
 from app import models, schemas
+from app.schemas import VALID_GRADES
 from app.constants import CARD_NOT_FOUND_MSG
 from app.database import get_db
 from app.auth.security import get_current_user
@@ -154,6 +155,12 @@ async def import_cards(
     for row in reader:
         rownum += 1
         try:
+            grade = to_float(row["Grade"])
+            if grade is None or grade not in VALID_GRADES:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Row {rownum} ({row['First']} {row['Last']}): invalid grade '{row['Grade']}' — must be one of {sorted(VALID_GRADES)}"
+                )
             card = models.Card(
                 first_name=(row["First"] or "").strip(),
                 last_name=(row["Last"] or "").strip(),
@@ -166,10 +173,12 @@ async def import_cards(
                 book_mid=to_float(row["BookMid"]),
                 book_low_mid=to_float(row["BookLowMid"]),
                 book_low=to_float(row["BookLow"]),
-                grade=to_float(row["Grade"]),
-                user_id=current.id,   # ✅ tie to logged-in user
+                grade=grade,
+                user_id=current.id,
             )
             new_cards.append(card)
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Row {rownum} invalid: {e}")
 
@@ -209,7 +218,6 @@ def create_card(
     current: User = Depends(get_current_user),
 ):
     try:
-        # Exclude computed-only fields that aren't in the DB model
         data = card.dict(exclude_unset=True)
         data.pop("market_factor", None)
         data.pop("value", None)
@@ -218,6 +226,20 @@ def create_card(
         db.add(db_card)
         db.commit()
         db.refresh(db_card)
+
+        # Compute market_factor and value from settings, same as update/import paths
+        settings = db.query(models.GlobalSettings).filter(
+            models.GlobalSettings.user_id == current.id
+        ).first()
+        if settings:
+            avg_book = pick_avg_book(db_card)
+            g = float(db_card.grade) if db_card.grade is not None else None
+            factor = calculate_market_factor(db_card, settings)
+            db_card.market_factor = factor
+            db_card.value = calculate_card_value(avg_book, g, factor)
+            db.commit()
+            db.refresh(db_card)
+
         return db_card
 
     except Exception as e:

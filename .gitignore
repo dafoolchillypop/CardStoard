@@ -1,2 +1,22 @@
 __pycache__/
 *.pyc
+
+# Dependencies
+node_modules/
+
+# Environment files (contain secrets)
+.env
+.env.*
+!.env.example
+
+# Logs
+utils/logs/
+
+# macOS / Windows artifacts
+.DS_Store
+*.Zone.Identifier
+
+# Python
+*.pyo
+*.pyd
+.Python

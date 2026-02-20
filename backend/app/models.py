@@ -33,8 +33,8 @@ class Card(Base):
     card_number = Column(String, nullable=True)
     rookie = Column(Boolean, default=False)
 
-    # grade stored as float, matches schema & factor logic
-    grade = Column(Float, nullable=True)
+    # grade stored as float, must be one of the 6 valid condition values
+    grade = Column(Float, nullable=False)
 
     # Book values
     book_high = Column(Float, nullable=True)

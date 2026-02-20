@@ -21,7 +21,12 @@ let isRefreshing = false;
 let refreshSubscribers = [];
 
 const onRefreshed = () => {
-  refreshSubscribers.forEach((cb) => cb());
+  refreshSubscribers.forEach((cb) => cb(null));
+  refreshSubscribers = [];
+};
+
+const onRefreshFailed = (err) => {
+  refreshSubscribers.forEach((cb) => cb(err));
   refreshSubscribers = [];
 };
 
@@ -36,11 +41,12 @@ api.interceptors.response.use(
     const url = error.config?.url || "";
     const originalRequest = error.config;
 
-    // Ignore login/register/verify 401s
+    // Ignore 401s from auth endpoints — especially /auth/refresh to prevent deadlock
     const isAuthRoute =
       url.includes("/auth/login") ||
       url.includes("/auth/register") ||
-      url.includes("/auth/verify");
+      url.includes("/auth/verify") ||
+      url.includes("/auth/refresh");
 
     if (
       error.response &&
@@ -50,8 +56,11 @@ api.interceptors.response.use(
     ) {
       // If we're already refreshing, queue this request
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          addSubscriber(() => resolve(api(originalRequest)));
+        return new Promise((resolve, reject) => {
+          addSubscriber((err) => {
+            if (err) return reject(err);
+            resolve(api(originalRequest));
+          });
         });
       }
 
@@ -67,6 +76,7 @@ api.interceptors.response.use(
       } catch (refreshErr) {
         console.warn("⚠️ Refresh failed, logging out...");
         isRefreshing = false;
+        onRefreshFailed(refreshErr);
         logoutHandler();
         return Promise.reject(refreshErr);
       }

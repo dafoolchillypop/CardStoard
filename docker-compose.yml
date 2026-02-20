@@ -22,14 +22,13 @@ services:
       MAIL_PORT: ${MAIL_PORT}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME}
 
-      # Base URLs (these exist in your .bashrc now)
+      # Base URLs
       BACKEND_BASE_URL: ${BACKEND_BASE_URL}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
       REACT_APP_API_BASE: ${REACT_APP_API_BASE}
 
-    command: >
-      sh -c "dockerize -wait tcp://stoardb:5432 -timeout 120s
-      uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+      # Auth
+      JWT_SECRET: ${JWT_SECRET}
 
   frontend:
     build: ./frontend
