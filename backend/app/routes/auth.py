@@ -8,7 +8,7 @@ from ..database import get_db
 from ..models import User, GlobalSettings
 from ..schemas import UserCreate
 from ..auth.security import hash_password, verify_password, create_token, get_current_user
-from ..auth.cookies import set_auth_cookie, set_access_cookie, clear_auth_cookie
+from ..auth.cookies import set_auth_cookie, set_access_cookie, set_refresh_cookie, clear_auth_cookie
 from ..auth.email_verify import generate_email_token, verify_email_token
 from ..utils.email_service import send_email
 
@@ -95,7 +95,7 @@ def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
     refresh = create_token(user.id, "refresh")
 
     set_auth_cookie(response, "access_token", access)
-    set_auth_cookie(response, "refresh_token", refresh)
+    set_refresh_cookie(response, refresh)
 
     return {
         "ok": True,

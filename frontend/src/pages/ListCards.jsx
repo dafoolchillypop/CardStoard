@@ -22,10 +22,11 @@ export default function ListCards() {
   const [total, setTotal] = useState(0);
   const [settings, setSettings] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
-  const [showFilter, setShowFilter] = useState(false);
-  const [lastNameFilter, setLastNameFilter] = useState("");
-  const [brandFilter, setBrandFilter] = useState("");
-  const [gradeFilter, setGradeFilter] = useState("");
+  const [showFilter, setShowFilter] = useState(returnState.showFilter ?? false);
+  const [lastNameFilter, setLastNameFilter] = useState(returnState.lastNameFilter ?? "");
+  const [brandFilter, setBrandFilter] = useState(returnState.brandFilter ?? "");
+  const [gradeFilter, setGradeFilter] = useState(returnState.gradeFilter ?? "");
+  const [yearFilter, setYearFilter] = useState(returnState.yearFilter ?? "");
   const [sortConfig, setSortConfig] = React.useState(returnState.sortConfig ?? { key: null, direction: "asc" });
   const [returnCardId, setReturnCardId] = useState(returnState.returnCardId ?? null);
   const [pinnedCard, setPinnedCard] = useState(null);
@@ -175,10 +176,14 @@ export default function ListCards() {
       : true;
 
     const matchesGrade = gradeFilter
-    ? String(card.grade || "").toLowerCase().includes(gradeFilter.toLowerCase())
-    : true;
-  
-    return matchesLastName && matchesBrand && matchesGrade;
+      ? String(card.grade || "").toLowerCase().includes(gradeFilter.toLowerCase())
+      : true;
+
+    const matchesYear = yearFilter
+      ? String(card.year || "").includes(yearFilter)
+      : true;
+
+    return matchesLastName && matchesBrand && matchesGrade && matchesYear;
   });
 
   const sortedCards = React.useMemo(() => {
@@ -369,6 +374,20 @@ export default function ListCards() {
                   />
                 </div>
 
+                {/* Year filter */}
+                <div>
+                  <label style={{ fontSize: "0.85rem" }}>
+                    Year:{" "}
+                  </label>
+                  <input
+                    type="text"
+                    value={yearFilter}
+                    onChange={(e) => setYearFilter(e.target.value)}
+                    placeholder="Enter year"
+                    style={{ fontSize: "0.85rem", padding: "2px 6px", width: "80px" }}
+                  />
+                </div>
+
                 {/* Grade filter */}
                 <div>
                   <label style={{ fontSize: "0.85rem" }}>
@@ -379,7 +398,7 @@ export default function ListCards() {
                     value={gradeFilter}
                     onChange={(e) => setGradeFilter(e.target.value)}
                     placeholder="Enter grade"
-                    style={{ fontSize: "0.85rem", padding: "2px 6px", width: "140px" }}
+                    style={{ fontSize: "0.85rem", padding: "2px 6px", width: "80px" }}
                   />
                 </div>
 
@@ -389,6 +408,8 @@ export default function ListCards() {
                     setShowFilter(false);
                     setLastNameFilter("");
                     setBrandFilter("");
+                    setYearFilter("");
+                    setGradeFilter("");
                   }}
                   style={{
                     textAlign: "left",
