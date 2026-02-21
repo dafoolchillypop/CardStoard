@@ -30,6 +30,9 @@ services:
       # Auth
       JWT_SECRET: ${JWT_SECRET}
 
+      # Anthropic
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+
   frontend:
     build: ./frontend
     container_name: stoarfront

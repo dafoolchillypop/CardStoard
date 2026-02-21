@@ -20,6 +20,10 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import About from "./pages/About.jsx";
 import ImportHelp from "./pages/ImportHelp.jsx";
+import DictionaryList from "./pages/DictionaryList.jsx";
+import DictionaryAdd from "./pages/DictionaryAdd.jsx";
+import DictionaryEdit from "./pages/DictionaryEdit.jsx";
+import DictionaryImport from "./pages/DictionaryImport.jsx";
 
 import "./index.css";
 
@@ -57,6 +61,10 @@ function AppRouter() {
           <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
           <Route path="/import-cards" element={<ProtectedRoute><ImportCards /></ProtectedRoute>} />
           <Route path="/import-help" element={<ProtectedRoute><ImportHelp /></ProtectedRoute>} />
+          <Route path="/dictionary" element={<ProtectedRoute><DictionaryList /></ProtectedRoute>} />
+          <Route path="/dictionary/add" element={<ProtectedRoute><DictionaryAdd /></ProtectedRoute>} />
+          <Route path="/dictionary/edit/:id" element={<ProtectedRoute><DictionaryEdit /></ProtectedRoute>} />
+          <Route path="/dictionary/import" element={<ProtectedRoute><DictionaryImport /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </>
       )}

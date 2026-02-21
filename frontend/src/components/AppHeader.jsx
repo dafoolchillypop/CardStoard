@@ -1,10 +1,28 @@
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import ChatPanel from "./ChatPanel";
+import api from "../api/api";
 import "./AppHeader.css";
 
 export default function AppHeader() {
   const { user, isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatbotEnabled, setChatbotEnabled] = useState(false);
+
+  const fetchChatbotSetting = () => {
+    api.get("/settings/")
+      .then(res => setChatbotEnabled(res.data.chatbot_enabled ?? false))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    fetchChatbotSetting();
+    window.addEventListener("settings-changed", fetchChatbotSetting);
+    return () => window.removeEventListener("settings-changed", fetchChatbotSetting);
+  }, [isLoggedIn]);
 
   const handleLogout = () => {
     logout();
@@ -18,11 +36,20 @@ export default function AppHeader() {
 
   return (
     <header className="app-header">
-      {/* --- Left: App title --- */}
+      {/* --- Left: App title + chat bubble --- */}
       <div className="app-header-left">
         <Link to="/" className="app-header-title">
           CardStoard
         </Link>
+        {chatbotEnabled && (
+          <button
+            className="chat-bubble-btn"
+            onClick={() => setChatOpen((o) => !o)}
+            title="Collection Assistant"
+          >
+            💬
+          </button>
+        )}
       </div>
 
       {/* --- Center: Navigation buttons (moved from Home) --- */}
@@ -52,7 +79,7 @@ export default function AppHeader() {
         </Link>
       </div>
 
-      {/* --- Right: User info + logout --- */}
+      {/* --- Right: User info + chat + logout --- */}
       <div className="app-header-right">
         <Link to="/account" className="user-info-link" title="Account details">
           <span className="user-info">{displayName}</span>
@@ -61,6 +88,8 @@ export default function AppHeader() {
           🚪 Logout
         </button>
       </div>
+
+      {chatOpen && <ChatPanel onClose={() => setChatOpen(false)} />}
     </header>
   );
 }

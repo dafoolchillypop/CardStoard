@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ChipsInput from "../components/ChipsInput";
 import "./Admin.css";
 
 export default function Admin() {
+  const navigate = useNavigate();
   const [settings, setSettings] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [dictCount, setDictCount] = useState(null);
 
   useEffect(() => {
     api.get("/settings/")
@@ -20,6 +22,10 @@ export default function Admin() {
         });
       })
       .catch(err => console.error(err));
+
+    api.get("/dictionary/count")
+      .then(res => setDictCount(res.data.count))
+      .catch(err => console.error("Error fetching dictionary count:", err));
   }, []);
   
   const handleChange = (e) => {
@@ -37,11 +43,12 @@ export default function Admin() {
       .catch(err => console.error(err));
   };
 
-  const handleToggle = async () => {
+  const handleToggle = async (field) => {
     try {
-      const updated = { ...settings, enable_smart_fill: !settings.enable_smart_fill };
+      const updated = { ...settings, [field]: !settings[field] };
       const res = await api.put("/settings/", updated);
       setSettings(res.data);
+      window.dispatchEvent(new Event("settings-changed"));
     } catch (err) {
       console.error("Error updating settings:", err);
     }
@@ -61,9 +68,19 @@ export default function Admin() {
               type="checkbox"
               name="smart"
               checked={settings.enable_smart_fill}
-              onChange={handleToggle}
+              onChange={() => handleToggle("enable_smart_fill")}
             />
             <div className="smartfill-label">Smart Fill</div>
+          </div>
+
+        <div className="smartfill-container">
+            <input
+              type="checkbox"
+              name="chatbot"
+              checked={settings.chatbot_enabled ?? false}
+              onChange={() => handleToggle("chatbot_enabled")}
+            />
+            <div className="smartfill-label">Collection Assistant (Chatbot)</div>
           </div>
 
          <form className="settings-form" onSubmit={handleSubmit}>
@@ -169,6 +186,17 @@ export default function Admin() {
 
           <button type="submit">Save Settings</button>
         </form>
+
+        {/* Player Dictionary */}
+        <div className="card-section" style={{ marginTop: "1.5rem" }}>
+          <h3>Player Dictionary</h3>
+          <p>Total entries: <strong>{dictCount !== null ? dictCount : "Loading..."}</strong></p>
+          <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+            <button className="nav-btn" onClick={() => navigate("/dictionary")}>📖 View / Edit</button>
+            <button className="nav-btn" onClick={() => navigate("/dictionary/import")}>📥 Import CSV</button>
+            <button className="nav-btn" onClick={() => navigate("/dictionary/add")}>➕ Add Entry</button>
+          </div>
+        </div>
         
 
         {showModal && (

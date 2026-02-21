@@ -22,10 +22,11 @@ export default function ListCards() {
   const [total, setTotal] = useState(0);
   const [settings, setSettings] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
-  const [showFilter, setShowFilter] = useState(false);
-  const [lastNameFilter, setLastNameFilter] = useState("");
-  const [brandFilter, setBrandFilter] = useState("");
-  const [gradeFilter, setGradeFilter] = useState("");
+  const [showFilter, setShowFilter] = useState(returnState.showFilter ?? false);
+  const [lastNameFilter, setLastNameFilter] = useState(returnState.lastNameFilter ?? "");
+  const [brandFilter, setBrandFilter] = useState(returnState.brandFilter ?? "");
+  const [gradeFilter, setGradeFilter] = useState(returnState.gradeFilter ?? "");
+  const [yearFilter, setYearFilter] = useState(returnState.yearFilter ?? "");
   const [sortConfig, setSortConfig] = React.useState(returnState.sortConfig ?? { key: null, direction: "asc" });
   const [returnCardId, setReturnCardId] = useState(returnState.returnCardId ?? null);
   const [pinnedCard, setPinnedCard] = useState(null);
@@ -175,10 +176,14 @@ export default function ListCards() {
       : true;
 
     const matchesGrade = gradeFilter
-    ? String(card.grade || "").toLowerCase().includes(gradeFilter.toLowerCase())
-    : true;
-  
-    return matchesLastName && matchesBrand && matchesGrade;
+      ? String(card.grade || "").toLowerCase().includes(gradeFilter.toLowerCase())
+      : true;
+
+    const matchesYear = yearFilter
+      ? String(card.year || "").includes(yearFilter)
+      : true;
+
+    return matchesLastName && matchesBrand && matchesGrade && matchesYear;
   });
 
   const sortedCards = React.useMemo(() => {
@@ -285,6 +290,12 @@ export default function ListCards() {
         </span>
       </div>
 
+        {/* Action buttons */}
+        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", justifyContent: "center" }}>
+          <button className="nav-btn" onClick={() => navigate("/add-card")}>+ Add Card</button>
+          <button className="nav-btn" onClick={() => navigate("/import-cards")}>Import CSV</button>
+        </div>
+
         {/* ✅ Running Total Bar */}
         <div
           style={{
@@ -369,6 +380,20 @@ export default function ListCards() {
                   />
                 </div>
 
+                {/* Year filter */}
+                <div>
+                  <label style={{ fontSize: "0.85rem" }}>
+                    Year:{" "}
+                  </label>
+                  <input
+                    type="text"
+                    value={yearFilter}
+                    onChange={(e) => setYearFilter(e.target.value)}
+                    placeholder="Enter year"
+                    style={{ fontSize: "0.85rem", padding: "2px 6px", width: "80px" }}
+                  />
+                </div>
+
                 {/* Grade filter */}
                 <div>
                   <label style={{ fontSize: "0.85rem" }}>
@@ -379,7 +404,7 @@ export default function ListCards() {
                     value={gradeFilter}
                     onChange={(e) => setGradeFilter(e.target.value)}
                     placeholder="Enter grade"
-                    style={{ fontSize: "0.85rem", padding: "2px 6px", width: "140px" }}
+                    style={{ fontSize: "0.85rem", padding: "2px 6px", width: "80px" }}
                   />
                 </div>
 
@@ -389,6 +414,8 @@ export default function ListCards() {
                     setShowFilter(false);
                     setLastNameFilter("");
                     setBrandFilter("");
+                    setYearFilter("");
+                    setGradeFilter("");
                   }}
                   style={{
                     textAlign: "left",
@@ -411,26 +438,26 @@ export default function ListCards() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  <th>First</th>
-                  <th onClick={() => requestSort("last_name")} style={{ cursor: "pointer" }}>Last {sortConfig.key === "last_name" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}</th>
-                  <th onClick={() => requestSort("year")} style={{ cursor: "pointer" }}>Year {sortConfig.key === "year" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}</th>
+                  <th className="fname-col">First</th>
+                  <th className="lname-col" onClick={() => requestSort("last_name")} style={{ cursor: "pointer" }}>Last {sortConfig.key === "last_name" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}</th>
+                  <th className="year-col" onClick={() => requestSort("year")} style={{ cursor: "pointer" }}>Year {sortConfig.key === "year" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}</th>
                   <th className="brand-col">Brand</th>
                   <th className="card-number-col">Card #</th>
-                  <th className="rookie-col" style={{ textAlign: "center", width: 70 }}>Rookie</th>
+                  <th className="rookie-col" style={{ textAlign: "center", width: 55 }}>Rookie</th>
 
-                  <th className="grade-col" style={{ textAlign: "center", width: 90, cursor: "pointer" }}
+                  <th className="grade-col" style={{ textAlign: "center", width: 65, cursor: "pointer" }}
                       onClick={() => requestSort("grade")}>Grade {sortConfig.key === "grade" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}
                   </th>
-                  
-                  <th className="book-col" style={{ textAlign: "center", minWidth: 220 }}>Book</th>
-                  <th className="market-factor-col" style={{ textAlign: "center", width: 130 }}>Market Factor</th>
-                  
-                  <th className="card-value-col" style={{ textAlign: "center", width: 130, cursor: "pointer" }}
+
+                  <th className="book-col" style={{ textAlign: "center", minWidth: 180 }}>Book</th>
+                  <th className="market-factor-col" style={{ textAlign: "center", width: 80 }}>Market Factor</th>
+
+                  <th className="card-value-col" style={{ textAlign: "center", cursor: "pointer" }}
                       onClick={() => requestSort("card_value")}>Card Value {sortConfig.key === "card_value" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}
                   </th>
-                                      
-                  <th className="card-images-col" style={{ textAlign: "center", width: 140 }}>Images</th>                  
-                  <th className="action-col actions-col" style={{ textAlign: "center", width: 140 }}>Actions</th>
+
+                  <th className="card-images-col" style={{ textAlign: "center", width: 65 }}>Images</th>
+                  <th className="action-col actions-col" style={{ textAlign: "center", width: 130 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>

@@ -17,3 +17,4 @@ pillow==10.*
 pytesseract==0.3.10
 python-multipart==0.0.9
 werkzeug
+anthropic

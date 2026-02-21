@@ -13,8 +13,9 @@ export default function UpdateCard() {
   const [cardMakes, setCardMakes] = useState([]);
   const [cardGrades, setCardGrades] = useState([]);
   const [smartMessage, setSmartMessage] = useState("");
+  const [playerNames, setPlayerNames] = useState({ firstNames: [], lastNames: [] });
 
-  // Fetch global settings + card details
+  // Fetch global settings + card details + player name list
   useEffect(() => {
     api.get("/settings/")
       .then(res => {
@@ -26,11 +27,32 @@ export default function UpdateCard() {
     api.get(`/cards/${id}`)
       .then(res => setCard(res.data))
       .catch(err => console.error("Error fetching card:", err));
+
+    api.get("/cards/players")
+      .then((res) => {
+        const players = res.data.players || [];
+        setPlayerNames({
+          firstNames: [...new Set(players.map(p => p.first_name))].sort(),
+          lastNames: [...new Set(players.map(p => p.last_name))].sort(),
+        });
+      })
+      .catch((err) => console.error("Error fetching player names:", err));
   }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCard({ ...card, [name]: value });
+  };
+
+  const handleNameKeyDown = (e, field, names) => {
+    if (e.key !== "Enter" && e.key !== "Tab") return;
+    const typed = (card[field] || "").trim().toLowerCase();
+    if (!typed) return;
+    const match = names.find(n => n.toLowerCase().startsWith(typed));
+    if (match && match.toLowerCase() !== typed) {
+      if (e.key === "Enter") e.preventDefault();
+      setCard(prev => ({ ...prev, [field]: match }));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -116,6 +138,7 @@ export default function UpdateCard() {
             name="first_name"
             value={card.first_name ?? ""}
             onChange={handleChange}
+            onKeyDown={(e) => handleNameKeyDown(e, "first_name", playerNames.firstNames)}
             required
           />
 
@@ -124,6 +147,7 @@ export default function UpdateCard() {
             name="last_name"
             value={card.last_name ?? ""}
             onChange={handleChange}
+            onKeyDown={(e) => handleNameKeyDown(e, "last_name", playerNames.lastNames)}
             required
           />
 

@@ -1,5 +1,6 @@
 // src/pages/Analytics.jsx
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
 import {
@@ -36,6 +37,7 @@ const mergeTrends = (inventory = [], valuation = []) => {
 };
 
 export default function Analytics() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
 
   // --- Sorting states ---
@@ -278,7 +280,10 @@ export default function Analytics() {
             <tbody>
               {sortedByBrand.map((row, i) => (
                 <tr key={i}>
-                  <td>{row.brand}</td>
+                  <td
+                    style={{ cursor: "pointer", color: "#007bff", textDecoration: "underline" }}
+                    onClick={() => navigate("/list-cards", { state: { brandFilter: row.brand, limit: "all", showFilter: true } })}
+                  >{row.brand}</td>
                   <td>{row.count}</td>
                   <td>{fmtDollar(row.value)}</td>
                 </tr>
@@ -316,7 +321,10 @@ export default function Analytics() {
             <tbody>
               {sortedByYear.map((row, i) => (
                 <tr key={i}>
-                  <td>{row.year}</td>
+                  <td
+                    style={{ cursor: "pointer", color: "#007bff", textDecoration: "underline" }}
+                    onClick={() => navigate("/list-cards", { state: { yearFilter: String(row.year), limit: "all", showFilter: true } })}
+                  >{row.year}</td>
                   <td>{row.count}</td>
                   <td>{fmtDollar(row.value)}</td>
                 </tr>
@@ -354,7 +362,13 @@ export default function Analytics() {
             <tbody>
               {sortedByPlayer.map((row, i) => (
                 <tr key={i}>
-                  <td>{row.name}</td>
+                  <td
+                    style={{ cursor: "pointer", color: "#007bff", textDecoration: "underline" }}
+                    onClick={() => {
+                      const lastName = row.name.split(" ").slice(-1)[0];
+                      navigate("/list-cards", { state: { lastNameFilter: lastName, limit: "all", showFilter: true } });
+                    }}
+                  >{row.name}</td>
                   <td>{row.count}</td>
                   <td>{fmtDollar(row.value)}</td>
                 </tr>
