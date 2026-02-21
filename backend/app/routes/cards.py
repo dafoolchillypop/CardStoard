@@ -1,12 +1,12 @@
 # Standard library
-import io, os, csv, shutil
+import io, os, csv, shutil, json
 from pathlib import Path as FSPath
 from typing import Optional
 from datetime import datetime, timezone
 
 # Third-party
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from werkzeug.utils import secure_filename
@@ -361,7 +361,171 @@ async def smart_fill(
 
     except Exception as e:
         return {"detail": f"Unexpected error in smart-fill: {repr(e)}"}
-    
+
+# Export card data (CSV / TSV / JSON)
+@router.get("/export")
+def export_cards(
+    format: str = "csv",
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    cards = db.query(models.Card).filter(Card.user_id == current.id).all()
+
+    def _val(v):
+        return "" if v is None else v
+
+    if format == "json":
+        data = [
+            {
+                "first_name": c.first_name,
+                "last_name": c.last_name,
+                "year": c.year,
+                "brand": c.brand,
+                "rookie": 1 if c.rookie else 0,
+                "card_number": _val(c.card_number),
+                "book_high": c.book_high,
+                "book_high_mid": c.book_high_mid,
+                "book_mid": c.book_mid,
+                "book_low_mid": c.book_low_mid,
+                "book_low": c.book_low,
+                "grade": c.grade,
+                "value": c.value,
+            }
+            for c in cards
+        ]
+        content = json.dumps(data, indent=2)
+        return StreamingResponse(
+            io.BytesIO(content.encode()),
+            media_type="application/json",
+            headers={"Content-Disposition": "attachment; filename=cards.json"},
+        )
+
+    delimiter = "\t" if format == "tsv" else ","
+    ext = "tsv" if format == "tsv" else "csv"
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=delimiter)
+    writer.writerow([
+        "First", "Last", "Year", "Brand", "Rookie", "Card Number",
+        "BookHi", "BookHiMid", "BookMid", "BookLowMid", "BookLow", "Grade", "Value",
+    ])
+    for c in cards:
+        writer.writerow([
+            c.first_name, c.last_name, _val(c.year), _val(c.brand),
+            1 if c.rookie else 0, _val(c.card_number),
+            _val(c.book_high), _val(c.book_high_mid), _val(c.book_mid),
+            _val(c.book_low_mid), _val(c.book_low), _val(c.grade), _val(c.value),
+        ])
+    output.seek(0)
+    media = "text/tab-separated-values" if format == "tsv" else "text/csv"
+    return StreamingResponse(
+        io.BytesIO(output.read().encode()),
+        media_type=media,
+        headers={"Content-Disposition": f"attachment; filename=cards.{ext}"},
+    )
+
+
+# Full backup (cards + settings) as JSON
+@router.get("/backup")
+def backup_data(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    cards = db.query(models.Card).filter(Card.user_id == current.id).all()
+    settings = db.query(models.GlobalSettings).filter(
+        models.GlobalSettings.user_id == current.id
+    ).first()
+
+    card_list = [
+        {
+            "first_name": c.first_name,
+            "last_name": c.last_name,
+            "year": c.year,
+            "brand": c.brand,
+            "card_number": c.card_number,
+            "rookie": bool(c.rookie),
+            "grade": c.grade,
+            "book_high": c.book_high,
+            "book_high_mid": c.book_high_mid,
+            "book_mid": c.book_mid,
+            "book_low_mid": c.book_low_mid,
+            "book_low": c.book_low,
+            "value": c.value,
+        }
+        for c in cards
+    ]
+
+    settings_dict = {}
+    if settings:
+        skip_fields = {"id", "user_id"}
+        settings_dict = {
+            k: v for k, v in settings.__dict__.items()
+            if not k.startswith("_") and k not in skip_fields
+        }
+
+    backup = {
+        "version": 1,
+        "user": current.username,
+        "cards": card_list,
+        "settings": settings_dict,
+    }
+    content = json.dumps(backup, indent=2, default=str)
+    return StreamingResponse(
+        io.BytesIO(content.encode()),
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f"attachment; filename=cardstoard_backup_{current.username}.json"
+        },
+    )
+
+
+# Restore from backup JSON
+@router.post("/restore")
+async def restore_data(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    if not file.filename.lower().endswith(".json"):
+        raise HTTPException(status_code=400, detail="Please upload a .json backup file")
+
+    content = (await file.read()).decode("utf-8", errors="ignore")
+    try:
+        backup = json.loads(content)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON file")
+
+    if "cards" not in backup or not isinstance(backup["cards"], list):
+        raise HTTPException(status_code=400, detail="Invalid backup file: missing 'cards' array")
+
+    # Delete all existing cards for this user
+    db.query(models.Card).filter(Card.user_id == current.id).delete(synchronize_session=False)
+
+    # Re-create cards
+    skip_card_fields = {"id", "user_id", "front_image", "back_image"}
+    new_cards = []
+    for card_data in backup["cards"]:
+        fields = {k: v for k, v in card_data.items() if k not in skip_card_fields}
+        new_cards.append(models.Card(user_id=current.id, **fields))
+    db.add_all(new_cards)
+
+    # Restore settings if present
+    if backup.get("settings"):
+        settings = db.query(models.GlobalSettings).filter(
+            models.GlobalSettings.user_id == current.id
+        ).first()
+        if settings:
+            skip_settings_fields = {"id", "user_id"}
+            for k, v in backup["settings"].items():
+                if k not in skip_settings_fields and hasattr(settings, k):
+                    setattr(settings, k, v)
+
+    db.commit()
+    return {
+        "restored": len(new_cards),
+        "message": f"Successfully restored {len(new_cards)} cards.",
+    }
+
+
 # Read one card
 @router.get("/{card_id}", response_model=schemas.Card)
 def read_card(

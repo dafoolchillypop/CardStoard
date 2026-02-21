@@ -11,6 +11,12 @@ export default function Admin() {
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [dictCount, setDictCount] = useState(null);
+  const [exportFormat, setExportFormat] = useState("csv");
+  const [restoreFile, setRestoreFile] = useState(null);
+  const [restoreMsg, setRestoreMsg] = useState("");
+  const [restoreError, setRestoreError] = useState("");
+  const [dmTooltip, setDmTooltip] = useState(null);
+  const [dmLoading, setDmLoading] = useState(null);
 
   useEffect(() => {
     api.get("/settings/")
@@ -53,6 +59,92 @@ export default function Admin() {
       console.error("Error updating settings:", err);
     }
   };
+
+  const handleExport = async () => {
+    setDmLoading("export");
+    try {
+      const ext = exportFormat;
+      const res = await api.get("/cards/export", {
+        params: { format: exportFormat },
+        responseType: "blob",
+      });
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cards.${ext}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export failed:", err);
+    } finally {
+      setDmLoading(null);
+    }
+  };
+
+  const handleBackup = async () => {
+    setDmLoading("backup");
+    try {
+      const res = await api.get("/cards/backup", { responseType: "blob" });
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "cardstoard_backup.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Backup failed:", err);
+    } finally {
+      setDmLoading(null);
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!restoreFile) return;
+    if (!window.confirm("This will REPLACE all your current cards with the backup. Continue?")) return;
+    setDmLoading("restore");
+    try {
+      const formData = new FormData();
+      formData.append("file", restoreFile);
+      const res = await api.post("/cards/restore", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setRestoreMsg(res.data.message || `Restored ${res.data.restored} cards.`);
+      setRestoreError("");
+      setRestoreFile(null);
+    } catch (err) {
+      setRestoreError(err.response?.data?.detail || "Restore failed.");
+      setRestoreMsg("");
+    } finally {
+      setDmLoading(null);
+    }
+  };
+
+  const InfoIcon = ({ id, text }) => (
+    <span style={{ position: "relative", display: "inline-block", marginLeft: "0.4rem" }}>
+      <span
+        onMouseEnter={() => setDmTooltip(id)}
+        onMouseLeave={() => setDmTooltip(null)}
+        style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          width: "16px", height: "16px", borderRadius: "50%",
+          background: "#aaa", color: "#fff", fontSize: "0.7rem",
+          fontWeight: 700, cursor: "default", userSelect: "none",
+        }}
+      >i</span>
+      {dmTooltip === id && (
+        <span style={{
+          position: "absolute", bottom: "calc(100% + 6px)", left: "50%",
+          transform: "translateX(-50%)",
+          background: "#333", color: "#fff", fontSize: "0.78rem",
+          padding: "0.4rem 0.65rem", borderRadius: "6px",
+          whiteSpace: "nowrap", zIndex: 100,
+          boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+        }}>
+          {text}
+        </span>
+      )}
+    </span>
+  );
 
   // ✅ Loading check should be here
   if (!settings) return <p>Loading...</p>;
@@ -198,6 +290,95 @@ export default function Admin() {
           </div>
         </div>
         
+
+        {/* Data Management */}
+        <div className="card-section" style={{ marginTop: "1.5rem", textAlign: "center" }}>
+          <h3 style={{ marginBottom: "1.5rem" }}>Data Management</h3>
+
+          {/* Extract */}
+          <div style={{ marginBottom: "1.5rem" }}>
+            <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "0.25rem" }}>
+              Extract Card Data
+              <InfoIcon id="extract" text="Download your card data in CSV, TSV, or JSON format for use in other tools" />
+            </div>
+            <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>
+              Card data only — open in Excel, Google Sheets, or any tool
+            </p>
+            <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", marginBottom: "0.75rem" }}>
+              {["csv", "tsv", "json"].map(fmt => (
+                <label key={fmt} style={{ display: "flex", alignItems: "center", gap: "0.35rem", cursor: "pointer" }}>
+                  <input
+                    type="radio"
+                    name="exportFormat"
+                    value={fmt}
+                    checked={exportFormat === fmt}
+                    onChange={e => setExportFormat(e.target.value)}
+                  />
+                  {fmt.toUpperCase()}
+                </label>
+              ))}
+            </div>
+            <button
+              className="nav-btn"
+              onClick={handleExport}
+              disabled={dmLoading !== null}
+              style={{ opacity: dmLoading !== null ? 0.65 : 1 }}
+            >
+              {dmLoading === "export" ? "Downloading..." : "Download"}
+            </button>
+          </div>
+
+          <hr style={{ border: "none", borderTop: "1px solid #e0e0e0", margin: "0 0 1.5rem 0" }} />
+
+          {/* Backup */}
+          <div style={{ marginBottom: "1.5rem" }}>
+            <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "0.25rem" }}>
+              Full Backup
+              <InfoIcon id="backup" text="Download cards + settings as a JSON file you can restore from later" />
+            </div>
+            <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>
+              Cards + settings — use this to restore your collection later
+            </p>
+            <button
+              className="nav-btn"
+              onClick={handleBackup}
+              disabled={dmLoading !== null}
+              style={{ opacity: dmLoading !== null ? 0.65 : 1 }}
+            >
+              {dmLoading === "backup" ? "Downloading..." : "Download Backup"}
+            </button>
+          </div>
+
+          <hr style={{ border: "none", borderTop: "1px solid #e0e0e0", margin: "0 0 1.5rem 0" }} />
+
+          {/* Restore */}
+          <div>
+            <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "0.25rem" }}>
+              Restore from Backup
+              <InfoIcon id="restore" text="Upload a backup file to replace your current collection" />
+            </div>
+            <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>
+              Replaces all current cards with data from a backup file
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
+              <input
+                type="file"
+                accept=".json"
+                onChange={e => { setRestoreFile(e.target.files[0]); setRestoreMsg(""); setRestoreError(""); }}
+              />
+              <button
+                className="nav-btn"
+                onClick={handleRestore}
+                disabled={!restoreFile || dmLoading !== null}
+                style={{ background: "#dc3545", opacity: (!restoreFile || dmLoading !== null) ? 0.65 : 1 }}
+              >
+                {dmLoading === "restore" ? "Restoring..." : "Restore"}
+              </button>
+            </div>
+            {restoreMsg && <p style={{ color: "green", marginTop: "0.75rem" }}>{restoreMsg}</p>}
+            {restoreError && <p style={{ color: "red", marginTop: "0.75rem" }}>{restoreError}</p>}
+          </div>
+        </div>
 
         {showModal && (
           <div
