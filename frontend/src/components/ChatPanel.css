@@ -82,7 +82,8 @@
   line-height: 1.4;
   color: #222;
   background: #fff;
-  min-height: 38px;
+  min-height: 56px;
+  width: 0;
 }
 
 .chat-input:focus {
@@ -100,6 +101,8 @@
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
+  width: auto;
+  flex-shrink: 0;
 }
 
 .chat-send-btn:disabled {
