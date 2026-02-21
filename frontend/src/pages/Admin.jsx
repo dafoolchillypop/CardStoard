@@ -291,6 +291,15 @@ export default function Admin() {
         </div>
         
 
+        {/* Card Import */}
+        <div className="card-section" style={{ marginTop: "1.5rem", textAlign: "center" }}>
+          <h3 style={{ marginBottom: "1rem" }}>Card Import</h3>
+          <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>
+            Bulk import cards from a CSV file
+          </p>
+          <button className="nav-btn" onClick={() => navigate("/import-cards")}>📥 Import Cards</button>
+        </div>
+
         {/* Data Management */}
         <div className="card-section" style={{ marginTop: "1.5rem", textAlign: "center" }}>
           <h3 style={{ marginBottom: "1.5rem" }}>Data Management</h3>

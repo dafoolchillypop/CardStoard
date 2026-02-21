@@ -36,11 +36,34 @@ export default function AppHeader() {
 
   return (
     <header className="app-header">
-      {/* --- Left: App title + chat bubble --- */}
+      {/* --- Left: App title --- */}
       <div className="app-header-left">
         <Link to="/" className="app-header-title">
           CardStoard
         </Link>
+      </div>
+
+      {/* --- Center: Primary navigation --- */}
+      <div className="app-header-center">
+        <Link to="/add-card">
+          <button className="header-btn" title="Add a new card">
+            ➕ Add Card
+          </button>
+        </Link>
+        <Link to="/list-cards">
+          <button className="header-btn" title="View your collection">
+            📋 My Cards
+          </button>
+        </Link>
+        <Link to="/analytics">
+          <button className="header-btn" title="View analytics">
+            📈 Analytics
+          </button>
+        </Link>
+      </div>
+
+      {/* --- Right: Chat, user info, admin, logout --- */}
+      <div className="app-header-right">
         {chatbotEnabled && (
           <button
             className="chat-bubble-btn"
@@ -50,42 +73,17 @@ export default function AppHeader() {
             💬
           </button>
         )}
-      </div>
-
-      {/* --- Center: Navigation buttons (moved from Home) --- */}
-      <div className="app-header-center">
-        <Link to="/add-card">
-          <button className="header-btn" title="Add a new card">
-            ➕ Add Card
-          </button>
-        </Link>
-        <Link to="/import-cards" className="header-btn">
-        📥 Import Cards
-        </Link>
-        <Link to="/list-cards">
-          <button className="header-btn" title="View all cards">
-            📋 List Cards
-          </button>
-        </Link>
-        <Link to="/analytics">
-          <button className="header-btn" title="View analytics">
-            📈 Analytics
-          </button>
-        </Link>
-        <Link to="/admin">
-          <button className="header-btn" title="Admin panel">
-            ⚙️ Admin
-          </button>
-        </Link>
-      </div>
-
-      {/* --- Right: User info + chat + logout --- */}
-      <div className="app-header-right">
         <Link to="/account" className="user-info-link" title="Account details">
           <span className="user-info">{displayName}</span>
         </Link>
-        <button className="header-btn" onClick={handleLogout} title="Logout">
-          🚪 Logout
+        <button className="header-icon-btn" onClick={() => navigate("/admin")} title="Admin Settings">
+          ⚙️
+        </button>
+        <button className="header-icon-btn" onClick={() => navigate("/about")} title="About CardStoard">
+          ❓
+        </button>
+        <button className="header-icon-btn" onClick={handleLogout} title="Logout">
+          🚪
         </button>
       </div>
 

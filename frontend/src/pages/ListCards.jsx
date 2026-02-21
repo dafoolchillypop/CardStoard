@@ -272,7 +272,7 @@ export default function ListCards() {
             flexGrow: 1,
           }}
         >
-          Card List
+          My Cards
         </h2>
 
         {/* Count stays on the right */}
@@ -289,12 +289,6 @@ export default function ListCards() {
           Showing <b>{sortedCards.length}</b> of <b>{total}</b> cards (Page {page + 1} of {totalPages})
         </span>
       </div>
-
-        {/* Action buttons */}
-        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", justifyContent: "center" }}>
-          <button className="nav-btn" onClick={() => navigate("/add-card")}>+ Add Card</button>
-          <button className="nav-btn" onClick={() => navigate("/import-cards")}>Import CSV</button>
-        </div>
 
         {/* ✅ Running Total Bar */}
         <div
