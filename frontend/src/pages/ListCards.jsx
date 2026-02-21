@@ -480,11 +480,17 @@ export default function ListCards() {
                   return (
                      <tr
                       key={card.id}
-                      style={Number(card.id) === Number(returnCardId) ? {
-                        backgroundColor: "#fffde7",
-                        outline: "2px solid #ffc107",
-                        transition: "background-color 0.5s"
-                      } : {}}
+                      style={(() => {
+                        if (Number(card.id) === Number(returnCardId))
+                          return { backgroundColor: "#fffde7", outline: "2px solid #ffc107", transition: "background-color 0.5s" };
+                        if (rookieVal && g === 3)
+                          return { backgroundColor: "#fdf2f8" };
+                        if (g === 3)
+                          return { backgroundColor: "#f5f0ff" };
+                        if (rookieVal)
+                          return { backgroundColor: "#fffbeb" };
+                        return {};
+                      })()}
                     >
                       <td className="fname-col">
                         <span>{card.first_name}</span>
