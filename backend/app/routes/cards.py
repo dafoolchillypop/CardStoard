@@ -1,5 +1,5 @@
 # Standard library
-import io, os, csv, shutil, json
+import io, os, csv, shutil
 from pathlib import Path as FSPath
 from typing import Optional
 from datetime import datetime, timezone
@@ -17,7 +17,7 @@ from app.schemas import VALID_GRADES
 from app.constants import CARD_NOT_FOUND_MSG
 from app.database import get_db
 from app.auth.security import get_current_user
-from app.models import Card, User, ValuationHistory
+from app.models import Card, User, ValuationHistory, DictionaryEntry
 from app.services.card_value import calculate_card_value, calculate_market_factor, pick_avg_book
 
 # OCR / Card Identification
@@ -30,17 +30,7 @@ router = APIRouter(prefix="/cards", tags=["cards"])
 # Photo upload location
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_DIR = os.path.join(BASE_DIR, "static", "cards")
-os.makedirs(UPLOAD_DIR, exist_ok=True)   # ✅ ensure dir exists
-
-# Dictionary JSON (modern players with single rookie card per brand)
-DATA_PATH = FSPath(__file__).resolve().parent.parent / "data" / "players.json"
-
-with open(DATA_PATH, "r") as f:
-    PLAYER_DICTIONARY = json.load(f)
-
-# Merge in Topps 1952-1980 historical dictionary (year-keyed card numbers)
-from app.data.player_dictionary import PLAYER_DICTIONARY as HISTORICAL_DICT
-PLAYER_DICTIONARY = {**PLAYER_DICTIONARY, **HISTORICAL_DICT}
+os.makedirs(UPLOAD_DIR, exist_ok=True)   # ensure dir exists
 
 # Card Photos
 @router.post("/{card_id}/upload-front")
@@ -252,6 +242,26 @@ def create_card(
             db.commit()
             db.refresh(db_card)
 
+        # Auto-populate dictionary if card has all required fields
+        if (db_card.card_number and db_card.first_name and db_card.last_name
+                and db_card.brand and db_card.year):
+            existing = db.query(DictionaryEntry).filter(
+                func.lower(DictionaryEntry.first_name) == db_card.first_name.lower(),
+                func.lower(DictionaryEntry.last_name) == db_card.last_name.lower(),
+                func.lower(DictionaryEntry.brand) == db_card.brand.lower(),
+                DictionaryEntry.year == db_card.year,
+            ).first()
+            if not existing:
+                db.add(DictionaryEntry(
+                    first_name=db_card.first_name,
+                    last_name=db_card.last_name,
+                    rookie_year=db_card.year,
+                    brand=db_card.brand,
+                    year=db_card.year,
+                    card_number=db_card.card_number,
+                ))
+                db.commit()
+
         return db_card
 
     except Exception as e:
@@ -294,15 +304,13 @@ def count_cards(db: Session = Depends(get_db), current: User = Depends(get_curre
 # Player name list for autocomplete
 @router.get("/players")
 async def get_players(db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
-    players = []
     # Dictionary entries
-    for key, v in PLAYER_DICTIONARY.items():
-        if "first_name" in v and "last_name" in v:
-            players.append({"first_name": v["first_name"], "last_name": v["last_name"]})
-        else:
-            parts = key.split(" ", 1)
-            if len(parts) == 2:
-                players.append({"first_name": parts[0].title(), "last_name": parts[1].title()})
+    dict_names = (
+        db.query(DictionaryEntry.first_name, DictionaryEntry.last_name)
+        .distinct()
+        .all()
+    )
+    players = [{"first_name": r.first_name, "last_name": r.last_name} for r in dict_names]
     # User's own previously entered cards
     user_names = (
         db.query(models.Card.first_name, models.Card.last_name)
@@ -325,7 +333,6 @@ async def smart_fill(
     current: models.User = Depends(get_current_user),
 ):
     try:
-        # ✅ Check global settings for this user
         settings = db.query(models.GlobalSettings).filter(
             models.GlobalSettings.user_id == current.id
         ).first()
@@ -333,27 +340,24 @@ async def smart_fill(
         if not settings or not settings.enable_smart_fill:
             return {"status": "disabled", "fields": {}}
 
-        # ✅ Normalize the name for lookup
-        full_name = f"{first_name.strip()} {last_name.strip()}".lower()
-        data = PLAYER_DICTIONARY.get(full_name)
+        q = db.query(DictionaryEntry).filter(
+            func.lower(DictionaryEntry.first_name) == first_name.strip().lower(),
+            func.lower(DictionaryEntry.last_name) == last_name.strip().lower(),
+        )
+        if brand:
+            q = q.filter(func.lower(DictionaryEntry.brand) == brand.strip().lower())
+        if year is not None:
+            q = q.filter(DictionaryEntry.year == year)
 
-        if not data:
+        entry = q.first()
+        if not entry:
             return {"status": "not_found", "fields": {}}
 
-        fields = {}
+        fields = {"card_number": entry.card_number}
         if year is not None:
-            fields["rookie"] = (year == data["rookie_year"])
-        if brand and brand in data["cards"]:
-            card_entry = data["cards"][brand]
-            if isinstance(card_entry, dict):
-                # Year-keyed format (historical dict): look up by year
-                if year is not None and year in card_entry:
-                    fields["card_number"] = str(card_entry[year])
-            else:
-                # Single-value format (modern players.json)
-                fields["card_number"] = str(card_entry)
+            fields["rookie"] = (year == entry.rookie_year)
 
-        return {"status": "ok", "fields": fields, "dictionary": data}
+        return {"status": "ok", "fields": fields}
 
     except Exception as e:
         return {"detail": f"Unexpected error in smart-fill: {repr(e)}"}

@@ -134,3 +134,20 @@ class UserRead(UserBase):
 
     class Config:
         orm_mode = True
+
+class DictionaryEntryBase(BaseModel):
+    first_name: str
+    last_name: str
+    rookie_year: int
+    brand: str
+    year: int
+    card_number: str
+
+class DictionaryEntryCreate(DictionaryEntryBase):
+    pass
+
+class DictionaryEntryRead(DictionaryEntryBase):
+    id: int
+
+    class Config:
+        from_attributes = True

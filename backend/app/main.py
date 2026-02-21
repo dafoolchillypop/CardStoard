@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from .database import engine, Base
-from .routes import cards, rtr_settings, auth, analytics, email_test, account, chat
+from .routes import cards, rtr_settings, auth, analytics, email_test, account, chat, dictionary
 from .config import cfg_settings
 from .auth.cookies import set_access_cookie
 
@@ -47,6 +47,14 @@ def on_startup():
     # Create tables once the app is starting and DB is available
     Base.metadata.create_all(bind=engine)
 
+    from .database import SessionLocal
+    from .data.seed_dictionary import seed_dictionary
+    db = SessionLocal()
+    try:
+        seed_dictionary(db)
+    finally:
+        db.close()
+
 # ---------------------------
 # Include routers
 # ---------------------------
@@ -57,6 +65,7 @@ app.include_router(analytics.router)
 app.include_router(email_test.router)
 app.include_router(account.router)
 app.include_router(chat.router)
+app.include_router(dictionary.router)
 #app.include_router(balls.router, prefix="/balls", tags=["balls"])
 #app.include_router(packs.router, prefix="/packs", tags=["packs"])
 #app.include_router(boxes.router, prefix="/boxes", tags=["boxes"])

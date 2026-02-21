@@ -94,3 +94,13 @@ class ValuationHistory(Base):
     timestamp = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
     total_value = Column(Float, nullable=False)
     card_count = Column(Integer, nullable=False)
+
+class DictionaryEntry(Base):
+    __tablename__ = "dictionary_entries"
+    id          = Column(Integer, primary_key=True, index=True)
+    first_name  = Column(String, nullable=False)
+    last_name   = Column(String, nullable=False)
+    rookie_year = Column(Integer, nullable=False)
+    brand       = Column(String, nullable=False)
+    year        = Column(Integer, nullable=False)
+    card_number = Column(String, nullable=False)
