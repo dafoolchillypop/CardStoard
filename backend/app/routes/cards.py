@@ -32,11 +32,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_DIR = os.path.join(BASE_DIR, "static", "cards")
 os.makedirs(UPLOAD_DIR, exist_ok=True)   # ✅ ensure dir exists
 
-# Dictionary JSON
+# Dictionary JSON (modern players with single rookie card per brand)
 DATA_PATH = FSPath(__file__).resolve().parent.parent / "data" / "players.json"
 
 with open(DATA_PATH, "r") as f:
     PLAYER_DICTIONARY = json.load(f)
+
+# Merge in Topps 1952-1980 historical dictionary (year-keyed card numbers)
+from app.data.player_dictionary import PLAYER_DICTIONARY as HISTORICAL_DICT
+PLAYER_DICTIONARY = {**PLAYER_DICTIONARY, **HISTORICAL_DICT}
 
 # Card Photos
 @router.post("/{card_id}/upload-front")
@@ -317,7 +321,14 @@ async def smart_fill(
         if year is not None:
             fields["rookie"] = (year == data["rookie_year"])
         if brand and brand in data["cards"]:
-            fields["card_number"] = data["cards"][brand]
+            card_entry = data["cards"][brand]
+            if isinstance(card_entry, dict):
+                # Year-keyed format (historical dict): look up by year
+                if year is not None and year in card_entry:
+                    fields["card_number"] = str(card_entry[year])
+            else:
+                # Single-value format (modern players.json)
+                fields["card_number"] = str(card_entry)
 
         return {"status": "ok", "fields": fields, "dictionary": data}
 
