@@ -18,13 +18,16 @@ export default function ChatPanel({ onClose }) {
     const text = input.trim();
     if (!text || loading) return;
     setInput("");
-    setMessages((prev) => [...prev, { role: "user", text }]);
+    const updatedMessages = [...messages, { role: "user", text }];
+    setMessages(updatedMessages);
     setLoading(true);
     try {
-      const res = await api.post("/chat/", { message: text });
+      const history = updatedMessages.slice(0, -1); // all but the current message
+      const res = await api.post("/chat/", { message: text, history });
       setMessages((prev) => [...prev, { role: "assistant", text: res.data.response }]);
-    } catch {
-      setMessages((prev) => [...prev, { role: "assistant", text: "Sorry, something went wrong." }]);
+    } catch (err) {
+      const detail = err?.response?.data?.detail || err?.message || "Unknown error";
+      setMessages((prev) => [...prev, { role: "assistant", text: `Error: ${detail}` }]);
     } finally {
       setLoading(false);
     }
@@ -54,7 +57,7 @@ export default function ChatPanel({ onClose }) {
       <div className="chat-input-row">
         <textarea
           className="chat-input"
-          rows={1}
+          rows={2}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKey}

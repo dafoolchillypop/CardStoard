@@ -8,7 +8,7 @@ from sqlalchemy import func
 from app import models, schemas
 from app.database import get_db
 from app.auth.security import get_current_user
-from app.models import DictionaryEntry, User
+from app.models import Card, DictionaryEntry, User
 
 router = APIRouter(prefix="/dictionary", tags=["dictionary"])
 
@@ -32,7 +32,26 @@ def list_entries(
         q = q.filter(func.lower(DictionaryEntry.brand).contains(brand.lower()))
     if year is not None:
         q = q.filter(DictionaryEntry.year == year)
-    return q.order_by(DictionaryEntry.last_name, DictionaryEntry.year).offset(skip).limit(limit).all()
+    entries = q.order_by(DictionaryEntry.last_name, DictionaryEntry.year).offset(skip).limit(limit).all()
+
+    # Build set of card fingerprints owned by this user for in_collection annotation
+    user_cards = db.query(
+        func.lower(Card.first_name),
+        func.lower(Card.last_name),
+        func.lower(Card.brand),
+        Card.year,
+    ).filter(Card.user_id == current.id).all()
+    owned = {(r[0], r[1], r[2], r[3]) for r in user_cards}
+
+    result = []
+    for e in entries:
+        key = (e.first_name.lower(), e.last_name.lower(), e.brand.lower(), e.year)
+        result.append(schemas.DictionaryEntryRead(
+            id=e.id, first_name=e.first_name, last_name=e.last_name,
+            rookie_year=e.rookie_year, brand=e.brand, year=e.year,
+            card_number=e.card_number, in_collection=(key in owned)
+        ))
+    return result
 
 
 # ---------------------------------------------------------------------------

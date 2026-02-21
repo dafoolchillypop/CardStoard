@@ -183,7 +183,7 @@ export default function DictionaryList() {
                 {sortedEntries.length === 0 ? (
                   <tr><td colSpan={7} style={{ textAlign: "center", padding: "1rem" }}>No entries found.</td></tr>
                 ) : sortedEntries.map(entry => (
-                  <tr key={entry.id} style={{ borderBottom: "1px solid #eee" }}>
+                  <tr key={entry.id} style={{ borderBottom: "1px solid #eee", ...(entry.in_collection ? { backgroundColor: "#f0fdf4" } : {}) }}>
                     <td style={{ padding: "0.35rem 0.5rem" }}>{entry.first_name}</td>
                     <td style={{ padding: "0.35rem 0.5rem" }}>{entry.last_name}</td>
                     <td style={{ textAlign: "center", padding: "0.35rem 0.5rem" }}>{entry.rookie_year}</td>

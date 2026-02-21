@@ -148,6 +148,7 @@ class DictionaryEntryCreate(DictionaryEntryBase):
 
 class DictionaryEntryRead(DictionaryEntryBase):
     id: int
+    in_collection: bool = False
 
     class Config:
         from_attributes = True
