@@ -291,6 +291,29 @@ def count_cards(db: Session = Depends(get_db), current: User = Depends(get_curre
     total = db.query(models.Card).filter(Card.user_id == current.id).count()
     return {"count": total}
 
+# Player name list for autocomplete
+@router.get("/players")
+async def get_players(db: Session = Depends(get_db), current: models.User = Depends(get_current_user)):
+    players = []
+    # Dictionary entries
+    for key, v in PLAYER_DICTIONARY.items():
+        if "first_name" in v and "last_name" in v:
+            players.append({"first_name": v["first_name"], "last_name": v["last_name"]})
+        else:
+            parts = key.split(" ", 1)
+            if len(parts) == 2:
+                players.append({"first_name": parts[0].title(), "last_name": parts[1].title()})
+    # User's own previously entered cards
+    user_names = (
+        db.query(models.Card.first_name, models.Card.last_name)
+        .filter(models.Card.user_id == current.id)
+        .distinct()
+        .all()
+    )
+    for row in user_names:
+        players.append({"first_name": row.first_name, "last_name": row.last_name})
+    return {"players": players}
+
 # Smart Fill
 @router.get("/smart-fill")
 async def smart_fill(
