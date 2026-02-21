@@ -173,7 +173,7 @@ PLAYER_DICTIONARY = {
     "yogi berra": {
         "first_name": "Yogi",
         "last_name": "Berra",
-        "rookie_year": 1946,
+        "rookie_year": 1948,
         "cards": {
             "Topps": {
                 1952: "191",

@@ -290,6 +290,12 @@ export default function ListCards() {
         </span>
       </div>
 
+        {/* Action buttons */}
+        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", justifyContent: "center" }}>
+          <button className="nav-btn" onClick={() => navigate("/add-card")}>+ Add Card</button>
+          <button className="nav-btn" onClick={() => navigate("/import-cards")}>Import CSV</button>
+        </div>
+
         {/* ✅ Running Total Bar */}
         <div
           style={{
