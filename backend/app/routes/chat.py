@@ -32,9 +32,16 @@ def build_collection_context(cards: list[Card], settings: GlobalSettings | None)
         if market_factor:
             lines.append(f"Current market factor: {market_factor}\n")
 
-    # Pre-computed player summary so the AI doesn't have to count manually
+    # Pre-computed summaries so the AI doesn't have to count manually
     from collections import defaultdict
+
+    # Player summary
     player_stats = defaultdict(lambda: {"total": 0, "rookie": 0, "value": 0.0})
+    # Grade summary
+    grade_stats = defaultdict(lambda: {"total": 0, "value": 0.0})
+    # Brand summary
+    brand_stats = defaultdict(lambda: {"total": 0, "value": 0.0})
+
     for c in cards:
         key = f"{c.first_name} {c.last_name}"
         player_stats[key]["total"] += 1
@@ -42,11 +49,30 @@ def build_collection_context(cards: list[Card], settings: GlobalSettings | None)
             player_stats[key]["rookie"] += 1
         player_stats[key]["value"] += float(c.value or 0)
 
-    lines.append("\nPLAYER SUMMARY (use these counts for any counting or totalling questions):")
+        grade_stats[c.grade]["total"] += 1
+        grade_stats[c.grade]["value"] += float(c.value or 0)
+
+        brand = c.brand or "Unknown"
+        brand_stats[brand]["total"] += 1
+        brand_stats[brand]["value"] += float(c.value or 0)
+
+    lines.append("\nPLAYER SUMMARY (use for counting/totalling by player):")
     for player, stats in sorted(player_stats.items()):
         lines.append(
             f"  - {player}: {stats['total']} cards ({stats['rookie']} rookie), "
             f"total value ${round(stats['value']):,}"
+        )
+
+    lines.append("\nGRADE SUMMARY (use for counting/totalling by grade):")
+    for grade, stats in sorted(grade_stats.items(), key=lambda x: x[0], reverse=True):
+        lines.append(
+            f"  - Grade {grade}: {stats['total']} cards, total value ${round(stats['value']):,}"
+        )
+
+    lines.append("\nBRAND SUMMARY (use for counting/totalling by brand):")
+    for brand, stats in sorted(brand_stats.items()):
+        lines.append(
+            f"  - {brand}: {stats['total']} cards, total value ${round(stats['value']):,}"
         )
 
     lines.append("\nFULL CARD LIST (First, Last, Year, Brand, Card#, Rookie, Grade, Value):")
@@ -80,7 +106,7 @@ def chat(
 
 Rules you must follow strictly:
 - Answer ONLY using the cards listed below. Never invent, guess, or add cards not in the list.
-- For counting or totalling questions (e.g. "how many", "total value"), use the PLAYER SUMMARY section — it is pre-computed and accurate. Do not count the full card list manually.
+- For counting or totalling questions (e.g. "how many", "total value"), use the pre-computed PLAYER SUMMARY, GRADE SUMMARY, and BRAND SUMMARY sections — they are accurate. Do not count the full card list manually.
 - When filtering by year or decade, be exact. "1960s" means year 1960–1969 only. Do not include 1953 or 1957.
 - If no cards match a filter (e.g. no 1960s cards), say so clearly — do not substitute cards from other years.
 - Use dollar amounts rounded to whole numbers.
