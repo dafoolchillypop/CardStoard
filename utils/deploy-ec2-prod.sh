@@ -29,7 +29,7 @@ fi
 
 # Full deploy: backup → rebuild → restore
 echo "--- Backing up production database ---"
-$SSH "docker exec stoardb pg_dump -U postgres cardstoardb > $BACKUP_FILE && echo 'Backup saved to $BACKUP_FILE'"
+$SSH "docker exec stoardb pg_dump -U postgres --data-only cardstoardb > $BACKUP_FILE && echo 'Backup saved to $BACKUP_FILE'"
 
 echo "--- Pulling latest from main ---"
 $SSH "cd /home/ubuntu/CardStoard && git pull origin main"
