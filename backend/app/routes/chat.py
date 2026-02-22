@@ -32,7 +32,24 @@ def build_collection_context(cards: list[Card], settings: GlobalSettings | None)
         if market_factor:
             lines.append(f"Current market factor: {market_factor}\n")
 
-    lines.append("\nCard list (First, Last, Year, Brand, Card#, Rookie, Grade, Value):")
+    # Pre-computed player summary so the AI doesn't have to count manually
+    from collections import defaultdict
+    player_stats = defaultdict(lambda: {"total": 0, "rookie": 0, "value": 0.0})
+    for c in cards:
+        key = f"{c.first_name} {c.last_name}"
+        player_stats[key]["total"] += 1
+        if int(c.rookie or 0) == 1:
+            player_stats[key]["rookie"] += 1
+        player_stats[key]["value"] += float(c.value or 0)
+
+    lines.append("\nPLAYER SUMMARY (use these counts for any counting or totalling questions):")
+    for player, stats in sorted(player_stats.items()):
+        lines.append(
+            f"  - {player}: {stats['total']} cards ({stats['rookie']} rookie), "
+            f"total value ${round(stats['value']):,}"
+        )
+
+    lines.append("\nFULL CARD LIST (First, Last, Year, Brand, Card#, Rookie, Grade, Value):")
     for c in sorted(cards, key=lambda c: int(c.year or 9999)):
         rookie = "Yes" if int(c.rookie or 0) == 1 else "No"
         lines.append(
@@ -63,6 +80,7 @@ def chat(
 
 Rules you must follow strictly:
 - Answer ONLY using the cards listed below. Never invent, guess, or add cards not in the list.
+- For counting or totalling questions (e.g. "how many", "total value"), use the PLAYER SUMMARY section — it is pre-computed and accurate. Do not count the full card list manually.
 - When filtering by year or decade, be exact. "1960s" means year 1960–1969 only. Do not include 1953 or 1957.
 - If no cards match a filter (e.g. no 1960s cards), say so clearly — do not substitute cards from other years.
 - Use dollar amounts rounded to whole numbers.
