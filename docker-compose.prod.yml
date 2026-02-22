@@ -48,6 +48,12 @@ services:
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
       REACT_APP_API_BASE: ${REACT_APP_API_BASE}
 
+      # Auth
+      JWT_SECRET: ${JWT_SECRET}
+
+      # AI
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+
     expose:
       - "8000"
     healthcheck:
