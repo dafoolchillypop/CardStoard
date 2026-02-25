@@ -62,23 +62,23 @@ export default function AppHeader() {
         </Link>
       </div>
 
-      {/* --- Right: Chat, user info, admin, logout --- */}
+      {/* --- Right: user info, admin, chat, about, logout --- */}
       <div className="app-header-right">
-        {chatbotEnabled && (
-          <button
-            className="chat-bubble-btn"
-            onClick={() => setChatOpen((o) => !o)}
-            title="Collection Assistant"
-          >
-            💬
-          </button>
-        )}
         <Link to="/account" className="user-info-link" title="Account details">
           <span className="user-info">{displayName}</span>
         </Link>
         <button className="header-icon-btn" onClick={() => navigate("/admin")} title="Admin Settings">
           ⚙️
         </button>
+        {chatbotEnabled && (
+          <button
+            className="header-icon-btn"
+            onClick={() => setChatOpen((o) => !o)}
+            title="Collection Assistant"
+          >
+            💬
+          </button>
+        )}
         <button className="header-icon-btn" onClick={() => navigate("/about")} title="About CardStoard">
           ❓
         </button>
