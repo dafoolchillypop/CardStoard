@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
 import { Link, useNavigate } from "react-router-dom";
@@ -17,6 +17,8 @@ export default function Admin() {
   const [restoreError, setRestoreError] = useState("");
   const [dmTooltip, setDmTooltip] = useState(null);
   const [dmLoading, setDmLoading] = useState(null);
+  const [saveStatus, setSaveStatus] = useState("");
+  const debounceRef = useRef(null);
 
   useEffect(() => {
     api.get("/settings/")
@@ -34,19 +36,44 @@ export default function Admin() {
       .catch(err => console.error("Error fetching dictionary count:", err));
   }, []);
   
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setSettings({ ...settings, [name]: value });
+  const debouncedSave = (updatedSettings) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setSaveStatus("saving");
+      try {
+        const res = await api.put("/settings/", updatedSettings);
+        setSettings(res.data);
+        window.dispatchEvent(new Event("settings-changed"));
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus(""), 2000);
+      } catch (err) {
+        console.error(err);
+        setSaveStatus("error");
+      }
+    }, 1500);
   };
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const updated = { ...settings, [name]: value };
+    setSettings(updated);
+    debouncedSave(updated);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    api.put("/settings/", settings)
-      .then(res => {
-        setSettings(res.data);
-        alert("Settings updated!");
-      })
-      .catch(err => console.error(err));
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setSaveStatus("saving");
+    try {
+      const res = await api.put("/settings/", settings);
+      setSettings(res.data);
+      window.dispatchEvent(new Event("settings-changed"));
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus(""), 2000);
+    } catch (err) {
+      console.error(err);
+      setSaveStatus("error");
+    }
   };
 
   const handleToggle = async (field) => {
@@ -195,13 +222,21 @@ export default function Admin() {
             <ChipsInput
               label="Card Makes"
               values={settings.card_makes}
-              setValues={(vals) => setSettings({ ...settings, card_makes: vals })}
+              setValues={(vals) => {
+                const updated = { ...settings, card_makes: vals };
+                setSettings(updated);
+                debouncedSave(updated);
+              }}
             />
 
             <ChipsInput
               label="Card Grades"
               values={settings.card_grades}
-              setValues={(vals) => setSettings({ ...settings, card_grades: vals })}
+              setValues={(vals) => {
+                const updated = { ...settings, card_grades: vals };
+                setSettings(updated);
+                debouncedSave(updated);
+              }}
               type="text"
             />
           </div>
@@ -283,7 +318,12 @@ export default function Admin() {
           </div>
           */}
 
-          <button type="submit">Save Settings</button>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", justifyContent: "center" }}>
+            <button type="submit">Save Now</button>
+            {saveStatus === "saving" && <span style={{ fontSize: "0.85rem", color: "#888" }}>Saving...</span>}
+            {saveStatus === "saved"  && <span style={{ fontSize: "0.85rem", color: "#28a745" }}>✓ Saved</span>}
+            {saveStatus === "error"  && <span style={{ fontSize: "0.85rem", color: "#dc3545" }}>⚠ Error saving</span>}
+          </div>
         </form>
 
         {/* Player Dictionary */}
