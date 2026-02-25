@@ -162,7 +162,10 @@ export default function Admin() {
               checked={settings.enable_smart_fill}
               onChange={() => handleToggle("enable_smart_fill")}
             />
-            <div className="smartfill-label">Smart Fill</div>
+            <div className="smartfill-label">
+              Smart Fill
+              <InfoIcon id="smartfill" text="Auto-populates card number and rookie flag when adding cards, using the Player Dictionary." />
+            </div>
           </div>
 
         <div className="smartfill-container">
@@ -172,13 +175,16 @@ export default function Admin() {
               checked={settings.chatbot_enabled ?? false}
               onChange={() => handleToggle("chatbot_enabled")}
             />
-            <div className="smartfill-label">Collection Assistant (Chatbot)</div>
+            <div className="smartfill-label">
+              Collection Assistant (Chatbot)
+              <InfoIcon id="chatbot" text="Enables the AI-powered chat assistant (💬) in the header. Requires an Anthropic API key to be configured." />
+            </div>
           </div>
 
          <form className="settings-form" onSubmit={handleSubmit}>
           {/* General Settings */}
           <div className="card-section">
-            <h3>General Settings</h3>
+            <h3>General Settings <InfoIcon id="generalsettings" text="Set your app name and configure the list of card brands and grades available when adding cards." /></h3>
             <label>App Name</label>
             <input
               name="app_name"
@@ -202,7 +208,7 @@ export default function Admin() {
 
           {/* Factor Settings */}
           <div className="card-section">
-            <h3>Factor Settings</h3>
+            <h3>Factor Settings <InfoIcon id="factorsettings" text="Multipliers applied to book value when calculating card value. Grade factors reflect condition; Rookie factor boosts rookie card value." /></h3>
             <div className="factor-group">
               <div>
                 <label>Rookie Factor</label>
@@ -257,6 +263,7 @@ export default function Admin() {
               className="val-btn">
               💰 Apply Global Valuation 💰
             </button>
+            <InfoIcon id="revalue" text="Recalculates the estimated value for every card in your collection using current factor settings." />
           </div>
 
           {/* Era Settings
@@ -281,7 +288,7 @@ export default function Admin() {
 
         {/* Player Dictionary */}
         <div className="card-section" style={{ marginTop: "1.5rem" }}>
-          <h3>Player Dictionary</h3>
+          <h3>Player Dictionary <InfoIcon id="dictionary" text="A searchable database of players, brands, years, and card numbers used by Smart Fill and collection highlights." /></h3>
           <p>Total entries: <strong>{dictCount !== null ? dictCount : "Loading..."}</strong></p>
           <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
             <button className="nav-btn" onClick={() => navigate("/dictionary")}>📖 View / Edit</button>
@@ -305,7 +312,7 @@ export default function Admin() {
 
         {/* Data Management */}
         <div className="card-section" style={{ marginTop: "1.5rem", textAlign: "center" }}>
-          <h3 style={{ marginBottom: "1.5rem" }}>Data Management</h3>
+          <h3 style={{ marginBottom: "1.5rem" }}>Data Management <InfoIcon id="datamanagement" text="Tools for extracting, backing up, and restoring your collection data." /></h3>
 
           {/* Extract */}
           <div style={{ marginBottom: "1.5rem" }}>
