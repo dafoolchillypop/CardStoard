@@ -8,6 +8,7 @@ export default function ImportCards() {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -24,6 +25,7 @@ export default function ImportCards() {
     const formData = new FormData();
     formData.append("file", file);
 
+    setLoading(true);
     try {
       const res = await api.post("/cards/import-csv", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -34,6 +36,8 @@ export default function ImportCards() {
       console.error(err);
       setMessage("");
       setError("Error uploading file.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,8 +69,13 @@ export default function ImportCards() {
             onChange={handleFileChange}
             className="import-input"
           />
-          <button onClick={handleUpload} className="nav-btn">
-            Upload File
+          <button
+            onClick={handleUpload}
+            className="nav-btn"
+            disabled={!file || loading}
+            style={{ opacity: (!file || loading) ? 0.65 : 1 }}
+          >
+            {loading ? "Uploading..." : "Upload File"}
           </button>
         </div>
 

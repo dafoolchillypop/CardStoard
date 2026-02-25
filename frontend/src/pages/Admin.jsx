@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
 import { Link, useNavigate } from "react-router-dom";
@@ -17,6 +17,8 @@ export default function Admin() {
   const [restoreError, setRestoreError] = useState("");
   const [dmTooltip, setDmTooltip] = useState(null);
   const [dmLoading, setDmLoading] = useState(null);
+  const [saveStatus, setSaveStatus] = useState("");
+  const debounceRef = useRef(null);
 
   useEffect(() => {
     api.get("/settings/")
@@ -34,19 +36,44 @@ export default function Admin() {
       .catch(err => console.error("Error fetching dictionary count:", err));
   }, []);
   
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setSettings({ ...settings, [name]: value });
+  const debouncedSave = (updatedSettings) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setSaveStatus("saving");
+      try {
+        const res = await api.put("/settings/", updatedSettings);
+        setSettings(res.data);
+        window.dispatchEvent(new Event("settings-changed"));
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus(""), 2000);
+      } catch (err) {
+        console.error(err);
+        setSaveStatus("error");
+      }
+    }, 1500);
   };
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const updated = { ...settings, [name]: value };
+    setSettings(updated);
+    debouncedSave(updated);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    api.put("/settings/", settings)
-      .then(res => {
-        setSettings(res.data);
-        alert("Settings updated!");
-      })
-      .catch(err => console.error(err));
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setSaveStatus("saving");
+    try {
+      const res = await api.put("/settings/", settings);
+      setSettings(res.data);
+      window.dispatchEvent(new Event("settings-changed"));
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus(""), 2000);
+    } catch (err) {
+      console.error(err);
+      setSaveStatus("error");
+    }
   };
 
   const handleToggle = async (field) => {
@@ -162,7 +189,10 @@ export default function Admin() {
               checked={settings.enable_smart_fill}
               onChange={() => handleToggle("enable_smart_fill")}
             />
-            <div className="smartfill-label">Smart Fill</div>
+            <div className="smartfill-label">
+              Smart Fill
+              <InfoIcon id="smartfill" text="Auto-populates card number and rookie flag when adding cards, using the Player Dictionary." />
+            </div>
           </div>
 
         <div className="smartfill-container">
@@ -172,13 +202,16 @@ export default function Admin() {
               checked={settings.chatbot_enabled ?? false}
               onChange={() => handleToggle("chatbot_enabled")}
             />
-            <div className="smartfill-label">Collection Assistant (Chatbot)</div>
+            <div className="smartfill-label">
+              Collection Assistant (Chatbot)
+              <InfoIcon id="chatbot" text="Enables the AI-powered chat assistant (💬) in the header. Requires an Anthropic API key to be configured." />
+            </div>
           </div>
 
          <form className="settings-form" onSubmit={handleSubmit}>
           {/* General Settings */}
           <div className="card-section">
-            <h3>General Settings</h3>
+            <h3>General Settings <InfoIcon id="generalsettings" text="Set your app name and configure the list of card brands and grades available when adding cards." /></h3>
             <label>App Name</label>
             <input
               name="app_name"
@@ -189,20 +222,28 @@ export default function Admin() {
             <ChipsInput
               label="Card Makes"
               values={settings.card_makes}
-              setValues={(vals) => setSettings({ ...settings, card_makes: vals })}
+              setValues={(vals) => {
+                const updated = { ...settings, card_makes: vals };
+                setSettings(updated);
+                debouncedSave(updated);
+              }}
             />
 
             <ChipsInput
               label="Card Grades"
               values={settings.card_grades}
-              setValues={(vals) => setSettings({ ...settings, card_grades: vals })}
+              setValues={(vals) => {
+                const updated = { ...settings, card_grades: vals };
+                setSettings(updated);
+                debouncedSave(updated);
+              }}
               type="text"
             />
           </div>
 
           {/* Factor Settings */}
           <div className="card-section">
-            <h3>Factor Settings</h3>
+            <h3>Factor Settings <InfoIcon id="factorsettings" text="Multipliers applied to book value when calculating card value. Grade factors reflect condition; Rookie factor boosts rookie card value." /></h3>
             <div className="factor-group">
               <div>
                 <label>Rookie Factor</label>
@@ -257,6 +298,7 @@ export default function Admin() {
               className="val-btn">
               💰 Apply Global Valuation 💰
             </button>
+            <InfoIcon id="revalue" text="Recalculates the estimated value for every card in your collection using current factor settings." />
           </div>
 
           {/* Era Settings
@@ -276,12 +318,17 @@ export default function Admin() {
           </div>
           */}
 
-          <button type="submit">Save Settings</button>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", justifyContent: "center" }}>
+            <button type="submit">Save Now</button>
+            {saveStatus === "saving" && <span style={{ fontSize: "0.85rem", color: "#888" }}>Saving...</span>}
+            {saveStatus === "saved"  && <span style={{ fontSize: "0.85rem", color: "#28a745" }}>✓ Saved</span>}
+            {saveStatus === "error"  && <span style={{ fontSize: "0.85rem", color: "#dc3545" }}>⚠ Error saving</span>}
+          </div>
         </form>
 
         {/* Player Dictionary */}
         <div className="card-section" style={{ marginTop: "1.5rem" }}>
-          <h3>Player Dictionary</h3>
+          <h3>Player Dictionary <InfoIcon id="dictionary" text="A searchable database of players, brands, years, and card numbers used by Smart Fill and collection highlights." /></h3>
           <p>Total entries: <strong>{dictCount !== null ? dictCount : "Loading..."}</strong></p>
           <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
             <button className="nav-btn" onClick={() => navigate("/dictionary")}>📖 View / Edit</button>
@@ -293,7 +340,10 @@ export default function Admin() {
 
         {/* Card Import */}
         <div className="card-section" style={{ marginTop: "1.5rem", textAlign: "center" }}>
-          <h3 style={{ marginBottom: "1rem" }}>Card Import</h3>
+          <h3 style={{ marginBottom: "1rem" }}>
+            Card Import
+            <InfoIcon id="cardimport" text="Bulk import cards from a CSV file. See the Import Cards page for template and formatting guide." />
+          </h3>
           <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>
             Bulk import cards from a CSV file
           </p>
@@ -302,7 +352,7 @@ export default function Admin() {
 
         {/* Data Management */}
         <div className="card-section" style={{ marginTop: "1.5rem", textAlign: "center" }}>
-          <h3 style={{ marginBottom: "1.5rem" }}>Data Management</h3>
+          <h3 style={{ marginBottom: "1.5rem" }}>Data Management <InfoIcon id="datamanagement" text="Tools for extracting, backing up, and restoring your collection data." /></h3>
 
           {/* Extract */}
           <div style={{ marginBottom: "1.5rem" }}>
