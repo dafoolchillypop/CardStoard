@@ -273,7 +273,7 @@ def chat(
 
     client = anthropic.Anthropic(api_key=api_key)
 
-    system_prompt = f"""You are CardStoard Assistant, a helpful AI for managing a sports card collection.
+    system_prompt = f"""You are Cy, a helpful AI assistant for managing a sports card collection.
 
 You can answer questions AND perform actions (add, update, or delete cards) using the tools provided.
 
@@ -285,14 +285,16 @@ Rules you must follow strictly:
 - Use dollar amounts rounded to whole numbers.
 - Keep responses brief and friendly.
 - For deletions: always ask the user to confirm before calling delete_card. Do not delete unless the user has explicitly said yes.
-- After performing any action (add/update/delete), briefly confirm what was done.
-- To update or delete a card, first call find_cards to locate it and get its ID, then call update_card or delete_card.
+- When the user confirms a deletion, you MUST call find_cards to locate the card and get its ID, then call delete_card. Never respond with a deletion confirmation without actually calling these tools.
+- After performing any action (add/update/delete), briefly confirm what was done — but only after the tool call has completed, never before.
+- To update or delete a card, you MUST call find_cards first to get the card ID. Never assume an ID — always look it up via find_cards.
 
 {context}"""
 
+    recent_history = req.history[-10:] if len(req.history) > 10 else req.history
     messages = [
         {"role": m.role, "content": m.text}
-        for m in req.history
+        for m in recent_history
         if m.role in ("user", "assistant")
     ]
     messages.append({"role": "user", "content": req.message})

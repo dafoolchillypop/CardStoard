@@ -4,7 +4,7 @@ import "./ChatPanel.css";
 
 export default function ChatPanel({ onClose }) {
   const [messages, setMessages] = useState([
-    { role: "assistant", text: "Hi! Ask me anything about your card collection." }
+    { role: "assistant", text: "Cy is on the mound... what's your question?" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,7 +40,7 @@ export default function ChatPanel({ onClose }) {
   return (
     <div className="chat-panel">
       <div className="chat-panel-header">
-        <span>CardStoard Assistant</span>
+        <span>Cy</span>
         <button className="chat-close-btn" onClick={onClose}>✕</button>
       </div>
 
@@ -50,7 +50,7 @@ export default function ChatPanel({ onClose }) {
             {m.text}
           </div>
         ))}
-        {loading && <div className="chat-bubble assistant">...</div>}
+        {loading && <div className="chat-bubble assistant">Here's the windup...</div>}
         <div ref={bottomRef} />
       </div>
 
@@ -61,7 +61,7 @@ export default function ChatPanel({ onClose }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKey}
-          placeholder="Ask about your collection..."
+          placeholder="Ask Cy about your collection..."
         />
         <button className="chat-send-btn" onClick={send} disabled={loading}>
           Send
