@@ -293,7 +293,10 @@ export default function Admin() {
 
         {/* Card Import */}
         <div className="card-section" style={{ marginTop: "1.5rem", textAlign: "center" }}>
-          <h3 style={{ marginBottom: "1rem" }}>Card Import</h3>
+          <h3 style={{ marginBottom: "1rem" }}>
+            Card Import
+            <InfoIcon id="cardimport" text="Bulk import cards from a CSV file. See the Import Cards page for template and formatting guide." />
+          </h3>
           <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>
             Bulk import cards from a CSV file
           </p>
