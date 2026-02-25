@@ -211,14 +211,7 @@ export default function Admin() {
          <form className="settings-form" onSubmit={handleSubmit}>
           {/* General Settings */}
           <div className="card-section">
-            <h3>General Settings <InfoIcon id="generalsettings" text="Set your app name and configure the list of card brands and grades available when adding cards." /></h3>
-            <label>App Name</label>
-            <input
-              name="app_name"
-              value={settings.app_name}
-              onChange={handleChange}
-            />
-
+            <h3>General Settings <InfoIcon id="generalsettings" text="Configure the list of card brands and grades available when adding cards." /></h3>
             <ChipsInput
               label="Card Makes"
               values={settings.card_makes}
