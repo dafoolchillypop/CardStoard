@@ -50,11 +50,18 @@ export default function AppHeader() {
             📋 My Cards
           </button>
         </Link>
-        <Link to="/analytics">
-          <button className="header-btn" title="View analytics">
-            📈 Analytics
-          </button>
-        </Link>
+        <button className="header-btn" disabled title="Coming soon">
+          ⚾ My Balls
+        </button>
+        <button className="header-btn" disabled title="Coming soon">
+          🗂️ My Sets
+        </button>
+        <button className="header-btn" disabled title="Coming soon">
+          🧱 My Wax
+        </button>
+        <button className="header-btn" disabled title="Coming soon">
+          📦 My Packs
+        </button>
       </div>
 
       {/* --- Right: user info, admin, chat, about, logout --- */}
@@ -62,6 +69,9 @@ export default function AppHeader() {
         <Link to="/account" className="user-info-link" title="Account details">
           <span className="user-info">{displayName}</span>
         </Link>
+        <button className="header-icon-btn" onClick={() => navigate("/analytics")} title="Analytics">
+          📈
+        </button>
         <button className="header-icon-btn" onClick={() => navigate("/admin")} title="Admin Settings">
           ⚙️
         </button>

@@ -44,7 +44,7 @@
 .header-icon-btn {
   background: none;
   border: none;
-  font-size: 1.3rem;
+  font-size: 1.6rem;
   cursor: pointer;
   opacity: 0.75;
   transition: opacity 0.2s, background 0.2s;
@@ -145,6 +145,7 @@
   font-weight: 600;
   transition: all 0.25s ease-in-out;
   box-shadow: 0 2px 4px rgba(0, 85, 204, 0.3);
+  white-space: nowrap;
 }
 
 .header-btn:hover {
@@ -156,6 +157,18 @@
 .header-btn:active {
   transform: translateY(0);
   box-shadow: 0 2px 3px rgba(0, 85, 204, 0.3);
+}
+
+.header-btn:disabled {
+  background: linear-gradient(135deg, #aaa, #bbb);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.header-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 /* --- Spacing adjustments --- */
