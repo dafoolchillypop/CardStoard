@@ -478,11 +478,11 @@ export default function ListCards() {
                         if (Number(card.id) === Number(returnCardId))
                           return { backgroundColor: "#fffde7", outline: "2px solid #ffc107", transition: "background-color 0.5s" };
                         if (rookieVal && g === 3)
-                          return { backgroundColor: "#fdf2f8" };
+                          return { backgroundColor: settings?.row_color_rookie_grade3 || "#b8d8f7" };
                         if (g === 3)
-                          return { backgroundColor: "#f5f0ff" };
+                          return { backgroundColor: settings?.row_color_grade3 || "#e8dcff" };
                         if (rookieVal)
-                          return { backgroundColor: "#fffbeb" };
+                          return { backgroundColor: settings?.row_color_rookie || "#fff3c4" };
                         return {};
                       })()}
                     >

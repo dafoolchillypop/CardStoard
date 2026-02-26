@@ -234,6 +234,47 @@ export default function Admin() {
             />
           </div>
 
+          {/* Row Colors */}
+          <div className="card-section">
+            <h3>Row Colors <InfoIcon id="rowcolors" text="Background colors applied to rows on the My Cards page based on card condition." /></h3>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "2rem", flexWrap: "nowrap", margin: "0.5rem 0" }}>
+              {[
+                { label: "Rookie", name: "row_color_rookie" },
+                { label: "Grade 3 (MT)", name: "row_color_grade3" },
+                { label: "Rookie + Grade 3", name: "row_color_rookie_grade3" },
+              ].map(({ label, name }) => (
+                <div key={name} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <label style={{ fontSize: "0.95rem", whiteSpace: "nowrap" }}>{label}</label>
+                  <input
+                    type="color"
+                    name={name}
+                    value={settings[name] || "#ffffff"}
+                    onChange={handleChange}
+                    style={{ width: "52px", height: "36px", padding: "2px", cursor: "pointer", border: "1px solid #ccc", borderRadius: "4px" }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div style={{ textAlign: "center", marginTop: "0.5rem" }}>
+              <button
+                type="button"
+                className="nav-btn"
+                onClick={() => {
+                  const defaults = {
+                    ...settings,
+                    row_color_rookie: "#fff3c4",
+                    row_color_grade3: "#e8dcff",
+                    row_color_rookie_grade3: "#b8d8f7",
+                  };
+                  setSettings(defaults);
+                  debouncedSave(defaults);
+                }}
+              >
+                Restore Default Colors
+              </button>
+            </div>
+          </div>
+
           {/* Factor Settings */}
           <div className="card-section">
             <h3>Factor Settings <InfoIcon id="factorsettings" text="Multipliers applied to book value when calculating card value. Grade factors reflect condition; Rookie factor boosts rookie card value." /></h3>
