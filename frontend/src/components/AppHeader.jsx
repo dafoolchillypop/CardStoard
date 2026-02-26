@@ -45,11 +45,6 @@ export default function AppHeader() {
 
       {/* --- Center: Primary navigation --- */}
       <div className="app-header-center">
-        <Link to="/add-card">
-          <button className="header-btn" title="Add a new card">
-            ➕ Add Card
-          </button>
-        </Link>
         <Link to="/list-cards">
           <button className="header-btn" title="View your collection">
             📋 My Cards
