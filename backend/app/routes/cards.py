@@ -144,12 +144,15 @@ async def import_cards(
         v = (v or "").strip().lower()
         return 1 if v in {"1", "yes", "true", "y", "t", "*"} else 0
 
+    GRADE_MAP = {0.6: 0.8, 1.0: 1.0}  # normalize legacy grade values
+
     new_cards = []
     rownum = 0
     for row in reader:
         rownum += 1
         try:
-            grade = to_float(row["Grade"])
+            grade = to_float(row["Grade"]) or 1.0
+            grade = GRADE_MAP.get(grade, grade)
             if grade is None or grade not in VALID_GRADES:
                 raise HTTPException(
                     status_code=400,
