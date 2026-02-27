@@ -159,6 +159,11 @@ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 echo -e "\n${YELLOW}⏳ Waiting for services to initialize (10 seconds)...${NC}"
 sleep 10
 
+# --- 5b️⃣ Run DB migrations ---
+echo -e "\n${BLUE}🗄️  Running database migrations...${NC}"
+docker exec stoarback python migrate.py
+echo -e "${GREEN}✅ Migrations complete.${NC}"
+
 # --- DEPLOY-ONLY MODE ---
 if [ "$DEPLOY_ONLY" = true ]; then
   echo -e "\n${GREEN}✅ Deploy-only mode complete — skipping validation checks.${NC}"
