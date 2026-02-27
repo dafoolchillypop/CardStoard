@@ -86,6 +86,10 @@ class GlobalSettings(Base):
     vintage_era_factor = Column(Float, default=1.00)
     modern_era_factor = Column(Float, default=1.00)
 
+    row_color_rookie = Column(String, default="#fff3c4")
+    row_color_grade3 = Column(String, default="#e8dcff")
+    row_color_rookie_grade3 = Column(String, default="#b8d8f7")
+
 class ValuationHistory(Base):
     __tablename__ = "valuation_history"
 

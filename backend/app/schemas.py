@@ -90,6 +90,10 @@ class GlobalSettingsBase(BaseModel):
     vintage_era_factor: Optional[float] = 1.00
     modern_era_factor: Optional[float] = 1.00
 
+    row_color_rookie: Optional[str] = "#fff3c4"
+    row_color_grade3: Optional[str] = "#e8dcff"
+    row_color_rookie_grade3: Optional[str] = "#b8d8f7"
+
 class GlobalSettingsCreate(GlobalSettingsBase):
     pass
 
@@ -113,6 +117,10 @@ class GlobalSettingsUpdate(BaseModel):
     modern_era_year: Optional[int] = None
     vintage_era_factor: Optional[float] = None
     modern_era_factor: Optional[float] = None
+
+    row_color_rookie: Optional[str] = None
+    row_color_grade3: Optional[str] = None
+    row_color_rookie_grade3: Optional[str] = None
 
 class GlobalSettings(GlobalSettingsBase):
     id: int

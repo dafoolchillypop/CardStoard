@@ -70,14 +70,15 @@ table {
 
 th, td {
   border: 1px solid #e0e0e0;
-  padding: 10px 12px;
+  padding: clamp(6px, 0.6vw, 12px) clamp(6px, 0.7vw, 14px);
   text-align: left;
 }
 
 th {
   background: #f7f7f7;
   color: #333;
-  font-size: 20px;
+  font-size: clamp(13px, 1.1vw, 18px);
+  text-align: center;
 }
 
 /* Chips components */
@@ -257,7 +258,7 @@ button:active {
 /* Center Actions columns */
 .card-section td.actions-col {
   text-align: center;
-  width: 130px;
+  width: 50px;
 }
 
 /* Shrink and center rookie, grade, and values columns */
@@ -271,8 +272,10 @@ button:active {
   text-align: center;
 }
 
-.card-section td.book-col {
-  min-width: 180px;
+.card-section td.book-col, .card-section th.book-col {
+  width: 130px;
+  max-width: 130px;
+  white-space: normal;
   text-align: center;
 }
 
@@ -287,7 +290,9 @@ button:active {
 }
 
 .badge-brand {
-  background-color: #007bff; /* Blue for brand */
+  background-color: #007bff;
+  font-size: 0.95rem;
+  padding: 4px 10px;
 }
 
 .badge-grade {
@@ -361,9 +366,9 @@ button:active {
 
 .book-badge {
   display: inline-block;
-  padding: 2px 6px;
+  padding: 4px 10px;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 0.95rem;
   font-weight: 500;
   margin-right: 4px;
   color: white;
@@ -377,9 +382,9 @@ button:active {
 
 .rookie-badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 4px 10px;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: 0.95rem;
   font-weight: bold;
   background-color: #ffd700; /* gold */
   color: #000;
@@ -395,9 +400,9 @@ button:active {
 
 .badge-grade {
   display: inline-block;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: 0.95rem;
   font-weight: bold;
   margin-right: 6px;
   color: white;
@@ -446,9 +451,9 @@ td.year-col, th.year-col {
   white-space: nowrap;
 }
 
-td.fname-col, th.fname-col {
+td.fname-col {
   font-weight: bold;
-  text-align: left;
+  text-align: center;
   vertical-align: middle;
   width: 80px;
   max-width: 80px;
@@ -457,15 +462,25 @@ td.fname-col, th.fname-col {
   text-overflow: ellipsis;
 }
 
-td.lname-col, th.lname-col {
+th.fname-col {
+  text-align: center;
+  width: 80px;
+}
+
+td.lname-col {
   font-weight: bold;
-  text-align: left;
+  text-align: center;
   vertical-align: middle;
   width: 110px;
   max-width: 110px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+th.lname-col {
+  text-align: center;
+  width: 110px;
 }
 
 td.brand-col, th.brand-col {
@@ -491,9 +506,9 @@ td.card-value-col, th.card-value-col {
 
 .badge-value {
   color: white;
-  padding: 3px 6px;
+  padding: 5px 12px;
   border-radius: 4px;
-  font-size: 0.85rem;
+  font-size: 1.1rem;
   font-weight: bold;
 }
 

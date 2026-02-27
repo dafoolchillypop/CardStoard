@@ -55,6 +55,29 @@ def on_startup():
     finally:
         db.close()
 
+    # --- Schema drift check ---
+    # Compares SQLAlchemy model columns against the live DB.
+    # Logs a WARNING if any columns are missing — a signal that
+    # `python migrate.py` needs to be run before deploying.
+    import logging
+    from sqlalchemy import inspect as sa_inspect
+    logger = logging.getLogger("cardstoard.schema")
+    inspector = sa_inspect(engine)
+    missing = []
+    for table in Base.metadata.sorted_tables:
+        db_cols = {col["name"] for col in inspector.get_columns(table.name)}
+        for col in table.columns:
+            if col.name not in db_cols:
+                missing.append(f"{table.name}.{col.name}")
+    if missing:
+        logger.warning(
+            "SCHEMA DRIFT DETECTED — run `python migrate.py` to apply pending migrations. "
+            "Missing columns: %s",
+            ", ".join(missing)
+        )
+    else:
+        logger.info("Schema check passed — DB matches model.")
+
 # ---------------------------
 # Include routers
 # ---------------------------
