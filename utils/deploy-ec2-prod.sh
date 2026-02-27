@@ -52,4 +52,7 @@ $SSH "
 echo "--- Restoring database ---"
 $SSH "docker exec -i stoardb psql -U postgres --set ON_ERROR_STOP=on cardstoardb < $BACKUP_FILE && echo 'Restore complete'"
 
+echo "--- Running smoke test ---"
+$SSH "cd /home/ubuntu/CardStoard && [[ -f ~/.cardstoard.env ]] && source ~/.cardstoard.env; ./utils/smoke_test.sh"
+
 echo "--- Deploy complete ---"
