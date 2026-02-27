@@ -107,7 +107,7 @@ if [[ -n "$EMAIL" && -n "$PASSWORD" ]]; then
     -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" 2>/dev/null || echo "")
   if [[ "$STATUS" == "200" ]]; then
     USERNAME=$(echo "$BODY" | python3 -c \
-      "import sys,json; d=json.load(sys.stdin); print(d.get('username') or d.get('email','?'))" 2>/dev/null || echo "?")
+      "import sys,json; d=json.load(sys.stdin); u=d.get('user',d); print(u.get('username') or u.get('email','?'))" 2>/dev/null || echo "?")
     ok "Login ($STATUS) — user: $USERNAME"
   else
     fail "Login — HTTP $STATUS"
