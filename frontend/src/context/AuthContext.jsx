@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
   }, []); // eslint-disable-line
 
   useEffect(() => {
-    const publicRoutes = ["/", "/login", "/register", "/verify-success", "/verify-error", "/forgot-password"];
+    const publicRoutes = ["/", "/login", "/register", "/verify-success", "/verify-error", "/resend-verify", "/forgot-password"];
     if (publicRoutes.includes(window.location.pathname)) {
       setIsLoggedIn(false);
       return; // ✅ Don’t trigger /auth/me on public routes
