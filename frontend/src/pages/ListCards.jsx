@@ -32,6 +32,7 @@ export default function ListCards() {
   const [editingCardId, setEditingCardId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [playerNames, setPlayerNames] = useState({ firstNames: [], lastNames: [] });
+  const skipNextFetchRef = React.useRef(false);
 
   // Fetch the updated card directly so it's always visible regardless of current page
   useEffect(() => {
@@ -98,6 +99,7 @@ export default function ListCards() {
     try {
       const res = await api.post("/cards/", fields);
       const newCard = res.data;
+      skipNextFetchRef.current = true;
       setCards(prev => [newCard, ...prev]);
       setTotal(prev => prev + 1);
       setEditingCardId(newCard.id);
@@ -190,6 +192,7 @@ export default function ListCards() {
 
   // Load page of cards when page/limit changes
   useEffect(() => {
+    if (skipNextFetchRef.current) { skipNextFetchRef.current = false; return; }
     const fetchCards = async () => {
       // When showing all records, wait until the count is loaded
       if (limit === "all" && total === 0) return;

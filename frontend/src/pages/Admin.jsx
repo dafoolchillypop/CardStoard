@@ -182,7 +182,9 @@ export default function Admin() {
       <div className="container">
         <h2 className="page-header">Admin Settings</h2>
 
-        <div className="smartfill-container">
+        <div className="card-section" style={{ marginBottom: "1rem" }}>
+          <h3>Features</h3>
+          <div className="smartfill-container">
             <input
               type="checkbox"
               name="smart"
@@ -194,8 +196,7 @@ export default function Admin() {
               <InfoIcon id="smartfill" text="Auto-populates card number and rookie flag when adding cards, using the Player Dictionary." />
             </div>
           </div>
-
-        <div className="smartfill-container">
+          <div className="smartfill-container" style={{ marginTop: "0.75rem" }}>
             <input
               type="checkbox"
               name="chatbot"
@@ -207,6 +208,7 @@ export default function Admin() {
               <InfoIcon id="chatbot" text="Enables the AI-powered chat assistant (💬) in the header. Requires an Anthropic API key to be configured." />
             </div>
           </div>
+        </div>
 
          <form className="settings-form" onSubmit={handleSubmit}>
           {/* General Settings */}
@@ -222,16 +224,21 @@ export default function Admin() {
               }}
             />
 
-            <ChipsInput
-              label="Card Grades"
-              values={settings.card_grades}
-              setValues={(vals) => {
-                const updated = { ...settings, card_grades: vals };
-                setSettings(updated);
-                debouncedSave(updated);
-              }}
-              type="text"
-            />
+            <div style={{ marginTop: "1rem" }}>
+              <label style={{ fontWeight: 750, color: "#333", display: "block", marginBottom: "0.4rem", textAlign: "center" }}>
+                Card Grades
+                <InfoIcon id="cardgrades" text="Fixed by the CardStoard valuation formula — not user-configurable." />
+              </label>
+              <div style={{ display: "flex", flexWrap: "nowrap", gap: "0.4rem", justifyContent: "center" }}>
+                {["3.0 MT", "1.5 NMMT", "1.0 EXMT", "0.8 VGEX", "0.4 GD", "0.2 PR"].map(g => (
+                  <span key={g} style={{
+                    background: "#f0f4f8", border: "1px solid #dce3ea",
+                    borderRadius: "20px", padding: "0.25rem 0.75rem",
+                    fontSize: "0.85rem", color: "#555",
+                  }}>{g}</span>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Row Colors */}
@@ -361,10 +368,10 @@ export default function Admin() {
         </form>
 
         {/* Player Dictionary */}
-        <div className="card-section" style={{ marginTop: "1.5rem" }}>
+        <div className="card-section" style={{ marginTop: "1rem", textAlign: "center" }}>
           <h3>Player Dictionary <InfoIcon id="dictionary" text="A searchable database of players, brands, years, and card numbers used by Smart Fill and collection highlights." /></h3>
           <p>Total entries: <strong>{dictCount !== null ? dictCount : "Loading..."}</strong></p>
-          <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+          <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", justifyContent: "center" }}>
             <button className="nav-btn" onClick={() => navigate("/dictionary")}>📖 View / Edit</button>
             <button className="nav-btn" onClick={() => navigate("/dictionary/import")}>📥 Import CSV</button>
             <button className="nav-btn" onClick={() => navigate("/dictionary/add")}>➕ Add Entry</button>
@@ -373,7 +380,7 @@ export default function Admin() {
         
 
         {/* Card Import */}
-        <div className="card-section" style={{ marginTop: "1.5rem", textAlign: "center" }}>
+        <div className="card-section" style={{ marginTop: "1rem", textAlign: "center" }}>
           <h3 style={{ marginBottom: "1rem" }}>
             Card Import
             <InfoIcon id="cardimport" text="Bulk import cards from a CSV file. See the Import Cards page for template and formatting guide." />
@@ -385,7 +392,7 @@ export default function Admin() {
         </div>
 
         {/* Data Management */}
-        <div className="card-section" style={{ marginTop: "1.5rem", textAlign: "center" }}>
+        <div className="card-section" style={{ marginTop: "1rem", textAlign: "center" }}>
           <h3 style={{ marginBottom: "1.5rem" }}>Data Management <InfoIcon id="datamanagement" text="Tools for extracting, backing up, and restoring your collection data." /></h3>
 
           {/* Extract */}

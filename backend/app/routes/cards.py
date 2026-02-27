@@ -215,6 +215,66 @@ async def import_cards(
     "message": f"Successfully imported {len(new_cards)} cards."
     }
 
+# Validate CSV without importing
+@router.post("/validate-csv")
+async def validate_csv(
+    file: UploadFile = File(...),
+    current: User = Depends(get_current_user),
+):
+    errors = []
+    warnings = []
+
+    if not file.filename.lower().endswith(".csv"):
+        return {"valid": False, "row_count": 0, "errors": ["File must be a .csv"], "warnings": []}
+
+    content = (await file.read()).decode("utf-8", errors="ignore")
+    reader = csv.DictReader(io.StringIO(content))
+
+    expected = {
+        "First", "Last", "Year", "Brand", "Rookie", "Card Number",
+        "BookHi", "BookHiMid", "BookMid", "BookLowMid", "BookLow", "Grade",
+    }
+    if not reader.fieldnames or not expected.issubset(set(reader.fieldnames)):
+        missing = expected.difference(set(reader.fieldnames or []))
+        return {
+            "valid": False,
+            "row_count": 0,
+            "errors": [f"Missing required columns: {', '.join(sorted(missing))}"],
+            "warnings": [],
+        }
+
+    def to_float(v):
+        v = (v or "").strip()
+        return float(v) if v != "" else None
+
+    GRADE_MAP = {0.6: 0.8, 1.0: 1.0}
+
+    rownum = 0
+    for row in reader:
+        rownum += 1
+        name = f"{(row.get('First') or '').strip()} {(row.get('Last') or '').strip()}".strip() or f"Row {rownum}"
+
+        # Grade validation
+        try:
+            grade = to_float(row["Grade"]) or 1.0
+            grade = GRADE_MAP.get(grade, grade)
+            if grade not in VALID_GRADES:
+                errors.append(f"Row {rownum} ({name}): invalid grade '{row['Grade']}' — must be one of {sorted(VALID_GRADES)}")
+        except Exception:
+            errors.append(f"Row {rownum} ({name}): could not parse grade '{row.get('Grade')}'")
+
+        # Warnings for blank key fields
+        for field in ("First", "Last", "Year", "Brand"):
+            if not (row.get(field) or "").strip():
+                warnings.append(f"Row {rownum}: blank {field} field")
+
+    return {
+        "valid": len(errors) == 0,
+        "row_count": rownum,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
 # Create a card
 @router.post("/", response_model=schemas.Card)
 def create_card(

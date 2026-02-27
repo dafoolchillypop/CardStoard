@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import AppHeader from "../components/AppHeader";
 
 export default function ImportHelp() {
@@ -21,6 +22,16 @@ export default function ImportHelp() {
           CardStoard supports importing multiple cards at once using a formatted
           CSV file. This guide explains the required format, valid values, and
           examples to ensure your imports run smoothly.
+        </p>
+
+        <p style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+          <Link
+            to="/import-cards"
+            className="nav-btn"
+            style={{ display: "inline-block" }}
+          >
+            📤 Go to Import
+          </Link>
         </p>
 
         <h3>✅ Required CSV Header (must be line 1)</h3>
@@ -60,24 +71,49 @@ export default function ImportHelp() {
               <li>0.4 (G)</li>
               <li>0.2 (P)</li>
             </ul>
-         </li>
+          </li>
         </ul>
 
         <h3>⚠ Important Rules</h3>
         <ul>
           <li>Header row MUST be included.</li>
-          <li>Columns must be in this exact order.</li>
-          <li>Headers are case-insensitive but spelling must match.</li>
+          <li>All 12 columns must be present — column order does not matter.</li>
           <li>
-            Rookie supports: <strong>TRUE, FALSE, Yes, No, *, 1, 0</strong> or
-            blank.
+            Headers are <strong>case-sensitive</strong> and must match exactly as shown above
+            (e.g. <code>BookHi</code> not <code>bookhi</code> or <code>BOOKHI</code>).
           </li>
           <li>
-            All Book value columns must be numeric (no $ signs, commas,
-            or text).
+            Rookie supports: <strong>TRUE, FALSE, Yes, No, *, 1, 0</strong> or blank.
+          </li>
+          <li>
+            All Book value columns must be numeric (no $ signs, commas, or text).
           </li>
           <li>No images are handled via CSV — images are uploaded separately.</li>
         </ul>
+
+        <h3>🔍 Pre-Import Validation</h3>
+        <p>
+          Use the <strong>Validate File</strong> button on the{" "}
+          <Link to="/import-cards" style={{ color: "#0066cc", textDecoration: "underline" }}>
+            Import page
+          </Link>{" "}
+          to check your file before importing. Validation runs three checks in order:
+        </p>
+        <ol>
+          <li><strong>File type</strong> — must be a <code>.csv</code> file.</li>
+          <li>
+            <strong>Headers</strong> — all 12 required column headers must be present
+            (case-sensitive). Any missing headers are listed by name.
+          </li>
+          <li>
+            <strong>Grade per row</strong> — each row is checked for a valid grade value.
+            Errors include the row number and player name so you can find and fix them quickly.
+          </li>
+        </ol>
+        <p>
+          Blank First, Last, Year, or Brand fields will generate warnings but will not
+          block the import — those rows will be imported with empty values.
+        </p>
 
         <h3>📌 Example Valid CSV</h3>
 
@@ -98,9 +134,8 @@ Nolan,Ryan,1984,Topps,,470,20,18,15,12,8,0.8`}
         </pre>
 
         <p style={{ marginTop: "2rem" }}>
-          If your CSV fails to import, double-check column order, numeric values,
-          and grade formats. For help, contact{" "}
-          <strong>cardstoard@gmail.com</strong>.
+          If your CSV fails to import, use Validate File to identify errors before uploading.
+          For help, contact <strong>cardstoard@gmail.com</strong>.
         </p>
 
         <p style={{ textAlign: "center", fontSize: "0.9rem", marginTop: "3rem" }}>
