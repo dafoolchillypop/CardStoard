@@ -566,15 +566,14 @@ td.card-value-col, th.card-value-col {
 
 .smartfill-container {
   display: flex;
-  flex-direction: column; /* stack checkbox and label */
-  align-items: center;    /* center horizontally */
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
   margin: 10px 0;
 }
 
 .smartfill-label {
-  margin-top: 4px;
   font-size: 0.9rem;
-  text-align: center;
   font-weight: bold;
 }
 
