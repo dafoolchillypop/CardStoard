@@ -9,8 +9,7 @@ from ..models import User, GlobalSettings
 from ..schemas import UserCreate
 from ..auth.security import hash_password, verify_password, create_token, get_current_user
 from ..auth.cookies import set_auth_cookie, set_access_cookie, set_refresh_cookie, clear_auth_cookie
-from ..auth.email_verify import generate_email_token, verify_email_token
-from ..utils.email_service import send_email
+from ..auth.email_verify import verify_email_token, send_verification_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -48,28 +47,10 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
         s = GlobalSettings(user_id=new_user.id, app_name="CardStoard")
         db.add(s); db.commit()
 
-    # Dynamically set base URL depending on environment
-    backend_base_url = os.getenv("BACKEND_BASE_URL", "http://localhost:8000")
+    sent = send_verification_email(new_user.email)
+    if not sent:
+        raise HTTPException(status_code=500, detail="Failed to send verification email. Please try again.")
 
-    # Generate verification link
-    token = generate_email_token(new_user.email)
-    verify_link = f"{backend_base_url}/auth/verify?token={token}"
-
-    # verification email structure
-    subject = "Verify your CardStoard account"
-    body = f"""
-    Welcome to CardStoard!
-
-    Please verify your email by clicking the link below:
-
-    {verify_link}
-
-    If you did not register for CardStoard, please ignore this message.
-    """
-    
-    # send verification email
-    send_email(new_user.email, subject, body)
-    
     return {"ok": True, "message": f"Verification email sent to {new_user.email}"}
 
 #--Login--#
@@ -111,26 +92,45 @@ def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
 #--Verification--#
 
 from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi import HTTPException as FastAPIHTTPException
 
 @router.get("/verify")
 def verify_email(token: str, db: Session = Depends(get_db)):
-    """Confirm a user's email address and redirect to success page."""
-    email = verify_email_token(token)
-    user = db.query(User).filter(User.email == email).first()
-
-    # Dynamically set base URL depending on environment
+    """Confirm a user's email address and redirect to success or error page."""
     frontend_base_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:3000")
 
+    try:
+        email = verify_email_token(token)
+    except FastAPIHTTPException:
+        return RedirectResponse(url=f"{frontend_base_url}/verify-error")
+
+    user = db.query(User).filter(User.email == email).first()
     if not user:
-        # Optional: redirect to a frontend error page instead of raising HTTPException
         return RedirectResponse(url=f"{frontend_base_url}/verify-error")
 
     if not user.is_verified:
         user.is_verified = True
         db.commit()
 
-    # ✅ Redirect to frontend success page
     return RedirectResponse(url=f"{frontend_base_url}/verify-success")
+
+#--Resend Verification--#
+
+class ResendVerifyIn(BaseModel):
+    email: EmailStr
+
+@router.post("/resend-verify")
+def resend_verify(payload: ResendVerifyIn, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == payload.email).first()
+    if not user:
+        # Don't reveal whether the email exists
+        return {"ok": True, "message": "If that email is registered and unverified, a new link has been sent."}
+    if user.is_verified:
+        return {"ok": True, "message": "This email is already verified. You can log in."}
+    sent = send_verification_email(user.email)
+    if not sent:
+        raise HTTPException(status_code=500, detail="Failed to send verification email. Please try again.")
+    return {"ok": True, "message": "Verification email resent. Please check your inbox."}
 
 #--Refresh--#
 

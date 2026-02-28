@@ -33,12 +33,15 @@ def verify_email_token(token: str, max_age: int = 3600) -> str:
         )
 
 
-def send_verification_email(email: str):
-    """Build and send verification email with safe HTML/text."""
+def send_verification_email(email: str) -> bool:
+    """Build and send verification email with safe HTML/text. Returns True on success."""
 
     token = generate_email_token(email)
 
-    verify_url = f"{cfg_settings.FRONTEND_BASE_URL}/auth/verify?token={token}"
+    # BACKEND_EXTERNAL_URL is the publicly reachable base for the backend API.
+    # Production: https://cardstoard.com/api   Dev: http://localhost:8000
+    backend_external = getenv("BACKEND_EXTERNAL_URL", "http://localhost:8000")
+    verify_url = f"{backend_external}/auth/verify?token={token}"
 
     # 🔹 Recommended — fully descriptive body avoids Gmail spam filters
     body = f"""
@@ -81,7 +84,7 @@ https://cardstoard.com
 </html>
 """
 
-    send_email(
+    return send_email(
         to_address=email,
         subject="Verify Your CardStoard Account",
         body=body,

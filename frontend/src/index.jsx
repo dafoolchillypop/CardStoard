@@ -5,6 +5,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 
 import App from "./App";
 import VerifySuccess from "./pages/VerifySuccess";
+import VerifyError from "./pages/VerifyError";
+import ResendVerify from "./pages/ResendVerify";
 import AddCard from "./pages/AddCard";
 import ListCards from "./pages/ListCards";
 import ImportCards from "./pages/ImportCards";
@@ -42,6 +44,8 @@ function AppRouter() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-success" element={<VerifySuccess />} />
+          <Route path="/verify-error" element={<VerifyError />} />
+          <Route path="/resend-verify" element={<ResendVerify />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </>
       )}
