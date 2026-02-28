@@ -184,28 +184,32 @@ export default function Admin() {
 
         <div className="card-section" style={{ marginBottom: "1rem" }}>
           <h3>Features</h3>
-          <div className="smartfill-container">
-            <input
-              type="checkbox"
-              name="smart"
-              checked={settings.enable_smart_fill}
-              onChange={() => handleToggle("enable_smart_fill")}
-            />
-            <div className="smartfill-label">
-              Smart Fill
-              <InfoIcon id="smartfill" text="Auto-populates card number and rookie flag when adding cards, using the Player Dictionary." />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <input
+                type="checkbox"
+                name="smart"
+                checked={settings.enable_smart_fill}
+                onChange={() => handleToggle("enable_smart_fill")}
+                style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }}
+              />
+              <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
+                Smart Fill
+                <InfoIcon id="smartfill" text="Auto-populates card number and rookie flag when adding cards, using the Player Dictionary." />
+              </div>
             </div>
-          </div>
-          <div className="smartfill-container" style={{ marginTop: "0.75rem" }}>
-            <input
-              type="checkbox"
-              name="chatbot"
-              checked={settings.chatbot_enabled ?? false}
-              onChange={() => handleToggle("chatbot_enabled")}
-            />
-            <div className="smartfill-label">
-              Collection Assistant (Chatbot)
-              <InfoIcon id="chatbot" text="Enables the AI-powered chat assistant (💬) in the header. Requires an Anthropic API key to be configured." />
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <input
+                type="checkbox"
+                name="chatbot"
+                checked={settings.chatbot_enabled ?? false}
+                onChange={() => handleToggle("chatbot_enabled")}
+                style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }}
+              />
+              <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
+                Collection Assistant (Chatbot)
+                <InfoIcon id="chatbot" text="Enables the AI-powered chat assistant (💬) in the header. Requires an Anthropic API key to be configured." />
+              </div>
             </div>
           </div>
         </div>

@@ -52,6 +52,14 @@
   box-sizing: border-box;
 }
 
+.card-section input[type="checkbox"],
+.card-section input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+}
+
 /* ChipsInput spacing */
 .card-section .chips-input {
   margin-top: 1rem;

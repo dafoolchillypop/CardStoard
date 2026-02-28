@@ -1,5 +1,16 @@
 /* index.css */
 
+/* Normalize native form controls for cross-browser (Safari) consistency */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+  align-self: center;
+  cursor: pointer;
+}
+
 /* Global body styling (background image applied in index.jsx) */
 body {
   margin: 0;
@@ -565,14 +576,17 @@ td.card-value-col, th.card-value-col {
 }
 
 .smartfill-container {
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
   align-items: center;
   gap: 8px;
   margin: 10px 0;
 }
 
+
 .smartfill-label {
+  display: inline-flex;
+  align-items: center;
   font-size: 0.9rem;
   font-weight: bold;
 }
