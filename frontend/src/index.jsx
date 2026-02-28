@@ -22,6 +22,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import About from "./pages/About.jsx";
 import ImportHelp from "./pages/ImportHelp.jsx";
+import CardView from "./pages/CardView.jsx";
+import CardLabel from "./pages/CardLabel.jsx";
+import BatchLabels from "./pages/BatchLabels.jsx";
 import DictionaryList from "./pages/DictionaryList.jsx";
 import DictionaryAdd from "./pages/DictionaryAdd.jsx";
 import DictionaryEdit from "./pages/DictionaryEdit.jsx";
@@ -38,6 +41,10 @@ function AppRouter() {
 
   return (
     <Routes>
+      {/* Always public — accessible regardless of login state */}
+      <Route path="/card-view/:id" element={<CardView />} />
+      <Route path="/card-label/:id" element={<CardLabel />} />
+
       {/* Public only if not logged in */}
       {!isLoggedIn && (
         <>
@@ -69,6 +76,7 @@ function AppRouter() {
           <Route path="/dictionary/add" element={<ProtectedRoute><DictionaryAdd /></ProtectedRoute>} />
           <Route path="/dictionary/edit/:id" element={<ProtectedRoute><DictionaryEdit /></ProtectedRoute>} />
           <Route path="/dictionary/import" element={<ProtectedRoute><DictionaryImport /></ProtectedRoute>} />
+          <Route path="/batch-labels" element={<ProtectedRoute><BatchLabels /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </>
       )}

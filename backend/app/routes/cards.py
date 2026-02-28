@@ -1,5 +1,6 @@
 # Standard library
-import io, os, csv, shutil, json
+import io, os, csv, shutil, json, base64, qrcode
+from pydantic import BaseModel
 from pathlib import Path as FSPath
 from typing import Optional
 from datetime import datetime, timezone
@@ -587,6 +588,80 @@ async def restore_data(
         "restored": len(new_cards),
         "message": f"Successfully restored {len(new_cards)} cards.",
     }
+
+
+# Public card info + QR code (no auth required)
+@router.get("/{card_id}/public")
+def get_card_public(card_id: int, db: Session = Depends(get_db)):
+    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
+    frontend_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:3000")
+    return _card_label_data(card, frontend_url)
+
+
+def _card_label_data(card, frontend_url: str) -> dict:
+    """Build label dict with QR code for a single card."""
+    card_url = f"{frontend_url}/card-view/{card.id}"
+    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    qr.add_data(card_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    qr_b64 = base64.b64encode(buf.getvalue()).decode()
+
+    first = card.first_name or ""
+    last = card.last_name or ""
+    initials = ((first[0] if first else "?") + (last[0] if last else "?")).upper()
+
+    return {
+        "id": card.id,
+        "label_id": f"CS-CD-{card.id:06d}",
+        "descriptor": f"{initials}.{card.year}.{card.card_number}",
+        "grade": card.grade,
+        "first_name": first,
+        "last_name": last,
+        "year": card.year,
+        "brand": card.brand,
+        "card_number": card.card_number,
+        "front_image": card.front_image,
+        "qr_b64": qr_b64,
+    }
+
+
+class BatchLabelRequest(BaseModel):
+    ids: list[int]
+
+
+# Batch label data for selected cards (auth required)
+@router.post("/labels/batch")
+def get_labels_batch(
+    payload: BatchLabelRequest,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    frontend_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:3000")
+    cards = (
+        db.query(models.Card)
+        .filter(Card.user_id == current.id)
+        .filter(models.Card.id.in_(payload.ids))
+        .all()
+    )
+    # Return in requested order
+    card_map = {c.id: c for c in cards}
+    return [_card_label_data(card_map[i], frontend_url) for i in payload.ids if i in card_map]
+
+
+# All label data for current user (auth required)
+@router.get("/labels/all")
+def get_labels_all(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    frontend_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:3000")
+    cards = db.query(models.Card).filter(Card.user_id == current.id).all()
+    return [_card_label_data(c, frontend_url) for c in cards]
 
 
 # Read one card

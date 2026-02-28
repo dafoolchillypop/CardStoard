@@ -1,0 +1,120 @@
+/* CardLabel.css — print styles for Avery 6427 (1.75" x 0.75") */
+
+/* Screen hint message */
+.card-label-screen-hint {
+  padding: 2rem;
+  text-align: center;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.card-label-loading,
+.card-label-error {
+  padding: 2rem;
+  text-align: center;
+  color: #888;
+}
+
+/* Label layout — screen preview at 2x scale */
+.card-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: calc(1.75in * 2);
+  height: calc(0.75in * 2);
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  margin: 1rem auto;
+  box-sizing: border-box;
+  font-family: monospace;
+}
+
+.card-label-qr {
+  width: calc(0.65in * 2);
+  height: calc(0.65in * 2);
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+
+.card-label-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 3px;
+  overflow: hidden;
+  text-align: left;
+}
+
+.card-label-id {
+  font-size: 11px;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+}
+
+.card-label-desc {
+  font-size: 10px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.card-label-grade {
+  font-size: 10px;
+  color: #333;
+}
+
+/* ── Print styles ── */
+@media print {
+  @page {
+    size: 1.75in 0.75in;
+    margin: 0;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .card-label,
+  .card-label * {
+    visibility: visible;
+  }
+
+  .card-label-screen-hint,
+  .card-label-loading,
+  .card-label-error {
+    display: none;
+  }
+
+  .card-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1.75in;
+    height: 0.75in;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    padding: 3px 5px;
+    gap: 4px;
+  }
+
+  .card-label-qr {
+    width: 0.62in;
+    height: 0.62in;
+  }
+
+  .card-label-id {
+    font-size: 7pt;
+  }
+
+  .card-label-desc {
+    font-size: 6.5pt;
+  }
+
+  .card-label-grade {
+    font-size: 6.5pt;
+  }
+}

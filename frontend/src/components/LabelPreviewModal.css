@@ -1,0 +1,56 @@
+/* LabelPreviewModal.css */
+
+.label-preview-box {
+  max-width: 520px;
+}
+
+/* Label at 3× scale for preview */
+.label-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(1.75in * 3);
+  height: calc(0.75in * 3);
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  margin: 0 auto;
+  box-sizing: border-box;
+  font-family: monospace;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.label-preview-qr {
+  width: calc(0.62in * 3);
+  height: calc(0.62in * 3);
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+
+.label-preview-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 5px;
+  text-align: left;
+}
+
+.label-preview-id {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+}
+
+.label-preview-desc {
+  font-size: 13px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.label-preview-grade {
+  font-size: 13px;
+  color: #333;
+}

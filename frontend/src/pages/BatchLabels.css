@@ -1,0 +1,128 @@
+/* BatchLabels.css — batch label print sheet */
+
+.batch-screen-hint {
+  padding: 2rem;
+  text-align: center;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* Label grid — screen preview at 1.5× */
+.batch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, calc(1.75in * 1.5));
+  column-gap: calc(0.25in * 1.5);
+  row-gap: 0;
+  padding: calc(0.25in * 1.5);
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.batch-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: calc(1.75in * 1.5);
+  height: calc(0.75in * 1.5);
+  padding: 3px 5px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  background: #fff;
+  box-sizing: border-box;
+  font-family: monospace;
+}
+
+.batch-label-qr {
+  width: calc(0.62in * 1.5);
+  height: calc(0.62in * 1.5);
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+
+.batch-label-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  overflow: hidden;
+}
+
+.batch-label-id {
+  font-size: 10px;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+}
+
+.batch-label-desc {
+  font-size: 9px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.batch-label-grade {
+  font-size: 9px;
+  color: #333;
+}
+
+/* ── Print styles ── */
+@media print {
+  @page {
+    size: 8.5in 11in;
+    margin: 0.25in;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .batch-grid,
+  .batch-grid * {
+    visibility: visible;
+  }
+
+  .batch-screen-hint {
+    display: none;
+  }
+
+  .batch-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1.75in);
+    column-gap: 0.25in;
+    row-gap: 0;
+    padding: 0;
+    width: auto;
+    margin: 0;
+  }
+
+  .batch-label {
+    width: 1.75in;
+    height: 0.75in;
+    border: none;
+    border-radius: 0;
+    padding: 3px 5px;
+    gap: 4px;
+  }
+
+  .batch-label-qr {
+    width: 0.62in;
+    height: 0.62in;
+  }
+
+  .batch-label-id {
+    font-size: 7pt;
+  }
+
+  .batch-label-desc {
+    font-size: 6.5pt;
+  }
+
+  .batch-label-grade {
+    font-size: 6.5pt;
+  }
+}

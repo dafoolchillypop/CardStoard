@@ -3,11 +3,14 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
+import LabelPreviewModal from "../components/LabelPreviewModal";
 
 export default function CardDetail() {
   const { id } = useParams();
   const [card, setCard] = useState(null);
   const [settings, setSettings] = useState(null);
+  const [labelData, setLabelData] = useState(null);
+  const [labelLoading, setLabelLoading] = useState(false);
 
   useEffect(() => {
     // Fetch card
@@ -20,6 +23,14 @@ export default function CardDetail() {
       .then((res) => setSettings(res.data))
       .catch((err) => console.error("Error fetching settings:", err));
   }, [id]);
+
+  const handlePrintLabel = () => {
+    setLabelLoading(true);
+    api.get(`/cards/${id}/public`)
+      .then((res) => setLabelData(res.data))
+      .catch((err) => console.error("Label fetch error:", err))
+      .finally(() => setLabelLoading(false));
+  };
 
   if (!card) return <p>Loading card...</p>;
 
@@ -76,6 +87,11 @@ export default function CardDetail() {
   return (
     <>
     <AppHeader />
+    <LabelPreviewModal
+      labelData={labelData}
+      onPrint={() => window.open(`/card-label/${id}`, "_blank")}
+      onClose={() => setLabelData(null)}
+    />
     <div style={{ textAlign: "center" }}>
       {/* Heading with Rookie Star */}
       <h2>

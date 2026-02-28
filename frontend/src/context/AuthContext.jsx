@@ -40,7 +40,9 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const publicRoutes = ["/", "/login", "/register", "/verify-success", "/verify-error", "/resend-verify", "/forgot-password"];
-    if (publicRoutes.includes(window.location.pathname)) {
+    const publicPrefixes = ["/card-view/", "/card-label/"];
+    const path = window.location.pathname;
+    if (publicRoutes.includes(path) || publicPrefixes.some((p) => path.startsWith(p))) {
       setIsLoggedIn(false);
       return; // ✅ Don’t trigger /auth/me on public routes
     }
