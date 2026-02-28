@@ -31,6 +31,14 @@
   table-layout: auto;
 }
 
+/* Sticky column headers — within the card-section scroll container */
+.list-container thead th {
+  position: sticky;
+  top: 0;
+  background: #f8f9fc;
+  z-index: 10;
+}
+
 .list-container .page-header {
   margin: 5.5rem 0 1rem;  /* top margin separates from AppHeader */
   text-align: center;
