@@ -436,11 +436,15 @@ export default function ListCards() {
         <div style={{ clear: "both" }} />  {/* ensures layout resets after float */}
       
         {cards.length === 0 ? (
-          <p style={{ textAlign: "center" }}>No cards found.</p>
+          <div style={{ textAlign: "center", marginTop: "2rem" }}>
+            <p style={{ color: "#555" }}>No cards found.</p>
+            <button className="nav-btn" onClick={() => navigate("/import-cards")}>
+              Import Cards
+            </button>
+          </div>
         ) : (
-          <div className="card-section" style={{ width: "100%", boxSizing: "border-box" }}>
+          <div className="card-section" style={{ width: "100%", boxSizing: "border-box", overflow: "auto", maxHeight: "calc(100vh - 180px)" }}>
           {/* Table */}
-          <div className="table-scroll" style={{ width: "100%", overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
@@ -784,7 +788,6 @@ export default function ListCards() {
                 })}
               </tbody>
             </table>
-          </div>
 
         </div>
       )}

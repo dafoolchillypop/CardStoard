@@ -213,7 +213,7 @@ async def import_dictionary_csv(
             new_entries.append(DictionaryEntry(
                 first_name=(row["First"] or "").strip(),
                 last_name=(row["Last"] or "").strip(),
-                rookie_year=int((row["RookieYear"] or "").strip()),
+                rookie_year=int(row["RookieYear"].strip()) if row.get("RookieYear", "").strip() else None,
                 brand=(row["Brand"] or "").strip(),
                 year=int((row["Year"] or "").strip()),
                 card_number=(row["CardNumber"] or "").strip(),

@@ -104,7 +104,7 @@ class DictionaryEntry(Base):
     id          = Column(Integer, primary_key=True, index=True)
     first_name  = Column(String, nullable=False)
     last_name   = Column(String, nullable=False)
-    rookie_year = Column(Integer, nullable=False)
+    rookie_year = Column(Integer, nullable=True)
     brand       = Column(String, nullable=False)
     year        = Column(Integer, nullable=False)
     card_number = Column(String, nullable=False)
