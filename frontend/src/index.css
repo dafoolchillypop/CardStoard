@@ -191,12 +191,12 @@ h1 {
   font-size: 44px;
   text-align: center;
   margin: 0 0 24px 0;
-  color: var(--accent-red);
+  color: var(--accent-blue-dark);
   letter-spacing: 0.5px;
 }
 
 h2, h3 {
-  color: var(--accent-red);
+  color: var(--accent-blue-dark);
   margin: 18px 0 12px;
 }
 

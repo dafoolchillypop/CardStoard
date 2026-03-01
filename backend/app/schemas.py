@@ -150,7 +150,7 @@ class UserRead(UserBase):
 class DictionaryEntryBase(BaseModel):
     first_name: str
     last_name: str
-    rookie_year: int
+    rookie_year: Optional[int] = None
     brand: str
     year: int
     card_number: str

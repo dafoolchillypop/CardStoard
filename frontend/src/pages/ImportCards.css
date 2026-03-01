@@ -43,6 +43,16 @@
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s;
+  min-width: 140px;
+  text-align: center;
+}
+
+.import-links .nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 170px;
+  height: 44px;
 }
 
 .nav-btn:hover {

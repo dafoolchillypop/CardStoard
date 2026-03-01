@@ -1,11 +1,15 @@
 .account-container {
   max-width: 600px;
   margin: 2rem auto;
-  padding: 2rem;
+  padding: 0.75rem 2rem 2rem;
   background: var(--bg-surface);
   border-radius: 12px;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
   text-align: center;
+}
+
+.account-container h2 {
+  margin-top: 0;
 }
 
 .account-subtitle {
@@ -53,10 +57,12 @@
   color: white;
   border: none;
   border-radius: 6px;
-  padding: 0.7rem;
-  font-size: 1rem;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s;
+  width: auto;
+  align-self: center;
 }
 
 .nav-btn:hover {
@@ -69,6 +75,13 @@
 
 .delete-btn {
   background-color: #c62828;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: auto;
 }
 
 .delete-btn:hover {

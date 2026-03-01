@@ -71,10 +71,10 @@ export default function DictionaryImport() {
         <h2>Import Dictionary Entries</h2>
         <p className="import-subtitle">Upload a CSV file to bulk import player dictionary data</p>
 
-        <p style={{ marginBottom: "0.5rem", fontSize: "0.9rem", color: "#555" }}>
+        <p style={{ marginBottom: "0.5rem", fontSize: "0.9rem", color: "var(--text-muted)" }}>
           Expected columns:
         </p>
-        <pre style={{ background: "#f4f4f4", padding: "0.6rem 1rem", borderRadius: "6px", textAlign: "left", fontSize: "0.85rem", marginBottom: "1.5rem" }}>
+        <pre style={{ background: "var(--bg-muted)", color: "var(--text-primary)", padding: "0.6rem 1rem", borderRadius: "6px", textAlign: "left", fontSize: "0.85rem", marginBottom: "1.5rem" }}>
           First,Last,RookieYear,Brand,Year,CardNumber{"\n"}
           Mickey,Mantle,1951,Topps,1952,311
         </pre>

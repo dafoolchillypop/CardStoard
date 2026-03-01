@@ -3,16 +3,16 @@ import AppHeader from "../components/AppHeader";
 import { Link } from "react-router-dom";
 
 const sectionStyle = {
-  background: "#f9f9f9",
+  background: "var(--bg-muted)",
   borderRadius: "10px",
   padding: "1rem 1.25rem",
   marginBottom: "1.25rem",
-  boxShadow: "inset 0 0 4px rgba(0,0,0,0.05)",
+  boxShadow: "inset 0 0 4px rgba(0,0,0,0.08)",
 };
 
 const h3Style = {
-  color: "#1e88e5",
-  borderBottom: "1px solid #e0e0e0",
+  color: "var(--accent-blue-dark)",
+  borderBottom: "1px solid var(--border)",
   paddingBottom: "0.25rem",
   marginBottom: "0.75rem",
   marginTop: 0,
@@ -68,7 +68,7 @@ export default function About() {
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>Collection Management</p>
           <ul style={{ marginTop: 0 }}>
             <li>Add, edit, and delete cards with front &amp; back image uploads</li>
-            <li>Bulk <Link to="/import-help" style={{ color: "#1e88e5", fontWeight: 600 }}>import</Link> from CSV</li>
+            <li>Bulk <Link to="/import-help" style={{ color: "var(--link)", fontWeight: 600 }}>import</Link> from CSV</li>
             <li>Filter and sort by player, brand, year, grade, and rookie status</li>
             <li>Row highlights: Mint grade (lavender), Rookie (gold), Rookie + Mint (rose)</li>
           </ul>
@@ -153,7 +153,7 @@ export default function About() {
           </p>
         </div>
 
-        <p style={{ textAlign: "center", fontSize: "0.9rem", color: "#888", marginTop: "1rem" }}>
+        <p style={{ textAlign: "center", fontSize: "0.9rem", color: "var(--text-faint)", marginTop: "1rem" }}>
           © CardStoard {new Date().getFullYear()} — All rights reserved.
         </p>
       </div>
