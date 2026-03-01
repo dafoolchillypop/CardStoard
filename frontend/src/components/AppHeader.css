@@ -5,9 +5,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f8f9fc;
+  background: var(--bg-header);
   padding: 0.5rem 1.25rem;
-  border-bottom: 2px solid #ddd;
+  border-bottom: 2px solid var(--border);
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
 }
 
@@ -115,7 +115,7 @@
 .app-header-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #003366;
+  color: var(--accent-blue-dark);
   text-decoration: none;
   margin-left: 0.5rem;
   font-family: "Segoe UI", "Open Sans", sans-serif;
@@ -124,12 +124,12 @@
 /* --- User Info --- */
 .user-info {
   font-size: 1rem;
-  color: #333;
+  color: var(--text-primary);
   margin-right: 0.75rem;
 }
 
 .user-id {
-  color: #777;
+  color: var(--text-faint);
   font-size: 0.9rem;
 }
 

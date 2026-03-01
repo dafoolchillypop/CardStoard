@@ -1,5 +1,58 @@
 /* index.css */
 
+/* ── CSS Custom Properties (light + dark) ── */
+:root {
+  --bg-page:            #f7f7f7;
+  --bg-surface:         #ffffff;
+  --bg-header:          #f8f9fc;
+  --bg-muted:           #f4f4f4;
+  --bg-input:           #ffffff;
+  --text-primary:       #222222;
+  --text-secondary:     #333333;
+  --text-muted:         #555555;
+  --text-faint:         #999999;
+  --border:             #e0e0e0;
+  --border-light:       #eeeeee;
+  --accent-red:         #9b1c1c;
+  --accent-blue:        #007bff;
+  --accent-blue-dark:   #0055cc;
+  --accent-blue-nav:    #1976d2;
+  --accent-blue-nav-hover: #0d47a1;
+  --btn-primary-bg:     #9b1c1c;
+  --btn-primary-hover:  #821717;
+  --btn-blue-bg:        #1e88e5;
+  --btn-blue-hover:     #1565c0;
+  --link:               #1976d2;
+  --home-bg-start:      #e8f0fe;
+  --home-bg-end:        #ffffff;
+}
+
+[data-theme="dark"] {
+  --bg-page:            #121212;
+  --bg-surface:         #1e1e1e;
+  --bg-header:          #1a1a2e;
+  --bg-muted:           #252525;
+  --bg-input:           #2a2a2a;
+  --text-primary:       #e0e0e0;
+  --text-secondary:     #cccccc;
+  --text-muted:         #aaaaaa;
+  --text-faint:         #777777;
+  --border:             #444444;
+  --border-light:       #333333;
+  --accent-red:         #e53935;
+  --accent-blue:        #42a5f5;
+  --accent-blue-dark:   #1e88e5;
+  --accent-blue-nav:    #42a5f5;
+  --accent-blue-nav-hover: #1e88e5;
+  --btn-primary-bg:     #b71c1c;
+  --btn-primary-hover:  #c62828;
+  --btn-blue-bg:        #1565c0;
+  --btn-blue-hover:     #0d47a1;
+  --link:               #64b5f6;
+  --home-bg-start:      #0d1b3e;
+  --home-bg-end:        #121212;
+}
+
 /* Normalize native form controls for cross-browser (Safari) consistency */
 input[type="checkbox"],
 input[type="radio"] {
@@ -16,14 +69,14 @@ body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  color: #222;
+  color: var(--text-primary);
   font-size: 18px;
-  background: #f7f7f7;  /* light gray background */
+  background: var(--bg-page);
 }
 
 /* Full-width container */
 .container {
-  display: block;       /* ✅ no flex centering — let content fill width */
+  display: block;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
@@ -32,27 +85,27 @@ body {
 /* Header bar spans full width */
 .header-line {
   display: flex;
-  justify-content: space-between; /* ✅ title left, count right */
+  justify-content: space-between;
   align-items: center;
-  width: 100%;                    /* ✅ full width of browser */
-  padding: 0.5rem 1rem;            /* some spacing left/right */
+  width: 100%;
+  padding: 0.5rem 1rem;
   margin-bottom: 0.5rem;
   box-sizing: border-box;
 }
 
 .page-header {
   text-align: center;
-  font-size: 2rem;   /* larger size for emphasis */
+  font-size: 2rem;
   margin-bottom: 1.5rem;
 }
-/* Shadow box should also be full width */
+
 .card-section {
-  background: #fff;
+  background: var(--bg-surface);
   padding: 1rem;
   margin-top: 0.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  width: 100%;        /* ✅ stretch across page */
+  width: 100%;
   box-sizing: border-box;
 }
 
@@ -69,25 +122,25 @@ table {
 }
 
 .paging-controls {
-  text-align: center;    /* ✅ center horizontally */
+  text-align: center;
   margin: 0.5rem 0;
   width: 100%;
   font-size: 0.9rem;
 }
 
 .paging-controls select {
-  margin: 0 0.5rem;      /* ✅ space around dropdown */
+  margin: 0 0.5rem;
 }
 
 th, td {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border);
   padding: clamp(6px, 0.6vw, 12px) clamp(6px, 0.7vw, 14px);
   text-align: left;
 }
 
 th {
-  background: #f7f7f7;
-  color: #333;
+  background: var(--bg-header);
+  color: var(--text-secondary);
   font-size: clamp(13px, 1.1vw, 18px);
   text-align: center;
 }
@@ -98,16 +151,16 @@ th {
   flex-wrap: wrap;
   gap: 6px;
   padding: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--bg-surface);
   margin-bottom: 12px;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
-  background: #007bff;
+  background: var(--accent-blue);
   color: white;
   padding: 4px 8px;
   border-radius: 16px;
@@ -129,19 +182,21 @@ th {
   flex: 1;
   min-width: 100px;
   padding: 4px;
+  background: transparent;
+  color: var(--text-primary);
 }
 
 /* Headings */
 h1 {
-  font-size: 44px;              /* bigger, centered title */
+  font-size: 44px;
   text-align: center;
   margin: 0 0 24px 0;
-  color: #9b1c1c;               /* rich baseball red */
+  color: var(--accent-red);
   letter-spacing: 0.5px;
 }
 
 h2, h3 {
-  color: #9b1c1c;
+  color: var(--accent-red);
   margin: 18px 0 12px;
 }
 
@@ -175,7 +230,7 @@ form {
 /* Labels */
 label {
   font-weight: bold;
-  color: #333;
+  color: var(--text-secondary);
 }
 
 /* Inputs and buttons */
@@ -185,12 +240,13 @@ input, button {
   width: 100%;
   box-sizing: border-box;
   border-radius: 8px;
-  border: 1px solid #bdbdbd;
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-primary);
 }
 
 button {
-  background: #9b1c1c;
+  background: var(--btn-primary-bg);
   color: white;
   font-weight: bold;
   cursor: pointer;
@@ -198,7 +254,7 @@ button {
 }
 
 button:hover {
-  background: #821717;
+  background: var(--btn-primary-hover);
 }
 
 button:active {
@@ -224,8 +280,8 @@ button:active {
 /* Group factors into a grid */
 .factor-group {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 2 columns */
-  gap: 12px 24px; /* row gap, column gap */
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
 }
 
 .factor-group label {
@@ -238,7 +294,7 @@ button:active {
 .factor-group input {
   width: 100%;
   padding: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: 6px;
 }
 
@@ -246,8 +302,8 @@ button:active {
   margin-top: 0;
   margin-bottom: 12px;
   font-size: 18px;
-  color: #333;
-  border-bottom: 1px solid #eee;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-light);
   padding-bottom: 6px;
 }
 
@@ -263,7 +319,7 @@ button:active {
 .card-section td {
   padding: 10px;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-light);
 }
 
 /* Center Actions columns */
@@ -301,13 +357,13 @@ button:active {
 }
 
 .badge-brand {
-  background-color: #007bff;
+  background-color: var(--accent-blue);
   font-size: 0.95rem;
   padding: 4px 10px;
 }
 
 .badge-grade {
-  background-color: #28a745; /* Green for grade */
+  background-color: #28a745;
 }
 
 /* General page container */
@@ -317,7 +373,7 @@ button:active {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #e8f0fe, #ffffff);
+  background: linear-gradient(135deg, var(--home-bg-start), var(--home-bg-end));
   text-align: center;
   padding: 2rem;
 }
@@ -335,7 +391,7 @@ button:active {
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0.5rem 0;
-  color: #1a237e; /* Deep blue tone */
+  color: #1a237e;
 }
 
 .home-subtitle {
@@ -355,7 +411,7 @@ button:active {
 
 .nav-btn {
   display: inline-block;
-  background: #1976d2; /* Material blue */
+  background: var(--accent-blue-nav);
   color: white;
   text-decoration: none;
   padding: 0.4rem .4rem;
@@ -366,7 +422,7 @@ button:active {
 }
 
 .nav-btn:hover {
-  background: #0d47a1;
+  background: var(--accent-blue-nav-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0,0,0,0.2);
 }
@@ -385,6 +441,7 @@ button:active {
   color: white;
 }
 
+/* Semantic book value colors — kept hardcoded (print-safe greens) */
 .book-low     { background-color: #14532d; }
 .book-lowmid  { background-color: #166534; }
 .book-mid     { background-color: #15803d; }
@@ -397,7 +454,7 @@ button:active {
   border-radius: 12px;
   font-size: 0.95rem;
   font-weight: bold;
-  background-color: #ffd700; /* gold */
+  background-color: #ffd700;
   color: #000;
 }
 
@@ -419,6 +476,7 @@ button:active {
   color: white;
 }
 
+/* Semantic grade colors — kept hardcoded */
 .grade-mt { background-color: #9333ea; }
 .grade-ex { background-color: #2563eb; }
 .grade-vg { background-color: #5bc0de; }
@@ -433,23 +491,14 @@ button:active {
   border-radius: 4px;
   font-size: 0.85rem;
   font-weight: bold;
-  color: #fff;  /* white text for contrast */
+  color: #fff;
   min-width: 45px;
   text-align: center;
 }
 
-/* Shades of gray depending on factor value */
-.badge-market-high {
-  background-color: #999; /* darkest gray for lowest factors */
-}
-
-.badge-market-mid {
-  background-color: #666;
-}
-
-.badge-market-low {
-  background-color: #333; /* lightest gray for higher factors */
-}
+.badge-market-high { background-color: #999; }
+.badge-market-mid  { background-color: #666; }
+.badge-market-low  { background-color: #333; }
 
 .market-factor-col {
   text-align: center;
@@ -523,23 +572,11 @@ td.card-value-col, th.card-value-col {
   font-weight: bold;
 }
 
-/* Shades of green */
-.value-high {
-  background-color: #8fce00; /* bright/light green */
-  color: #1b5e20;
-}
-
-.value-mid {
-  background-color: #4caf50; /* medium green */
-}
-
-.value-lowmid {
-  background-color: #2e7d32; /* darker green */
-}
-
-.value-low {
-  background-color: #1b5e20; /* darkest green */
-}
+/* Semantic value colors — kept hardcoded */
+.value-high    { background-color: #8fce00; color: #1b5e20; }
+.value-mid     { background-color: #4caf50; }
+.value-lowmid  { background-color: #2e7d32; }
+.value-low     { background-color: #1b5e20; }
 
 .filter-input {
   padding: 4px 8px;
@@ -549,22 +586,22 @@ td.card-value-col, th.card-value-col {
 
 .checkbox-label {
   display: inline-flex;
-  align-items: center;  /* vertical centering */
-  gap: 6px;             /* spacing between box + text */
-  line-height: 1;       /* avoids text offset */
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
   vertical-align: middle;
 }
 
 .checkbox-label input[type="checkbox"] {
-  margin: 0;            /* remove browser default margin */
+  margin: 0;
   position: relative;
-  top: 0;               /* make sure it doesn’t sit too low */
+  top: 0;
 }
 
 .rookie-container {
   display: flex;
-  flex-direction: column; /* stack checkbox and label */
-  align-items: center;    /* center horizontally */
+  flex-direction: column;
+  align-items: center;
   margin: 10px 0;
 }
 
@@ -582,7 +619,6 @@ td.card-value-col, th.card-value-col {
   gap: 8px;
   margin: 10px 0;
 }
-
 
 .smartfill-label {
   display: inline-flex;

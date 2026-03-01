@@ -29,7 +29,7 @@
 }
 
 .modal-box {
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: 12px;
   padding: 2rem;
   width: 90%;
@@ -41,11 +41,11 @@
 
 .modal-title {
   margin-top: 0;
-  color: #222;
+  color: var(--text-primary);
 }
 
 .modal-message {
-  color: #444;
+  color: var(--text-muted);
   margin: 1rem 0 1.5rem 0;
 }
 
@@ -56,8 +56,8 @@
 }
 
 .nav-btn.secondary {
-  background-color: #ccc;
-  color: #333;
+  background-color: var(--border);
+  color: var(--text-secondary);
 }
 
 @keyframes fadeIn {

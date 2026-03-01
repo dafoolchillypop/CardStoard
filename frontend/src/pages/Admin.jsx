@@ -211,6 +211,18 @@ export default function Admin() {
                 <InfoIcon id="chatbot" text="Enables the AI-powered chat assistant (💬) in the header. Requires an Anthropic API key to be configured." />
               </div>
             </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "0.5rem" }}>
+              <input
+                type="checkbox"
+                name="dark_mode"
+                checked={settings.dark_mode ?? false}
+                onChange={() => handleToggle("dark_mode")}
+                style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }}
+              />
+              <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
+                Dark Mode
+              </div>
+            </div>
           </div>
         </div>
 
