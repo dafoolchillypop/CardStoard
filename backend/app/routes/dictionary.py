@@ -182,12 +182,96 @@ def delete_entry(
 
 
 # ---------------------------------------------------------------------------
+# POST /dictionary/validate-csv  — format check + duplicate detection
+# ---------------------------------------------------------------------------
+@router.post("/validate-csv")
+async def validate_dictionary_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    errors = []
+    warnings = []
+
+    if not file.filename.lower().endswith(".csv"):
+        return {"valid": False, "row_count": 0, "duplicate_count": 0,
+                "errors": ["File must be a .csv"], "warnings": [], "duplicates": []}
+
+    content = (await file.read()).decode("utf-8", errors="ignore")
+    reader = csv.DictReader(io.StringIO(content))
+
+    expected = {"First", "Last", "RookieYear", "Brand", "Year", "CardNumber"}
+    if not reader.fieldnames or not expected.issubset(set(reader.fieldnames)):
+        missing = expected.difference(set(reader.fieldnames or []))
+        return {"valid": False, "row_count": 0, "duplicate_count": 0,
+                "errors": [f"Missing required columns: {', '.join(sorted(missing))}"],
+                "warnings": [], "duplicates": []}
+
+    parsed = []
+    rownum = 0
+    for row in reader:
+        rownum += 1
+        first = (row.get("First") or "").strip()
+        last  = (row.get("Last") or "").strip()
+        brand = (row.get("Brand") or "").strip()
+        year_raw = (row.get("Year") or "").strip()
+        rookie_raw = (row.get("RookieYear") or "").strip()
+        card_number = (row.get("CardNumber") or "").strip()
+
+        for field, val in [("First", first), ("Last", last), ("Brand", brand), ("Year", year_raw)]:
+            if not val:
+                warnings.append(f"Row {rownum}: blank {field} field")
+
+        try:
+            year = int(year_raw)
+        except (ValueError, TypeError):
+            errors.append(f"Row {rownum}: could not parse Year '{year_raw}'")
+            continue
+
+        if rookie_raw:
+            try:
+                int(rookie_raw)
+            except (ValueError, TypeError):
+                errors.append(f"Row {rownum}: could not parse RookieYear '{rookie_raw}'")
+                continue
+
+        parsed.append((first.lower(), last.lower(), brand.lower(), year, card_number))
+
+    # Bulk duplicate check
+    duplicates = []
+    if parsed:
+        existing = db.query(
+            func.lower(DictionaryEntry.first_name),
+            func.lower(DictionaryEntry.last_name),
+            func.lower(DictionaryEntry.brand),
+            DictionaryEntry.year,
+            DictionaryEntry.card_number,
+        ).all()
+        existing_set = {(r[0], r[1], r[2], r[3], r[4]) for r in existing}
+
+        for (fn, ln, br, yr, cn) in parsed:
+            if (fn, ln, br, yr, cn) in existing_set:
+                duplicates.append({"first_name": fn, "last_name": ln,
+                                   "brand": br, "year": yr, "card_number": cn})
+
+    return {
+        "valid": len(errors) == 0,
+        "row_count": rownum,
+        "duplicate_count": len(duplicates),
+        "errors": errors,
+        "warnings": warnings,
+        "duplicates": duplicates[:20],  # cap preview at 20
+    }
+
+
+# ---------------------------------------------------------------------------
 # POST /dictionary/import-csv  — bulk import
 # CSV format: First,Last,RookieYear,Brand,Year,CardNumber
 # ---------------------------------------------------------------------------
 @router.post("/import-csv")
 async def import_dictionary_csv(
     file: UploadFile = File(...),
+    skip_duplicates: bool = True,
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ):
@@ -205,25 +289,72 @@ async def import_dictionary_csv(
             detail=f"CSV is missing required headers: {', '.join(sorted(missing))}"
         )
 
+    # Build existing fingerprint set when skipping duplicates
+    existing_set: set = set()
+    if skip_duplicates:
+        existing = db.query(
+            func.lower(DictionaryEntry.first_name),
+            func.lower(DictionaryEntry.last_name),
+            func.lower(DictionaryEntry.brand),
+            DictionaryEntry.year,
+            DictionaryEntry.card_number,
+        ).all()
+        existing_set = {(r[0], r[1], r[2], r[3], r[4]) for r in existing}
+
     new_entries = []
+    skipped = 0
     rownum = 0
     for row in reader:
         rownum += 1
         try:
+            first = (row["First"] or "").strip()
+            last  = (row["Last"] or "").strip()
+            brand = (row["Brand"] or "").strip()
+            year  = int((row["Year"] or "").strip())
+            card_number = (row["CardNumber"] or "").strip()
+            rookie_year = int(row["RookieYear"].strip()) if row.get("RookieYear", "").strip() else None
+
+            if skip_duplicates and (first.lower(), last.lower(), brand.lower(), year, card_number) in existing_set:
+                skipped += 1
+                continue
+
             new_entries.append(DictionaryEntry(
-                first_name=(row["First"] or "").strip(),
-                last_name=(row["Last"] or "").strip(),
-                rookie_year=int(row["RookieYear"].strip()) if row.get("RookieYear", "").strip() else None,
-                brand=(row["Brand"] or "").strip(),
-                year=int((row["Year"] or "").strip()),
-                card_number=(row["CardNumber"] or "").strip(),
+                first_name=first, last_name=last, rookie_year=rookie_year,
+                brand=brand, year=year, card_number=card_number,
             ))
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Row {rownum} invalid: {e}")
 
-    if not new_entries:
-        return {"imported": 0}
+    if not new_entries and skipped == 0:
+        return {"imported": 0, "skipped": 0, "message": "No entries found in file."}
 
     db.add_all(new_entries)
     db.commit()
-    return {"imported": len(new_entries), "message": f"Successfully imported {len(new_entries)} dictionary entries."}
+    msg = f"Imported {len(new_entries)} entries."
+    if skipped:
+        msg += f" Skipped {skipped} duplicates."
+    return {"imported": len(new_entries), "skipped": skipped, "message": msg}
+
+
+# ---------------------------------------------------------------------------
+# PATCH /dictionary/players/rookie-year  — set rookie year for all entries
+#                                          matching a player name
+# ---------------------------------------------------------------------------
+@router.patch("/players/rookie-year")
+def set_player_rookie_year(
+    first_name: str,
+    last_name: str,
+    rookie_year: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    updated = (
+        db.query(DictionaryEntry)
+        .filter(
+            func.lower(DictionaryEntry.first_name) == first_name.lower().strip(),
+            func.lower(DictionaryEntry.last_name)  == last_name.lower().strip(),
+        )
+        .update({"rookie_year": rookie_year}, synchronize_session=False)
+    )
+    db.commit()
+    return {"updated": updated}
