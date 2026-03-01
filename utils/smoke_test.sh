@@ -164,7 +164,22 @@ if [[ -n "$EMAIL" && -n "$PASSWORD" ]]; then
     fail "Dictionary entries — HTTP $STATUS"
   fi
 
-  # 11. Validate-csv with a minimal valid CSV
+  # 11. Dictionary validate-csv
+  cat > "$CSV_TMP" <<'CSVEOF'
+First,Last,RookieYear,Brand,Year,CardNumber
+Smoke,Test,,Topps,1952,999
+CSVEOF
+  BODY=$($CURL -b "$COOKIE_JAR" -X POST "$API/dictionary/validate-csv" \
+    -F "file=@$CSV_TMP" 2>/dev/null || echo "")
+  STATUS=$($CURL -b "$COOKIE_JAR" -o /dev/null -w "%{http_code}" -X POST "$API/dictionary/validate-csv" \
+    -F "file=@$CSV_TMP" 2>/dev/null || echo "000")
+  if [[ "$STATUS" == "200" ]] && (echo "$BODY" | python3 -c "import sys,json; assert json.load(sys.stdin).get('valid')" 2>/dev/null); then
+    ok "Dictionary validate-csv ($STATUS, valid)"
+  else
+    fail "Dictionary validate-csv — HTTP $STATUS, body: $BODY"
+  fi
+
+  # 12. Validate-csv with a minimal valid CSV
   cat > "$CSV_TMP" <<'CSVEOF'
 First,Last,Year,Brand,Rookie,Card Number,BookHi,BookHiMid,BookMid,BookLowMid,BookLow,Grade
 Smoke,Test,1980,Topps,FALSE,1,10,8,6,4,2,1.0

@@ -99,7 +99,7 @@ export default function Analytics() {
   return (
     <>
       <AppHeader />
-      <div className="container" style={{ textAlign: "center", maxWidth: "1000px", margin: "0 auto", padding: "0 2rem", }}>
+      <div className="container" style={{ textAlign: "center", maxWidth: "1000px" }}>
         <h2 className="page-header">📈 Collection Analytics</h2>
 
         {/* --- Summary boxes --- */}

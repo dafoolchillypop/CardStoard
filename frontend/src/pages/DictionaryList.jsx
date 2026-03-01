@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
@@ -10,14 +10,17 @@ export default function DictionaryList() {
   const [entries, setEntries] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
-  const [limit, setLimit] = useState(25);
+  const [limit, setLimit] = useState("25");
   const [lastNameFilter, setLastNameFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [editingEntryId, setEditingEntryId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [originalRookieYear, setOriginalRookieYear] = useState(null);
+  const [toast, setToast] = useState("");
   const [openFilterCols, setOpenFilterCols] = useState(new Set());
+  const fetchIdRef = useRef(0);
 
   const fetchCount = async () => {
     try {
@@ -29,17 +32,21 @@ export default function DictionaryList() {
   };
 
   const fetchEntries = async () => {
+    const myId = ++fetchIdRef.current;
     try {
+      const numLimit = limit === "all" ? (total || 9999) : parseInt(limit, 10);
       const params = {
-        skip: page * (limit === "all" ? total : limit),
-        limit: limit === "all" ? total || 9999 : limit,
+        skip: page * (limit === "all" ? total : numLimit),
+        limit: numLimit,
       };
       if (lastNameFilter) params.last_name = lastNameFilter;
       if (brandFilter) params.brand = brandFilter;
       if (yearFilter) params.year = parseInt(yearFilter, 10);
       const res = await api.get("/dictionary/entries", { params });
+      if (myId !== fetchIdRef.current) return;
       setEntries(res.data);
     } catch (err) {
+      if (myId !== fetchIdRef.current) return;
       console.error("Error fetching dictionary entries:", err);
     }
   };
@@ -48,8 +55,7 @@ export default function DictionaryList() {
   useEffect(() => { fetchEntries(); }, [page, limit, lastNameFilter, brandFilter, yearFilter, total]);
 
   const handleLimitChange = (e) => {
-    const value = e.target.value;
-    setLimit(value === "all" ? "all" : parseInt(value, 10));
+    setLimit(e.target.value);
     setPage(0);
   };
 
@@ -86,6 +92,7 @@ export default function DictionaryList() {
   const handleEditStart = (entry) => {
     setEditingEntryId(entry.id);
     setEditForm({ ...entry });
+    setOriginalRookieYear(entry.rookie_year ?? null);
   };
 
   const handleEditChange = (field, value) => {
@@ -97,6 +104,11 @@ export default function DictionaryList() {
     setEditForm({});
   };
 
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 4000);
+  };
+
   const handleEditSave = async (id) => {
     try {
       if (id === "new") {
@@ -106,6 +118,24 @@ export default function DictionaryList() {
       } else {
         const res = await api.put(`/dictionary/entries/${id}`, editForm);
         setEntries(prev => prev.map(e => e.id === id ? res.data : e));
+
+        // Propagate rookie_year change across all entries for this player
+        const newRookieYear = editForm.rookie_year != null && editForm.rookie_year !== ""
+          ? parseInt(editForm.rookie_year, 10) : null;
+        if (newRookieYear !== originalRookieYear) {
+          try {
+            const params = {
+              first_name: editForm.first_name,
+              last_name: editForm.last_name,
+              ...(newRookieYear != null ? { rookie_year: newRookieYear } : {}),
+            };
+            const bulkRes = await api.patch("/dictionary/players/rookie-year", null, { params });
+            showToast(`Rookie year updated for all ${bulkRes.data.updated} ${editForm.first_name} ${editForm.last_name} entries`);
+            fetchEntries(); // refresh to reflect bulk update
+          } catch (bulkErr) {
+            console.error("Bulk rookie year update failed:", bulkErr);
+          }
+        }
       }
       setEditingEntryId(null);
       setEditForm({});
@@ -146,6 +176,13 @@ export default function DictionaryList() {
   return (
     <>
       <AppHeader />
+      {toast && (
+        <div style={{ position: "fixed", bottom: "1.5rem", left: "50%", transform: "translateX(-50%)",
+          background: "#1a7a1a", color: "#fff", padding: "0.6rem 1.4rem", borderRadius: "8px",
+          zIndex: 9999, fontSize: "0.9rem", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}>
+          {toast}
+        </div>
+      )}
       <div className="list-container">
 
         {/* Line 1: title */}
@@ -180,16 +217,16 @@ export default function DictionaryList() {
               onChange={handleLimitChange}
               style={{ fontSize: "0.9rem", border: "none", background: "transparent", cursor: "pointer", fontWeight: "bold", color: "#007bff" }}
             >
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
               <option value="all">All</option>
             </select>
             <span>of <b>{total}</b> entries</span>
             {limit !== "all" && (
               <span
-                onClick={() => { if ((page + 1) * limit < total) setPage(p => p + 1); }}
-                style={{ cursor: (page + 1) * limit >= total ? "not-allowed" : "pointer", opacity: (page + 1) * limit >= total ? 0.3 : 1, fontSize: "1.1rem", userSelect: "none" }}
+                onClick={() => { if ((page + 1) * parseInt(limit, 10) < total) setPage(p => p + 1); }}
+                style={{ cursor: (page + 1) * parseInt(limit, 10) >= total ? "not-allowed" : "pointer", opacity: (page + 1) * parseInt(limit, 10) >= total ? 0.3 : 1, fontSize: "1.1rem", userSelect: "none" }}
               >{">"}</span>
             )}
             {(lastNameFilter || brandFilter || yearFilter) && (
@@ -322,7 +359,7 @@ export default function DictionaryList() {
                         ...(isEditing
                           ? { backgroundColor: "#f0f7ff", outline: "2px solid #1976d2" }
                           : entry.in_collection
-                            ? { backgroundColor: "#f0fdf4" }
+                            ? { backgroundColor: document.documentElement.getAttribute("data-theme") === "dark" ? "#15803d" : "#f0fdf4" }
                             : {}),
                       }}
                     >

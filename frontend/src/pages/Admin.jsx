@@ -81,6 +81,9 @@ export default function Admin() {
       const updated = { ...settings, [field]: !settings[field] };
       const res = await api.put("/settings/", updated);
       setSettings(res.data);
+      if (field === "dark_mode") {
+        document.documentElement.setAttribute("data-theme", res.data.dark_mode ? "dark" : "light");
+      }
       window.dispatchEvent(new Event("settings-changed"));
     } catch (err) {
       console.error("Error updating settings:", err);
@@ -211,6 +214,18 @@ export default function Admin() {
                 <InfoIcon id="chatbot" text="Enables the AI-powered chat assistant (💬) in the header. Requires an Anthropic API key to be configured." />
               </div>
             </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "0.5rem" }}>
+              <input
+                type="checkbox"
+                name="dark_mode"
+                checked={settings.dark_mode ?? false}
+                onChange={() => handleToggle("dark_mode")}
+                style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }}
+              />
+              <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
+                Dark Mode
+              </div>
+            </div>
           </div>
         </div>
 
@@ -229,16 +244,16 @@ export default function Admin() {
             />
 
             <div style={{ marginTop: "1rem" }}>
-              <label style={{ fontWeight: 750, color: "#333", display: "block", marginBottom: "0.4rem", textAlign: "center" }}>
+              <label style={{ fontWeight: 750, color: "var(--text-secondary)", display: "block", marginBottom: "0.4rem", textAlign: "center" }}>
                 Card Grades
                 <InfoIcon id="cardgrades" text="Fixed by the CardStoard valuation formula — not user-configurable." />
               </label>
               <div style={{ display: "flex", flexWrap: "nowrap", gap: "0.4rem", justifyContent: "center" }}>
                 {["3.0 MT", "1.5 NMMT", "1.0 EXMT", "0.8 VGEX", "0.4 GD", "0.2 PR"].map(g => (
                   <span key={g} style={{
-                    background: "#f0f4f8", border: "1px solid #dce3ea",
+                    background: "var(--bg-muted)", border: "1px solid var(--border)",
                     borderRadius: "20px", padding: "0.25rem 0.75rem",
-                    fontSize: "0.85rem", color: "#555",
+                    fontSize: "0.85rem", color: "var(--text-muted)",
                   }}>{g}</span>
                 ))}
               </div>

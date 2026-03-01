@@ -2,7 +2,7 @@
   max-width: 600px;
   margin: 2rem auto;
   padding: 2rem;
-  background: #fff;
+  background: var(--bg-surface);
   border-radius: 12px;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
   text-align: center;
@@ -13,7 +13,7 @@
 }
 
 .import-subtitle {
-  color: #555;
+  color: var(--text-muted);
   margin-bottom: 1.5rem;
 }
 
@@ -27,7 +27,7 @@
 
 .import-input {
   padding: 0.6rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: 6px;
   width: 100%;
   max-width: 400px;
@@ -35,7 +35,7 @@
 }
 
 .nav-btn {
-  background-color: #1e88e5;
+  background-color: var(--btn-blue-bg);
   color: white;
   border: none;
   border-radius: 6px;
@@ -43,10 +43,20 @@
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s;
+  min-width: 140px;
+  text-align: center;
+}
+
+.import-links .nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 170px;
+  height: 44px;
 }
 
 .nav-btn:hover {
-  background-color: #1565c0;
+  background-color: var(--btn-blue-hover);
 }
 
 .import-success {
@@ -59,6 +69,10 @@
   color: red;
   font-weight: 500;
   margin-top: 1rem;
+  background: rgba(220,38,38,0.08);
+  border: 1px solid rgba(220,38,38,0.3);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
 }
 
 .import-links {

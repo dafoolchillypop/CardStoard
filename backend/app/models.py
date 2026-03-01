@@ -90,6 +90,8 @@ class GlobalSettings(Base):
     row_color_grade3 = Column(String, default="#e8dcff")
     row_color_rookie_grade3 = Column(String, default="#b8d8f7")
 
+    dark_mode = Column(Boolean, default=False)
+
 class ValuationHistory(Base):
     __tablename__ = "valuation_history"
 

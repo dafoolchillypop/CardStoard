@@ -38,6 +38,10 @@ export const AuthProvider = ({ children }) => {
     setAuthContext({ logout });
   }, []); // eslint-disable-line
 
+  const applyTheme = (dark) => {
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  };
+
   useEffect(() => {
     const publicRoutes = ["/", "/login", "/register", "/verify-success", "/verify-error", "/resend-verify", "/forgot-password"];
     const publicPrefixes = ["/card-view/", "/card-label/"];
@@ -52,11 +56,26 @@ export const AuthProvider = ({ children }) => {
         console.log("USER:", res.data);
         setUser(res.data);
         setIsLoggedIn(true);
+        // Apply dark mode preference from settings
+        api.get("/settings/")
+          .then((sr) => applyTheme(sr.data.dark_mode))
+          .catch(() => {});
       })
       .catch(() => {
         setUser(null);
         setIsLoggedIn(false);
       });
+  }, []);
+
+  // Re-apply theme when settings are updated from any page
+  useEffect(() => {
+    const handler = () => {
+      api.get("/settings/")
+        .then((sr) => applyTheme(sr.data.dark_mode))
+        .catch(() => {});
+    };
+    window.addEventListener("settings-changed", handler);
+    return () => window.removeEventListener("settings-changed", handler);
   }, []);
 
   // If we’re still checking, don’t render children yet

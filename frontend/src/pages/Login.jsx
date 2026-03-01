@@ -7,7 +7,7 @@ import api from "../api/api";
 export default function Login() {
   const navigate = useNavigate();
   const { setUser, setIsLoggedIn } = useAuth();
-  const [form, setForm] = useState({ email: "", password: "", totp: "" });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false); // ⏳ new
 
@@ -24,15 +24,7 @@ export default function Login() {
       const res = await api.post("/auth/login", {
         email: form.email.trim(),
         password: form.password,
-        totp: form.totp || undefined,
       });
-
-      // MFA prompt
-      if (res.data.mfa_required) {
-        setError("MFA code required. Please enter it.");
-        setLoading(false);
-        return;
-      }
 
       // ✅ Populate user context immediately
       if (res.data.user) {
@@ -45,7 +37,7 @@ export default function Login() {
         setIsLoggedIn(true);
       }
 
-      setForm({ email: "", password: "", totp: "" });
+      setForm({ email: "", password: "" });
       navigate("/"); // redirect home
     } catch (err) {
       console.error("Login failed:", err);
@@ -97,15 +89,6 @@ export default function Login() {
           required
           style={{ width: "100%", padding: "0.5rem" }}
         />
-        <input
-          type="text"
-          name="totp"
-          placeholder="MFA Code (if enabled)"
-          value={form.totp}
-          onChange={handleChange}
-          style={{ width: "100%", padding: "0.5rem" }}
-        />
-
         <button
           type="submit"
           className="nav-btn"

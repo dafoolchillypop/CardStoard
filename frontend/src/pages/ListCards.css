@@ -35,7 +35,7 @@
 .list-container thead th {
   position: sticky;
   top: 0;
-  background: #f8f9fc;
+  background: var(--bg-header);
   z-index: 10;
 }
 

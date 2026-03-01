@@ -1,20 +1,24 @@
 .account-container {
   max-width: 600px;
   margin: 2rem auto;
-  padding: 2rem;
-  background: #fff;
+  padding: 0.75rem 2rem 2rem;
+  background: var(--bg-surface);
   border-radius: 12px;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
 
+.account-container h2 {
+  margin-top: 0;
+}
+
 .account-subtitle {
-  color: #555;
+  color: var(--text-muted);
   margin-bottom: 1.5rem;
 }
 
 .account-info {
-  background: #f9f9f9;
+  background: var(--bg-muted);
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 2rem;
@@ -36,29 +40,33 @@
 .account-form label {
   text-align: left;
   font-weight: 500;
-  color: #333;
+  color: var(--text-secondary);
 }
 
 .account-form input {
   padding: 0.6rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 1rem;
+  background: var(--bg-input);
+  color: var(--text-primary);
 }
 
 .nav-btn {
-  background-color: #1e88e5;
+  background-color: var(--btn-blue-bg);
   color: white;
   border: none;
   border-radius: 6px;
-  padding: 0.7rem;
-  font-size: 1rem;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s;
+  width: auto;
+  align-self: center;
 }
 
 .nav-btn:hover {
-  background-color: #1565c0;
+  background-color: var(--btn-blue-hover);
 }
 
 .delete-section {
@@ -67,6 +75,13 @@
 
 .delete-btn {
   background-color: #c62828;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: auto;
 }
 
 .delete-btn:hover {

@@ -604,12 +604,16 @@ export default function ListCards() {
                         if (selectedIds.has(card.id)) return { backgroundColor: "#dceeff" };
                         if (Number(card.id) === Number(returnCardId))
                           return { backgroundColor: "#fffde7", outline: "2px solid #ffc107", transition: "background-color 0.5s" };
+                        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+                        const def = isDark
+                          ? { rg3: "#1d6090", g3: "#5f3d96", r: "#b8ad00" }
+                          : { rg3: "#b8d8f7", g3: "#e8dcff", r: "#fff3c4" };
                         if (rookieVal && g === 3)
-                          return { backgroundColor: settings?.row_color_rookie_grade3 || "#b8d8f7" };
+                          return { backgroundColor: isDark ? def.rg3 : (settings?.row_color_rookie_grade3 || def.rg3) };
                         if (g === 3)
-                          return { backgroundColor: settings?.row_color_grade3 || "#e8dcff" };
+                          return { backgroundColor: isDark ? def.g3 : (settings?.row_color_grade3 || def.g3) };
                         if (rookieVal)
-                          return { backgroundColor: settings?.row_color_rookie || "#fff3c4" };
+                          return { backgroundColor: isDark ? def.r : (settings?.row_color_rookie || def.r) };
                         return {};
                       })()}
                     >

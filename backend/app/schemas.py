@@ -94,6 +94,8 @@ class GlobalSettingsBase(BaseModel):
     row_color_grade3: Optional[str] = "#e8dcff"
     row_color_rookie_grade3: Optional[str] = "#b8d8f7"
 
+    dark_mode: bool = False
+
 class GlobalSettingsCreate(GlobalSettingsBase):
     pass
 
@@ -122,6 +124,8 @@ class GlobalSettingsUpdate(BaseModel):
     row_color_grade3: Optional[str] = None
     row_color_rookie_grade3: Optional[str] = None
 
+    dark_mode: Optional[bool] = None
+
 class GlobalSettings(GlobalSettingsBase):
     id: int
     user_id: int
@@ -146,7 +150,7 @@ class UserRead(UserBase):
 class DictionaryEntryBase(BaseModel):
     first_name: str
     last_name: str
-    rookie_year: int
+    rookie_year: Optional[int] = None
     brand: str
     year: int
     card_number: str

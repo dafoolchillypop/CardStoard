@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from "react";
 import AppHeader from "../components/AppHeader";
 import api from "../api/api";
+import { useAuth } from "../context/AuthContext";
 import "./Account.css";
 
 export default function Account() {
+  const { user, setUser } = useAuth();
   const [account, setAccount] = useState(null);
-  const [form, setForm] = useState({ username: "", email: "", current_password: "", new_password: "" });
+  const [form, setForm] = useState({ username: "", current_password: "", new_password: "", confirm_password: "" });
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+  const [loadError, setLoadError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api.get("/account/")
       .then(res => {
         setAccount(res.data);
-        setForm({ username: res.data.username, email: res.data.email });
+        setForm({ username: res.data.username });
       })
-      .catch(() => setError("Unable to fetch account details."))
+      .catch(() => setLoadError("Unable to fetch account details."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -35,30 +38,36 @@ export default function Account() {
       await api.post("/account/update-username", { username: form.username });
       showMessage("Username updated successfully!");
       setAccount({ ...account, username: form.username });
+      setUser({ ...user, username: form.username });
     } catch (err) {
       showMessage(err.response?.data?.detail || "Failed to update username", true);
     }
   };
 
-  const handleUpdateEmail = async (e) => {
-    e.preventDefault();
-    try {
-      await api.post("/account/update-email", { email: form.email });
-      showMessage("Email updated. Please verify your new address.");
-    } catch (err) {
-      showMessage(err.response?.data?.detail || "Failed to update email", true);
-    }
+  const validatePassword = (pw) => {
+    if (pw.length < 8) return "Password must be at least 8 characters.";
+    if (!/[A-Z]/.test(pw)) return "Password must contain an uppercase letter.";
+    if (!/[a-z]/.test(pw)) return "Password must contain a lowercase letter.";
+    if (!/[0-9]/.test(pw)) return "Password must contain a number.";
+    if (!/[^A-Za-z0-9]/.test(pw)) return "Password must contain a special character.";
+    return null;
   };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
+    const pwError = validatePassword(form.new_password);
+    if (pwError) { showMessage(pwError, true); return; }
+    if (form.new_password !== form.confirm_password) {
+      showMessage("Passwords do not match.", true);
+      return;
+    }
     try {
       await api.post("/account/change-password", {
         current_password: form.current_password,
         new_password: form.new_password
       });
       showMessage("Password changed successfully!");
-      setForm({ ...form, current_password: "", new_password: "" });
+      setForm({ ...form, current_password: "", new_password: "", confirm_password: "" });
     } catch (err) {
       showMessage(err.response?.data?.detail || "Failed to change password", true);
     }
@@ -77,7 +86,7 @@ export default function Account() {
   };
 
   if (loading) return <p style={{ textAlign: "center" }}>Loading account...</p>;
-  if (error) return <p style={{ color: "red", textAlign: "center" }}>{error}</p>;
+  if (loadError) return <p style={{ color: "red", textAlign: "center" }}>{loadError}</p>;
 
   return (
     <>
@@ -108,18 +117,6 @@ export default function Account() {
           <button type="submit" className="nav-btn">Update Username</button>
         </form>
 
-        {/* --- EMAIL FORM --- */}
-        <form onSubmit={handleUpdateEmail} className="account-form">
-          <label>Email</label>
-          <input
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            required
-          />
-          <button type="submit" className="nav-btn">Update Email</button>
-        </form>
-
         {/* --- PASSWORD FORM --- */}
         <form onSubmit={handleChangePassword} className="account-form">
           <label>Current Password</label>
@@ -134,6 +131,13 @@ export default function Account() {
             type="password"
             value={form.new_password}
             onChange={(e) => setForm({ ...form, new_password: e.target.value })}
+            required
+          />
+          <label>Confirm New Password</label>
+          <input
+            type="password"
+            value={form.confirm_password}
+            onChange={(e) => setForm({ ...form, confirm_password: e.target.value })}
             required
           />
           <button type="submit" className="nav-btn">Change Password</button>

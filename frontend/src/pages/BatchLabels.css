@@ -3,7 +3,7 @@
 .batch-screen-hint {
   padding: 2rem;
   text-align: center;
-  color: #555;
+  color: var(--text-muted);
   font-size: 0.95rem;
 }
 

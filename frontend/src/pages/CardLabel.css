@@ -4,7 +4,7 @@
 .card-label-screen-hint {
   padding: 2rem;
   text-align: center;
-  color: #555;
+  color: var(--text-muted);
   font-size: 0.95rem;
 }
 
@@ -12,7 +12,7 @@
 .card-label-error {
   padding: 2rem;
   text-align: center;
-  color: #888;
+  color: var(--text-faint);
 }
 
 /* Label layout — screen preview at 2x scale */
