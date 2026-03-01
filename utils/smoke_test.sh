@@ -92,6 +92,19 @@ else
 fi
 
 # ─────────────────────────────────────────────
+# DB checks — local only
+# ─────────────────────────────────────────────
+if [[ "$LOCAL" == "true" ]]; then
+  MIG_COUNT=$(docker exec stoardb psql -U postgres -d cardstoardb -t \
+    -c "SELECT COUNT(*) FROM schema_migrations;" 2>/dev/null | tr -d ' \n' || echo "0")
+  if [[ "${MIG_COUNT:-0}" -ge 3 ]]; then
+    ok "Schema migrations: $MIG_COUNT applied"
+  else
+    fail "Schema migrations: only ${MIG_COUNT:-0} applied (expected ≥3)"
+  fi
+fi
+
+# ─────────────────────────────────────────────
 # Authenticated checks
 # ─────────────────────────────────────────────
 if [[ -n "$EMAIL" && -n "$PASSWORD" ]]; then
@@ -142,7 +155,16 @@ if [[ -n "$EMAIL" && -n "$PASSWORD" ]]; then
     fail "Card count — HTTP $STATUS"
   fi
 
-  # 10. Validate-csv with a minimal valid CSV
+  # 10. Dictionary entries
+  STATUS=$($CURL -b "$COOKIE_JAR" -o /dev/null -w "%{http_code}" \
+    "$API/dictionary/entries?limit=1" 2>/dev/null || echo "000")
+  if [[ "$STATUS" == "200" ]]; then
+    ok "Dictionary entries ($STATUS)"
+  else
+    fail "Dictionary entries — HTTP $STATUS"
+  fi
+
+  # 11. Validate-csv with a minimal valid CSV
   cat > "$CSV_TMP" <<'CSVEOF'
 First,Last,Year,Brand,Rookie,Card Number,BookHi,BookHiMid,BookMid,BookLowMid,BookLow,Grade
 Smoke,Test,1980,Topps,FALSE,1,10,8,6,4,2,1.0
@@ -172,10 +194,10 @@ if [[ "$LOCAL" == "false" ]]; then
   MIG_NAMES=$(docker exec stoardb psql -U postgres -d cardstoardb -t \
     -c "SELECT string_agg(filename, ', ' ORDER BY filename) FROM schema_migrations;" \
     2>/dev/null | xargs || echo "")
-  if [[ "${MIG_COUNT:-0}" -ge 2 ]]; then
+  if [[ "${MIG_COUNT:-0}" -ge 3 ]]; then
     ok "Schema migrations: $MIG_COUNT applied ($MIG_NAMES)"
   else
-    fail "Schema migrations: only ${MIG_COUNT:-0} applied"
+    fail "Schema migrations: only ${MIG_COUNT:-0} applied (expected ≥3)"
   fi
 
   # 12. row_color_* columns
