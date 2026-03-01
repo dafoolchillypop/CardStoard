@@ -17,6 +17,8 @@ export default function DictionaryList() {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [editingEntryId, setEditingEntryId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [originalRookieYear, setOriginalRookieYear] = useState(null);
+  const [toast, setToast] = useState("");
   const [openFilterCols, setOpenFilterCols] = useState(new Set());
 
   const fetchCount = async () => {
@@ -86,6 +88,7 @@ export default function DictionaryList() {
   const handleEditStart = (entry) => {
     setEditingEntryId(entry.id);
     setEditForm({ ...entry });
+    setOriginalRookieYear(entry.rookie_year ?? null);
   };
 
   const handleEditChange = (field, value) => {
@@ -97,6 +100,11 @@ export default function DictionaryList() {
     setEditForm({});
   };
 
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 4000);
+  };
+
   const handleEditSave = async (id) => {
     try {
       if (id === "new") {
@@ -106,6 +114,24 @@ export default function DictionaryList() {
       } else {
         const res = await api.put(`/dictionary/entries/${id}`, editForm);
         setEntries(prev => prev.map(e => e.id === id ? res.data : e));
+
+        // Propagate rookie_year change across all entries for this player
+        const newRookieYear = editForm.rookie_year != null && editForm.rookie_year !== ""
+          ? parseInt(editForm.rookie_year, 10) : null;
+        if (newRookieYear !== originalRookieYear) {
+          try {
+            const params = {
+              first_name: editForm.first_name,
+              last_name: editForm.last_name,
+              ...(newRookieYear != null ? { rookie_year: newRookieYear } : {}),
+            };
+            const bulkRes = await api.patch("/dictionary/players/rookie-year", null, { params });
+            showToast(`Rookie year updated for all ${bulkRes.data.updated} ${editForm.first_name} ${editForm.last_name} entries`);
+            fetchEntries(); // refresh to reflect bulk update
+          } catch (bulkErr) {
+            console.error("Bulk rookie year update failed:", bulkErr);
+          }
+        }
       }
       setEditingEntryId(null);
       setEditForm({});
@@ -146,6 +172,13 @@ export default function DictionaryList() {
   return (
     <>
       <AppHeader />
+      {toast && (
+        <div style={{ position: "fixed", bottom: "1.5rem", left: "50%", transform: "translateX(-50%)",
+          background: "#1a7a1a", color: "#fff", padding: "0.6rem 1.4rem", borderRadius: "8px",
+          zIndex: 9999, fontSize: "0.9rem", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}>
+          {toast}
+        </div>
+      )}
       <div className="list-container">
 
         {/* Line 1: title */}
