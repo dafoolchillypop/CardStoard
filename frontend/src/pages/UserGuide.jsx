@@ -125,7 +125,7 @@ export default function UserGuide() {
 
           <p style={{ marginTop: 0 }}>
             CardStoard generates Avery 6427 labels (1.75" × 0.75") with a QR code and card details for each card.
-            QR codes link to a public card view page that can be shared without logging in.
+            Each label includes a QR code — a public shareable card view accessible via QR scan is <em>coming soon</em>.
           </p>
 
           <p style={h4Style}>Print a single label</p>
@@ -335,13 +335,10 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
             <li>To change your password, enter your current password and your new password (twice). Password requirements: 8+ characters, uppercase, lowercase, number, and special character.</li>
           </ul>
 
-          <p style={h4Style}>Multi-factor authentication (TOTP)</p>
-          <ol style={{ marginTop: 0 }}>
-            <li>Click <strong>Set Up MFA</strong> in your Account page.</li>
-            <li>Scan the QR code with an authenticator app (Google Authenticator, Authy, etc.).</li>
-            <li>Enter the 6-digit code to confirm setup.</li>
-            <li>On future logins, you will be prompted for a TOTP code after entering your password.</li>
-          </ol>
+          <p style={h4Style}>Multi-factor authentication (TOTP) <em style={{ fontWeight: 400, color: "var(--text-muted)" }}> — coming soon</em></p>
+          <p style={{ marginTop: 0 }}>
+            TOTP-based two-factor authentication (via apps like Google Authenticator or Authy) is planned for a future release.
+          </p>
 
           <p style={h4Style}>Delete account</p>
           <p style={{ marginTop: 0, marginBottom: 0 }}>

@@ -50,7 +50,7 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 ### Label Printing & QR Codes
 - Single card label with preview modal — print to Avery 6427 (1.75" × 0.75") format
 - Batch printing — select individual cards or print your entire collection at once
-- QR code generated per card — scans to a public shareable card view page
+- QR code generated per card *(public shareable card view via QR scan — coming soon)*
 - Print-optimized layout; browser print dialog triggered automatically
 
 ### Player Dictionary & Smart Fill
@@ -85,7 +85,7 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 
 ### Account & Security
 - Email verification and secure JWT session handling (httpOnly cookies, auto token refresh)
-- Optional TOTP multi-factor authentication
+- Optional TOTP multi-factor authentication *(coming soon)*
 - Update username, email, and password from Account page
 - Account deletion with confirmation
 

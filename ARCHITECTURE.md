@@ -15,9 +15,9 @@ CardStoard is a full-stack web application for sports card collection management
 | **Database** | PostgreSQL | 15 |
 | **ASGI server** | Uvicorn | Production: gunicorn-managed |
 | **AI / LLM** | Anthropic Claude API | claude-sonnet model; Collection Assistant |
-| **MFA** | pyotp | TOTP-based two-factor auth |
+| **MFA** | pyotp | TOTP-based two-factor auth *(coming soon — scaffolded, not active)* |
 | **QR codes** | qrcode + Pillow | Per-card QR generation for labels |
-| **OCR** | pytesseract | Card image text extraction (optional pipeline) |
+| **OCR** | pytesseract | Card image text extraction *(future — scaffolded in `image_pipeline.py`, not active in production)* |
 | **Email delivery** | fastapi-mail → AWS SES | SMTP interface; registration verify, notifications |
 | **Password hashing** | bcrypt (passlib) | |
 | **Frontend framework** | React | 18.2 |

@@ -91,7 +91,7 @@ export default function About() {
           <ul style={{ marginTop: 0 }}>
             <li>Print a single card label with a live preview — Avery 6427 format (1.75" × 0.75")</li>
             <li>Batch printing: select individual cards or print your entire collection at once</li>
-            <li>Each label includes a QR code linking to a public shareable card view</li>
+            <li>Each label includes a QR code — public shareable card view via QR scan <em>(coming soon)</em></li>
           </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>Player Dictionary</p>
@@ -126,7 +126,7 @@ export default function About() {
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>Account &amp; Security</p>
           <ul style={{ marginTop: 0, marginBottom: 0 }}>
             <li>Email verification and secure JWT session handling with auto token refresh</li>
-            <li>Optional TOTP multi-factor authentication</li>
+            <li>Optional TOTP multi-factor authentication <em>(coming soon)</em></li>
             <li>Update username, email, and password from your Account page</li>
             <li>Dark mode — toggle in Admin, persists across sessions</li>
           </ul>
