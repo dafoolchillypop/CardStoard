@@ -29,6 +29,7 @@ import DictionaryList from "./pages/DictionaryList.jsx";
 import DictionaryAdd from "./pages/DictionaryAdd.jsx";
 import DictionaryEdit from "./pages/DictionaryEdit.jsx";
 import DictionaryImport from "./pages/DictionaryImport.jsx";
+import UserGuide from "./pages/UserGuide.jsx";
 
 import "./index.css";
 
@@ -77,6 +78,7 @@ function AppRouter() {
           <Route path="/dictionary/edit/:id" element={<ProtectedRoute><DictionaryEdit /></ProtectedRoute>} />
           <Route path="/dictionary/import" element={<ProtectedRoute><DictionaryImport /></ProtectedRoute>} />
           <Route path="/batch-labels" element={<ProtectedRoute><BatchLabels /></ProtectedRoute>} />
+          <Route path="/user-guide" element={<ProtectedRoute><UserGuide /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </>
       )}
