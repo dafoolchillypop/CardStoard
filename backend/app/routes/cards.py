@@ -745,6 +745,51 @@ def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends
 #    except Exception as e:
 #        raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
 
+# Propagate book values to all duplicate cards (same player/brand/year/card_number)
+@router.patch("/propagate-book-values")
+def propagate_book_values(
+    first_name: str,
+    last_name: str,
+    brand: str,
+    year: int,
+    card_number: str,
+    book_high: Optional[float] = None,
+    book_high_mid: Optional[float] = None,
+    book_mid: Optional[float] = None,
+    book_low_mid: Optional[float] = None,
+    book_low: Optional[float] = None,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    cards = db.query(models.Card).filter(
+        models.Card.user_id == current.id,
+        func.lower(models.Card.first_name) == first_name.lower().strip(),
+        func.lower(models.Card.last_name) == last_name.lower().strip(),
+        func.lower(models.Card.brand) == brand.lower().strip(),
+        models.Card.year == year,
+        models.Card.card_number == card_number,
+    ).all()
+
+    settings = db.query(models.GlobalSettings).filter(
+        models.GlobalSettings.user_id == current.id
+    ).first()
+
+    for card in cards:
+        card.book_high = book_high
+        card.book_high_mid = book_high_mid
+        card.book_mid = book_mid
+        card.book_low_mid = book_low_mid
+        card.book_low = book_low
+        if settings:
+            avg_book = pick_avg_book(card)
+            factor = calculate_market_factor(card, settings)
+            card.market_factor = factor
+            card.value = calculate_card_value(avg_book, float(card.grade) if card.grade else None, factor)
+
+    db.commit()
+    return {"updated": len(cards)}
+
+
 # Delete a card
 @router.delete("/{card_id}")
 def delete_card(

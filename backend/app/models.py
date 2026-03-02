@@ -91,6 +91,7 @@ class GlobalSettings(Base):
     row_color_rookie_grade3 = Column(String, default="#b8d8f7")
 
     dark_mode = Column(Boolean, default=False)
+    default_sort = Column(JSON, nullable=True, default=None)
 
 class ValuationHistory(Base):
     __tablename__ = "valuation_history"
