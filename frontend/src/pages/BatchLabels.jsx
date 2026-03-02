@@ -41,6 +41,9 @@ export default function BatchLabels() {
       <div className="batch-screen-hint">
         <p>Generating QR codes{mode === "all" ? " for full collection" : ` for ${ids.length} card${ids.length !== 1 ? "s" : ""}`}...</p>
         <p style={{ color: "#999", fontSize: "0.85rem" }}>This may take a moment for large collections.</p>
+        <button className="nav-btn" style={{ marginTop: "0.75rem", background: "#6c757d" }} onClick={() => navigate("/list-cards")}>
+          ✕ Cancel
+        </button>
       </div>
     );
   }

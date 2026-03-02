@@ -11,6 +11,93 @@ const fmtDollar = (n) => {
   return `$${val.toLocaleString()}`;
 };
 
+const SORT_COLUMNS = [
+  { key: "last_name",     label: "Last Name" },
+  { key: "first_name",    label: "First Name" },
+  { key: "year",          label: "Year" },
+  { key: "brand",         label: "Brand" },
+  { key: "card_number",   label: "Card #" },
+  { key: "grade",         label: "Grade" },
+  { key: "card_value",    label: "Card Value" },
+  { key: "market_factor", label: "Market Factor" },
+  { key: "rookie",        label: "Rookie" },
+];
+
+function SortModal({ sortConfig, hasDefault, onApply, onClose }) {
+  const [levels, setLevels] = useState([...sortConfig]);
+  const [setAsDefault, setSetAsDefault] = useState(!!hasDefault);
+  const usedKeys = new Set(levels.map(l => l.key));
+  const available = SORT_COLUMNS.filter(c => !usedKeys.has(c.key));
+
+  const addLevel = () => {
+    if (available.length === 0) return;
+    setLevels(prev => [...prev, { key: available[0].key, direction: "asc" }]);
+  };
+  const removeLevel = (i) => setLevels(prev => prev.filter((_, idx) => idx !== i));
+  const updateLevel = (i, field, value) =>
+    setLevels(prev => prev.map((l, idx) => idx === i ? { ...l, [field]: value } : l));
+
+  const handleApply = async () => {
+    if (setAsDefault) {
+      try { await api.put("/settings/", { default_sort: levels }); } catch (e) {}
+    }
+    onApply(levels);
+    onClose();
+  };
+
+  const selStyle = { padding: "0.4rem", borderRadius: 4, border: "1px solid var(--border)", background: "var(--bg-input)", color: "var(--text-primary)" };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+        <h3 style={{ marginTop: 0 }}>Advanced Sort</h3>
+
+        {levels.length === 0 && (
+          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>No sort levels. Add one below.</p>
+        )}
+
+        {levels.map((level, i) => (
+          <div key={i} style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.5rem" }}>
+            <span style={{ color: "var(--text-muted)", fontSize: "0.85rem", width: 20 }}>{i + 1}.</span>
+            <select value={level.key} onChange={e => updateLevel(i, "key", e.target.value)} style={{ ...selStyle, flex: 1 }}>
+              {SORT_COLUMNS.filter(c => c.key === level.key || !usedKeys.has(c.key)).map(c => (
+                <option key={c.key} value={c.key}>{c.label}</option>
+              ))}
+            </select>
+            <select value={level.direction} onChange={e => updateLevel(i, "direction", e.target.value)} style={{ ...selStyle, width: 130 }}>
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </select>
+            <button onClick={() => removeLevel(i)}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+              title="Remove">✕</button>
+          </div>
+        ))}
+
+        <button onClick={addLevel} disabled={available.length === 0}
+          style={{ marginTop: "0.5rem", background: "none", border: "1px dashed var(--border)",
+            borderRadius: 6, padding: "0.35rem 0.75rem", cursor: available.length === 0 ? "not-allowed" : "pointer",
+            color: "var(--text-muted)", fontSize: "0.85rem", width: "100%" }}>
+          + Add Level
+        </button>
+
+        <label style={{ display: "flex", alignItems: "center", gap: "0.5rem",
+          marginTop: "1rem", fontSize: "0.9rem", color: "var(--text-secondary)", cursor: "pointer" }}>
+          <input type="checkbox" checked={setAsDefault} onChange={e => setSetAsDefault(e.target.checked)} />
+          Set as my default sort order
+        </label>
+
+        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem", justifyContent: "flex-end" }}>
+          <button className="nav-btn" style={{ background: "#c62828" }}
+            onClick={() => { onApply([]); onClose(); }}>Clear All</button>
+          <button className="nav-btn secondary" onClick={onClose}>Cancel</button>
+          <button className="nav-btn" onClick={handleApply}>Apply</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ListCards() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,7 +113,8 @@ export default function ListCards() {
   const [brandFilter, setBrandFilter] = useState(returnState.brandFilter ?? "");
   const [gradeFilter, setGradeFilter] = useState(returnState.gradeFilter ?? "");
   const [yearFilter, setYearFilter] = useState(returnState.yearFilter ?? "");
-  const [sortConfig, setSortConfig] = React.useState(returnState.sortConfig ?? { key: null, direction: "asc" });
+  const [sortConfig, setSortConfig] = React.useState(Array.isArray(returnState.sortConfig) ? returnState.sortConfig : []);
+  const [showSortModal, setShowSortModal] = useState(false);
   const [returnCardId, setReturnCardId] = useState(returnState.returnCardId ?? null);
   const [pinnedCard, setPinnedCard] = useState(null);
   const [editingCardId, setEditingCardId] = useState(null);
@@ -38,6 +126,8 @@ export default function ListCards() {
   const [openFilterCols, setOpenFilterCols] = useState(new Set());
   const [playerNames, setPlayerNames] = useState({ firstNames: [], lastNames: [] });
   const skipNextFetchRef = React.useRef(false);
+  const defaultSortApplied = useRef(false);
+  const tableSectionRef = useRef(null);
   const origBookVals = useRef({});
   const [toast, setToast] = useState(null);
   const [refreshTick, setRefreshTick] = useState(0);
@@ -57,6 +147,11 @@ export default function ListCards() {
   }, [returnCardId]);
 
   const clearPin = () => { setReturnCardId(null); setPinnedCard(null); setPinnedIds(new Set()); };
+
+  // Focus the scroll container whenever cards load/refresh so arrow keys work immediately
+  useEffect(() => {
+    tableSectionRef.current?.focus();
+  }, [cards]);
 
   const handlePrintLabel = (card) => {
     setLabelLoading(card.id);
@@ -214,6 +309,16 @@ export default function ListCards() {
       .catch((err) => console.error("Error fetching settings:", err));
   }, []);
 
+  // Apply saved default sort on first load (only if no returnState sort was set)
+  useEffect(() => {
+    if (defaultSortApplied.current) return;
+    if (!settings) return;
+    defaultSortApplied.current = true;
+    if (settings.default_sort?.length > 0 && sortConfig.length === 0) {
+      setSortConfig(settings.default_sort);
+    }
+  }, [settings]);
+
   // Load player names for smart fill autocomplete
   useEffect(() => {
     api.get("/cards/players")
@@ -328,38 +433,30 @@ export default function ListCards() {
   const sortedCards = React.useMemo(() => {
     let sortable = [...filteredCards];
 
-    if (sortConfig.key) {
-      sortable.sort((a, b) => {
-        let aVal, bVal;
+    if (sortConfig.length === 0) return sortable;
 
-        // Map key to actual value
-        switch (sortConfig.key) {
-          case "year":
-            aVal = parseInt(a.year, 10);
-            bVal = parseInt(b.year, 10);
-            break;
-          case "last_name":
-            aVal = a.last_name?.toLowerCase() || "";
-            bVal = b.last_name?.toLowerCase() || "";
-            break;
-          case "grade":
-            aVal = parseFloat(a.grade) || 0;
-            bVal = parseFloat(b.grade) || 0;
-            break;
-          case "card_value":
-            aVal = Number(a.value) || 0;
-            bVal = Number(b.value) || 0;
-            break;
-          default:
-            aVal = a[sortConfig.key];
-            bVal = b[sortConfig.key];
-        }
+    const getVal = (card, key) => {
+      switch (key) {
+        case "year":          return parseInt(card.year, 10) || 0;
+        case "last_name":     return card.last_name?.toLowerCase() || "";
+        case "first_name":    return card.first_name?.toLowerCase() || "";
+        case "grade":         return parseFloat(card.grade) || 0;
+        case "card_value":    return Number(card.value) || 0;
+        case "market_factor": return Number(card.market_factor) || 0;
+        case "rookie":        return Number(card.rookie) || 0;
+        default:              return (card[key] || "").toString().toLowerCase();
+      }
+    };
 
-        if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
+    sortable.sort((a, b) => {
+      for (const { key, direction } of sortConfig) {
+        const aVal = getVal(a, key);
+        const bVal = getVal(b, key);
+        if (aVal < bVal) return direction === "asc" ? -1 : 1;
+        if (aVal > bVal) return direction === "asc" ? 1 : -1;
+      }
+      return 0;
+    });
     return sortable;
   }, [filteredCards, sortConfig, settings]);
 
@@ -384,11 +481,14 @@ export default function ListCards() {
 
   const requestSort = (key) => {
     clearPin();
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
+    const existing = sortConfig.find(s => s.key === key);
+    const direction = (existing && sortConfig.length === 1 && existing.direction === "asc") ? "desc" : "asc";
+    setSortConfig([{ key, direction }]);
+  };
+
+  const getSortIndicator = (key) => {
+    if (sortConfig.length !== 1 || sortConfig[0].key !== key) return "";
+    return sortConfig[0].direction === "asc" ? "▲" : "▼";
   };
 
   // Add this near top of component body (after sortedCards is defined)
@@ -407,10 +507,10 @@ export default function ListCards() {
         </h2>
 
         {/* Line 2: single toolbar — left / center / right */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 1rem", marginBottom: "0.5rem" }}>
+        <div style={{ display: "flex", alignItems: "center", padding: "0 1rem", marginBottom: "0.5rem" }}>
 
-          {/* Left: selection toggle */}
-          <div style={{ minWidth: 120 }}>
+          {/* Left: selection toggle + print selected */}
+          <div style={{ flex: 1, display: "flex", gap: "0.5rem" }}>
             {!selectionMode ? (
               <button
                 className="nav-btn"
@@ -423,9 +523,18 @@ export default function ListCards() {
               <button
                 className="nav-btn secondary"
                 style={{ padding: "0.3rem 0.9rem", fontSize: "0.85rem" }}
-                onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); }}
+                onClick={() => { setSelectionMode(false); setSelectedIds(new Set()); tableSectionRef.current?.focus(); }}
               >
                 ✕ Cancel
+              </button>
+            )}
+            {selectionMode && selectedIds.size > 0 && (
+              <button
+                className="nav-btn"
+                style={{ padding: "0.3rem 0.9rem", fontSize: "0.85rem" }}
+                onClick={() => navigate("/batch-labels", { state: { mode: "selection", ids: [...selectedIds] } })}
+              >
+                🖨️ Print Selected ({selectedIds.size})
               </button>
             )}
           </div>
@@ -471,17 +580,16 @@ export default function ListCards() {
             )}
           </div>
 
-          {/* Right: print buttons */}
-          <div style={{ display: "flex", gap: "0.5rem", minWidth: 120, justifyContent: "flex-end" }}>
-            {selectionMode && selectedIds.size > 0 && (
-              <button
-                className="nav-btn"
-                style={{ padding: "0.3rem 0.9rem", fontSize: "0.85rem" }}
-                onClick={() => navigate("/batch-labels", { state: { mode: "selection", ids: [...selectedIds] } })}
-              >
-                🖨️ Print Selected ({selectedIds.size})
-              </button>
-            )}
+          {/* Right: sort + print buttons */}
+          <div style={{ flex: 1, display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+            <button
+              className="nav-btn"
+              onClick={() => setShowSortModal(true)}
+              style={{ padding: "0.3rem 0.9rem", fontSize: "0.85rem", ...(sortConfig.length > 0 && { background: "#1a7a1a" }) }}
+              title="Advanced sort"
+            >
+              ⇅ Sort{sortConfig.length > 0 ? ` (${sortConfig.length})` : ""}
+            </button>
             <button
               className="nav-btn"
               style={{ padding: "0.3rem 0.9rem", fontSize: "0.85rem" }}
@@ -503,7 +611,7 @@ export default function ListCards() {
             </button>
           </div>
         ) : (
-          <div className="card-section" style={{ width: "100%", boxSizing: "border-box", overflow: "auto", maxHeight: "calc(100vh - 180px)" }}>
+          <div ref={tableSectionRef} tabIndex={-1} className="card-section" style={{ width: "100%", boxSizing: "border-box", overflow: "auto", maxHeight: "calc(100vh - 180px)", outline: "none" }}>
           {/* Table */}
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
@@ -529,7 +637,7 @@ export default function ListCards() {
                   <th className="fname-col">First</th>
                   <th className="lname-col" onClick={() => requestSort("last_name")} style={{ cursor: "pointer" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-                      Last {sortConfig.key === "last_name" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}
+                      Last {getSortIndicator("last_name")}
                       <span onClick={(e) => { e.stopPropagation(); toggleFilterCol("last"); }} style={{ cursor: "pointer", fontSize: "0.75rem", color: lastNameFilter ? "#007bff" : "#aaa" }} title="Filter by last name">🔍</span>
                     </div>
                     {openFilterCols.has("last") && (
@@ -538,7 +646,7 @@ export default function ListCards() {
                   </th>
                   <th className="year-col" onClick={() => requestSort("year")} style={{ cursor: "pointer" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-                      Year {sortConfig.key === "year" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}
+                      Year {getSortIndicator("year")}
                       <span onClick={(e) => { e.stopPropagation(); toggleFilterCol("year"); }} style={{ cursor: "pointer", fontSize: "0.75rem", color: yearFilter ? "#007bff" : "#aaa" }} title="Filter by year">🔍</span>
                     </div>
                     {openFilterCols.has("year") && (
@@ -559,7 +667,7 @@ export default function ListCards() {
 
                   <th className="grade-col" style={{ textAlign: "center", width: 65, cursor: "pointer" }} onClick={() => requestSort("grade")}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-                      Grade {sortConfig.key === "grade" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}
+                      Grade {getSortIndicator("grade")}
                       <span onClick={(e) => { e.stopPropagation(); toggleFilterCol("grade"); }} style={{ cursor: "pointer", fontSize: "0.75rem", color: gradeFilter ? "#007bff" : "#aaa" }} title="Filter by grade">🔍</span>
                     </div>
                     {openFilterCols.has("grade") && (
@@ -571,7 +679,7 @@ export default function ListCards() {
                   <th className="market-factor-col" style={{ textAlign: "center", width: 80 }}>Market Factor</th>
 
                   <th className="card-value-col" style={{ textAlign: "center", cursor: "pointer" }}
-                      onClick={() => requestSort("card_value")}>Card Value {sortConfig.key === "card_value" ? (sortConfig.direction === "asc" ? "▲" : "▼") : ""}
+                      onClick={() => requestSort("card_value")}>Card Value {getSortIndicator("card_value")}
                   </th>
 
                   <th className="card-images-col" style={{ textAlign: "center", width: 65 }}>Images</th>
@@ -856,12 +964,12 @@ export default function ListCards() {
         </div>
       )}
       {selectedCard && (
-        <CardImages card={selectedCard} onClose={() => setSelectedCard(null)} />
+        <CardImages card={selectedCard} onClose={() => { setSelectedCard(null); tableSectionRef.current?.focus(); }} />
       )}
       <LabelPreviewModal
         labelData={labelData}
         onPrint={() => window.open(`/card-label/${labelData?.id}`, "_blank")}
-        onClose={() => setLabelData(null)}
+        onClose={() => { setLabelData(null); tableSectionRef.current?.focus(); }}
       />
     </div>
     {toast && (
@@ -871,6 +979,14 @@ export default function ListCards() {
         borderRadius: "8px", fontSize: "0.9rem", zIndex: 9999,
         boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
       }}>{toast}</div>
+    )}
+    {showSortModal && (
+      <SortModal
+        sortConfig={sortConfig}
+        hasDefault={settings?.default_sort?.length > 0}
+        onApply={(levels) => { clearPin(); setSortConfig(levels); }}
+        onClose={() => { setShowSortModal(false); tableSectionRef.current?.focus(); }}
+      />
     )}
     </>
   );

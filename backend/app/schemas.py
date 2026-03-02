@@ -95,6 +95,7 @@ class GlobalSettingsBase(BaseModel):
     row_color_rookie_grade3: Optional[str] = "#b8d8f7"
 
     dark_mode: bool = False
+    default_sort: Optional[list] = None
 
 class GlobalSettingsCreate(GlobalSettingsBase):
     pass
@@ -125,6 +126,7 @@ class GlobalSettingsUpdate(BaseModel):
     row_color_rookie_grade3: Optional[str] = None
 
     dark_mode: Optional[bool] = None
+    default_sort: Optional[list] = None
 
 class GlobalSettings(GlobalSettingsBase):
     id: int
