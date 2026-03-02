@@ -131,7 +131,6 @@ export default function ListCards() {
   const origBookVals = useRef({});
   const [toast, setToast] = useState(null);
   const [refreshTick, setRefreshTick] = useState(0);
-  const [pinnedIds, setPinnedIds] = useState(new Set());
 
   const showToast = (msg) => {
     setToast(msg);
@@ -146,7 +145,7 @@ export default function ListCards() {
       .catch(() => setPinnedCard(null));
   }, [returnCardId]);
 
-  const clearPin = () => { setReturnCardId(null); setPinnedCard(null); setPinnedIds(new Set()); };
+  const clearPin = () => { setReturnCardId(null); setPinnedCard(null); };
 
   // Focus the scroll container whenever cards load/refresh so arrow keys work immediately
   useEffect(() => {
@@ -183,6 +182,13 @@ export default function ListCards() {
     setEditForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const reapplySort = () => {
+    clearPin();
+    if (sortConfig.length === 0 && settings?.default_sort?.length > 0) {
+      setSortConfig(settings.default_sort);
+    }
+  };
+
   const handleEditSave = async (cardId) => {
     if (cardId === "new") {
       try {
@@ -191,6 +197,7 @@ export default function ListCards() {
         setTotal(prev => prev + 1);
         setEditingCardId(null);
         setEditForm({});
+        reapplySort();
       } catch (err) {
         console.error("Error adding card:", err);
         alert("Failed to add card.");
@@ -201,6 +208,7 @@ export default function ListCards() {
         setCards(prev => prev.map(c => c.id === cardId ? res.data : c));
         if (pinnedCard?.id === cardId) setPinnedCard(res.data);
         setEditingCardId(null);
+        reapplySort();
 
         const BOOK_FIELDS = ["book_high", "book_high_mid", "book_mid", "book_low_mid", "book_low"];
         const bookChanged = BOOK_FIELDS.some(f => (editForm[f] || null) !== (origBookVals.current[f] || null));
@@ -218,18 +226,6 @@ export default function ListCards() {
             const bulkRes = await api.patch("/cards/propagate-book-values", null, { params });
             if (bulkRes.data.updated > 1) {
               showToast(`Book values updated for all ${bulkRes.data.updated} matching cards`);
-              const matchIds = new Set(
-                cards
-                  .filter(c =>
-                    (c.first_name || "").toLowerCase() === (editForm.first_name || "").toLowerCase() &&
-                    (c.last_name  || "").toLowerCase() === (editForm.last_name  || "").toLowerCase() &&
-                    (c.brand      || "").toLowerCase() === (editForm.brand      || "").toLowerCase() &&
-                    String(c.year) === String(editForm.year) &&
-                    c.card_number === editForm.card_number
-                  )
-                  .map(c => c.id)
-              );
-              setPinnedIds(matchIds);
               setRefreshTick(t => t + 1);
             }
           } catch (bulkErr) {
@@ -460,24 +456,13 @@ export default function ListCards() {
     return sortable;
   }, [filteredCards, sortConfig, settings]);
 
-  // Prepend pinned cards to the top; remove duplicates from the rest of the list
+  // Prepend the single return-navigation pinned card to the top
   const displayedCards = React.useMemo(() => {
-    const hasSinglePin = !!pinnedCard;
-    const hasMultiPin = pinnedIds.size > 0;
-    if (!hasSinglePin && !hasMultiPin) return sortedCards;
-
-    const singlePinId = pinnedCard ? Number(pinnedCard.id) : null;
-    const rest = sortedCards.filter(c => {
-      const id = Number(c.id);
-      return id !== singlePinId && !pinnedIds.has(id) && !pinnedIds.has(c.id);
-    });
-
-    if (hasMultiPin) {
-      const pinned = sortedCards.filter(c => pinnedIds.has(c.id) || pinnedIds.has(Number(c.id)));
-      return [...pinned, ...rest];
-    }
+    if (!pinnedCard) return sortedCards;
+    const pinId = Number(pinnedCard.id);
+    const rest = sortedCards.filter(c => Number(c.id) !== pinId);
     return [pinnedCard, ...rest];
-  }, [sortedCards, pinnedCard, pinnedIds]);
+  }, [sortedCards, pinnedCard]);
 
   const requestSort = (key) => {
     clearPin();

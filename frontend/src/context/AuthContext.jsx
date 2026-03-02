@@ -52,14 +52,14 @@ export const AuthProvider = ({ children }) => {
     }
 
     api.get("/auth/me")
-      .then((res) => {
-        console.log("USER:", res.data);
+      .then(async (res) => {
         setUser(res.data);
+        // Apply theme BEFORE rendering children so there's no light-mode flash
+        try {
+          const sr = await api.get("/settings/");
+          applyTheme(sr.data.dark_mode);
+        } catch (_) {}
         setIsLoggedIn(true);
-        // Apply dark mode preference from settings
-        api.get("/settings/")
-          .then((sr) => applyTheme(sr.data.dark_mode))
-          .catch(() => {});
       })
       .catch(() => {
         setUser(null);
