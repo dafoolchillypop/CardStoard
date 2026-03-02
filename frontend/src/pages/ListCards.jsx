@@ -1,5 +1,5 @@
 // src/pages/ListCards.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
@@ -38,6 +38,15 @@ export default function ListCards() {
   const [openFilterCols, setOpenFilterCols] = useState(new Set());
   const [playerNames, setPlayerNames] = useState({ firstNames: [], lastNames: [] });
   const skipNextFetchRef = React.useRef(false);
+  const origBookVals = useRef({});
+  const [toast, setToast] = useState(null);
+  const [refreshTick, setRefreshTick] = useState(0);
+  const [pinnedIds, setPinnedIds] = useState(new Set());
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 4000);
+  };
 
   // Fetch the updated card directly so it's always visible regardless of current page
   useEffect(() => {
@@ -47,7 +56,7 @@ export default function ListCards() {
       .catch(() => setPinnedCard(null));
   }, [returnCardId]);
 
-  const clearPin = () => { setReturnCardId(null); setPinnedCard(null); };
+  const clearPin = () => { setReturnCardId(null); setPinnedCard(null); setPinnedIds(new Set()); };
 
   const handlePrintLabel = (card) => {
     setLabelLoading(card.id);
@@ -69,6 +78,10 @@ export default function ListCards() {
   const handleEditStart = (card) => {
     setEditingCardId(card.id);
     setEditForm({ ...card });
+    origBookVals.current = {
+      book_high: card.book_high, book_high_mid: card.book_high_mid,
+      book_mid: card.book_mid, book_low_mid: card.book_low_mid, book_low: card.book_low,
+    };
   };
 
   const handleEditChange = (field, value) => {
@@ -93,6 +106,41 @@ export default function ListCards() {
         setCards(prev => prev.map(c => c.id === cardId ? res.data : c));
         if (pinnedCard?.id === cardId) setPinnedCard(res.data);
         setEditingCardId(null);
+
+        const BOOK_FIELDS = ["book_high", "book_high_mid", "book_mid", "book_low_mid", "book_low"];
+        const bookChanged = BOOK_FIELDS.some(f => (editForm[f] || null) !== (origBookVals.current[f] || null));
+        if (bookChanged && editForm.brand && editForm.year && editForm.card_number) {
+          try {
+            const params = {
+              first_name: editForm.first_name, last_name: editForm.last_name,
+              brand: editForm.brand, year: editForm.year, card_number: editForm.card_number,
+              ...(editForm.book_high     ? { book_high:     editForm.book_high }     : {}),
+              ...(editForm.book_high_mid ? { book_high_mid: editForm.book_high_mid } : {}),
+              ...(editForm.book_mid      ? { book_mid:      editForm.book_mid }      : {}),
+              ...(editForm.book_low_mid  ? { book_low_mid:  editForm.book_low_mid }  : {}),
+              ...(editForm.book_low      ? { book_low:      editForm.book_low }      : {}),
+            };
+            const bulkRes = await api.patch("/cards/propagate-book-values", null, { params });
+            if (bulkRes.data.updated > 1) {
+              showToast(`Book values updated for all ${bulkRes.data.updated} matching cards`);
+              const matchIds = new Set(
+                cards
+                  .filter(c =>
+                    (c.first_name || "").toLowerCase() === (editForm.first_name || "").toLowerCase() &&
+                    (c.last_name  || "").toLowerCase() === (editForm.last_name  || "").toLowerCase() &&
+                    (c.brand      || "").toLowerCase() === (editForm.brand      || "").toLowerCase() &&
+                    String(c.year) === String(editForm.year) &&
+                    c.card_number === editForm.card_number
+                  )
+                  .map(c => c.id)
+              );
+              setPinnedIds(matchIds);
+              setRefreshTick(t => t + 1);
+            }
+          } catch (bulkErr) {
+            console.error("Book value propagation failed:", bulkErr);
+          }
+        }
       } catch (err) {
         console.error("Error updating card:", err);
         alert("Failed to save changes.");
@@ -231,7 +279,7 @@ export default function ListCards() {
       }
     };
     fetchCards();
-  }, [page, limit, location, total]);
+  }, [page, limit, location, total, refreshTick]);
 
   const handleLimitChange = (e) => {
     const value = e.target.value;
@@ -315,12 +363,24 @@ export default function ListCards() {
     return sortable;
   }, [filteredCards, sortConfig, settings]);
 
-  // Prepend the freshly-fetched pinned card; remove it from the page results if it also appears there
+  // Prepend pinned cards to the top; remove duplicates from the rest of the list
   const displayedCards = React.useMemo(() => {
-    if (!pinnedCard) return sortedCards;
-    const rest = sortedCards.filter(c => Number(c.id) !== Number(pinnedCard.id));
+    const hasSinglePin = !!pinnedCard;
+    const hasMultiPin = pinnedIds.size > 0;
+    if (!hasSinglePin && !hasMultiPin) return sortedCards;
+
+    const singlePinId = pinnedCard ? Number(pinnedCard.id) : null;
+    const rest = sortedCards.filter(c => {
+      const id = Number(c.id);
+      return id !== singlePinId && !pinnedIds.has(id) && !pinnedIds.has(c.id);
+    });
+
+    if (hasMultiPin) {
+      const pinned = sortedCards.filter(c => pinnedIds.has(c.id) || pinnedIds.has(Number(c.id)));
+      return [...pinned, ...rest];
+    }
     return [pinnedCard, ...rest];
-  }, [sortedCards, pinnedCard]);
+  }, [sortedCards, pinnedCard, pinnedIds]);
 
   const requestSort = (key) => {
     clearPin();
@@ -804,6 +864,14 @@ export default function ListCards() {
         onClose={() => setLabelData(null)}
       />
     </div>
+    {toast && (
+      <div style={{
+        position: "fixed", bottom: "1.5rem", left: "1.5rem",
+        background: "#1a7a1a", color: "white", padding: "0.6rem 1.2rem",
+        borderRadius: "8px", fontSize: "0.9rem", zIndex: 9999,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+      }}>{toast}</div>
+    )}
     </>
   );
 }
