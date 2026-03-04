@@ -58,8 +58,9 @@ echo ""
 # ─────────────────────────────────────────────
 
 # 1. Backend health
-BODY=$($CURL -o - -w "" "$API/health" 2>/dev/null || echo "")
-STATUS=$($CURL -o /dev/null -w "%{http_code}" "$API/health" 2>/dev/null || echo "000")
+RESP=$(mktemp)
+STATUS=$($CURL -o "$RESP" -w "%{http_code}" "$API/health" 2>/dev/null || echo "000")
+BODY=$(cat "$RESP"); rm -f "$RESP"
 if [[ "$STATUS" == "200" && "$BODY" == *"ok"* ]]; then
   ok "Health check ($STATUS)"
 else
@@ -110,14 +111,12 @@ fi
 if [[ -n "$EMAIL" && -n "$PASSWORD" ]]; then
 
   # 6. Login
-  STATUS=$($CURL -c "$COOKIE_JAR" -o /dev/null -w "%{http_code}" \
+  RESP=$(mktemp)
+  STATUS=$($CURL -c "$COOKIE_JAR" -o "$RESP" -w "%{http_code}" \
     -X POST "$API/auth/login" \
     -H "Content-Type: application/json" \
     -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" 2>/dev/null || echo "000")
-  BODY=$($CURL -c "$COOKIE_JAR" -s \
-    -X POST "$API/auth/login" \
-    -H "Content-Type: application/json" \
-    -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" 2>/dev/null || echo "")
+  BODY=$(cat "$RESP"); rm -f "$RESP"
   if [[ "$STATUS" == "200" ]]; then
     USERNAME=$(echo "$BODY" | python3 -c \
       "import sys,json; d=json.load(sys.stdin); u=d.get('user',d); print(u.get('username') or u.get('email','?'))" 2>/dev/null || echo "?")
@@ -135,8 +134,9 @@ if [[ -n "$EMAIL" && -n "$PASSWORD" ]]; then
   fi
 
   # 8. Settings — confirm row_color_rookie present
-  BODY=$($CURL -b "$COOKIE_JAR" "$API/settings/" 2>/dev/null || echo "")
-  STATUS=$($CURL -b "$COOKIE_JAR" -o /dev/null -w "%{http_code}" "$API/settings/" 2>/dev/null || echo "000")
+  RESP=$(mktemp)
+  STATUS=$($CURL -b "$COOKIE_JAR" -o "$RESP" -w "%{http_code}" "$API/settings/" 2>/dev/null || echo "000")
+  BODY=$(cat "$RESP"); rm -f "$RESP"
   if [[ "$STATUS" == "200" && "$BODY" == *"row_color_rookie"* ]]; then
     ok "Settings — row_color_rookie present ($STATUS)"
   elif [[ "$STATUS" == "200" ]]; then
@@ -146,8 +146,9 @@ if [[ -n "$EMAIL" && -n "$PASSWORD" ]]; then
   fi
 
   # 9. Card count
-  BODY=$($CURL -b "$COOKIE_JAR" "$API/cards/count" 2>/dev/null || echo "")
-  STATUS=$($CURL -b "$COOKIE_JAR" -o /dev/null -w "%{http_code}" "$API/cards/count" 2>/dev/null || echo "000")
+  RESP=$(mktemp)
+  STATUS=$($CURL -b "$COOKIE_JAR" -o "$RESP" -w "%{http_code}" "$API/cards/count" 2>/dev/null || echo "000")
+  BODY=$(cat "$RESP"); rm -f "$RESP"
   if [[ "$STATUS" == "200" ]]; then
     COUNT=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('count','?'))" 2>/dev/null || echo "?")
     ok "Card count: $COUNT ($STATUS)"
@@ -169,10 +170,10 @@ if [[ -n "$EMAIL" && -n "$PASSWORD" ]]; then
 First,Last,RookieYear,Brand,Year,CardNumber
 Smoke,Test,,Topps,1952,999
 CSVEOF
-  BODY=$($CURL -b "$COOKIE_JAR" -X POST "$API/dictionary/validate-csv" \
-    -F "file=@$CSV_TMP" 2>/dev/null || echo "")
-  STATUS=$($CURL -b "$COOKIE_JAR" -o /dev/null -w "%{http_code}" -X POST "$API/dictionary/validate-csv" \
+  RESP=$(mktemp)
+  STATUS=$($CURL -b "$COOKIE_JAR" -o "$RESP" -w "%{http_code}" -X POST "$API/dictionary/validate-csv" \
     -F "file=@$CSV_TMP" 2>/dev/null || echo "000")
+  BODY=$(cat "$RESP"); rm -f "$RESP"
   if [[ "$STATUS" == "200" ]] && (echo "$BODY" | python3 -c "import sys,json; assert json.load(sys.stdin).get('valid')" 2>/dev/null); then
     ok "Dictionary validate-csv ($STATUS, valid)"
   else
@@ -184,10 +185,10 @@ CSVEOF
 First,Last,Year,Brand,Rookie,Card Number,BookHi,BookHiMid,BookMid,BookLowMid,BookLow,Grade
 Smoke,Test,1980,Topps,FALSE,1,10,8,6,4,2,1.0
 CSVEOF
-  BODY=$($CURL -b "$COOKIE_JAR" -X POST "$API/cards/validate-csv" \
-    -F "file=@$CSV_TMP" 2>/dev/null || echo "")
-  STATUS=$($CURL -b "$COOKIE_JAR" -o /dev/null -w "%{http_code}" -X POST "$API/cards/validate-csv" \
+  RESP=$(mktemp)
+  STATUS=$($CURL -b "$COOKIE_JAR" -o "$RESP" -w "%{http_code}" -X POST "$API/cards/validate-csv" \
     -F "file=@$CSV_TMP" 2>/dev/null || echo "000")
+  BODY=$(cat "$RESP"); rm -f "$RESP"
   if [[ "$STATUS" == "200" ]] && (echo "$BODY" | python3 -c "import sys,json; assert json.load(sys.stdin).get('valid')" 2>/dev/null); then
     ok "Validate-csv ($STATUS, valid)"
   else

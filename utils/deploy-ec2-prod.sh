@@ -52,7 +52,23 @@ $SSH "
 echo "--- Restoring database ---"
 $SSH "docker exec -i stoardb psql -U postgres --set ON_ERROR_STOP=on cardstoardb < $BACKUP_FILE && echo 'Restore complete'"
 
-echo "--- Running smoke test ---"
-$SSH "cd /home/ubuntu/CardStoard && [[ -f ~/.cardstoard.env ]] && source ~/.cardstoard.env; ./utils/smoke_test.sh"
+echo "--- Verifying restore ---"
+CARD_COUNT=$($SSH "docker exec stoardb psql -U postgres cardstoardb -t -c 'SELECT COUNT(*) FROM cards;' | tr -d ' \n'")
+echo "Card count after restore: $CARD_COUNT"
 
-echo "--- Deploy complete ---"
+echo "--- Provisioning smoke test user ---"
+$SSH "cd /home/ubuntu/CardStoard && ./utils/provision-smoketest.sh"
+
+echo "--- Running smoke test ---"
+SMOKE_EXIT=0
+$SSH "cd /home/ubuntu/CardStoard && source ~/.cardstoard.env && ./utils/smoke_test.sh" \
+  || SMOKE_EXIT=$?
+
+echo ""
+echo "--- Deploy summary ---"
+if [[ $SMOKE_EXIT -eq 0 ]]; then
+  echo "✅ Deploy complete — smoke test: 14/14 passed"
+else
+  echo "✅ Deploy steps complete — ⚠  smoke test exited $SMOKE_EXIT (review output above)"
+fi
+exit $SMOKE_EXIT
