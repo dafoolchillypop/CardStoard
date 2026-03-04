@@ -668,7 +668,7 @@ export default function ListCards() {
                   </th>
 
                   <th className="card-images-col" style={{ textAlign: "center", width: 65 }}>Images</th>
-                  <th className="action-col actions-col" style={{ textAlign: "center", width: 50 }}>
+                  <th className="action-col actions-col" style={{ textAlign: "center", width: 64 }}>
                     <button
                       onClick={() => {
                         if (editingCardId === "new") return;
@@ -932,6 +932,11 @@ export default function ListCards() {
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.5rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
                               title="Print label"
                             >🖨️</button>
+                            <button
+                              onClick={() => navigate(`/card-detail/${card.id}`)}
+                              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.5rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
+                              title="Card detail"
+                            >ℹ️</button>
                             <button
                               onClick={() => handleDelete(card)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.5rem", padding: "2px 4px", color: "#dc3545", width: "auto" }}
