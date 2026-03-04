@@ -11,17 +11,28 @@ export default function CardDetail() {
   const [settings, setSettings] = useState(null);
   const [labelData, setLabelData] = useState(null);
   const [labelLoading, setLabelLoading] = useState(false);
+  const [notes, setNotes] = useState("");
+  const [notesSaving, setNotesSaving] = useState(false);
+  const [duplicateCount, setDuplicateCount] = useState(null);
 
   useEffect(() => {
     // Fetch card
     api.get(`/cards/${id}`)
-      .then((res) => setCard(res.data))
+      .then((res) => {
+        setCard(res.data);
+        setNotes(res.data.notes || "");
+      })
       .catch((err) => console.error("Error fetching card:", err));
 
     // Fetch settings (for market factor/value calc)
     api.get("/settings/")
       .then((res) => setSettings(res.data))
       .catch((err) => console.error("Error fetching settings:", err));
+
+    // Fetch duplicate count
+    api.get(`/cards/${id}/duplicate-count`)
+      .then((res) => setDuplicateCount(res.data.duplicate_count))
+      .catch((err) => console.error("Error fetching duplicate count:", err));
   }, [id]);
 
   const handlePrintLabel = () => {
@@ -30,6 +41,13 @@ export default function CardDetail() {
       .then((res) => setLabelData(res.data))
       .catch((err) => console.error("Label fetch error:", err))
       .finally(() => setLabelLoading(false));
+  };
+
+  const saveNotes = () => {
+    setNotesSaving(true);
+    api.put(`/cards/${id}`, { notes })
+      .catch((err) => console.error("Notes save error:", err))
+      .finally(() => setNotesSaving(false));
   };
 
   if (!card) return <p>Loading card...</p>;
@@ -95,6 +113,14 @@ export default function CardDetail() {
     else if (cardValue >= 50) valueClass = "value-lowmid";
   }
 
+  // ✅ Value change indicator — green ↑ or red ↓ if value changed in past 90 days
+  const valueChangedDaysAgo = card.value_changed_at
+    ? (Date.now() - new Date(card.value_changed_at)) / (1000 * 60 * 60 * 24)
+    : null;
+  const recentValueChange = valueChangedDaysAgo !== null && valueChangedDaysAgo <= 90;
+  const valueUp   = recentValueChange && card.value > card.previous_value;
+  const valueDown = recentValueChange && card.value < card.previous_value;
+
   return (
     <>
     <AppHeader />
@@ -117,6 +143,14 @@ export default function CardDetail() {
         <span style={{ fontFamily: "monospace", fontWeight: 600, color: "var(--text-secondary)" }}>{labelId}</span>
         <span style={{ margin: "0 0.5rem" }}>·</span>
         <span>Updated {updatedAt}</span>
+        {duplicateCount !== null && duplicateCount > 0 && (
+          <>
+            <span style={{ margin: "0 0.5rem" }}>·</span>
+            <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>
+              {duplicateCount} duplicate{duplicateCount !== 1 ? "s" : ""} in collection
+            </span>
+          </>
+        )}
       </div>
 
       {/* Grade Badge */}
@@ -127,11 +161,25 @@ export default function CardDetail() {
           </span>
         )}
 
-      {/* Card Value Badge */}
+      {/* Card Value Badge + change indicator */}
         {cardValue !== null && (
-          <span className={`badge badge-value ${valueClass}`}>
-            Value: ${cardValue}
-          </span>
+          <>
+            <span className={`badge badge-value ${valueClass}`}>
+              Value: ${cardValue}
+            </span>
+            {valueUp && (
+              <span
+                title={`Was $${card.previous_value} → $${card.value}`}
+                style={{ color: "#28a745", fontSize: "1.2rem", marginLeft: "0.25rem", verticalAlign: "middle" }}
+              >↑</span>
+            )}
+            {valueDown && (
+              <span
+                title={`Was $${card.previous_value} → $${card.value}`}
+                style={{ color: "#dc3545", fontSize: "1.2rem", marginLeft: "0.25rem", verticalAlign: "middle" }}
+              >↓</span>
+            )}
+          </>
         )}
       </div>
 
@@ -164,6 +212,39 @@ export default function CardDetail() {
           }}
         />
       )}
+      </div>
+
+      {/* Notes */}
+      <div style={{ maxWidth: "600px", margin: "1.5rem auto 0", textAlign: "left" }}>
+        <label style={{ display: "block", fontWeight: 600, marginBottom: "0.4rem", color: "var(--text-secondary)" }}>
+          Notes
+        </label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={4}
+          style={{
+            width: "100%",
+            padding: "0.5rem 0.75rem",
+            borderRadius: "6px",
+            border: "1px solid var(--border-color, #ccc)",
+            background: "var(--input-bg, #fff)",
+            color: "var(--text-primary, #222)",
+            fontSize: "0.95rem",
+            resize: "vertical",
+            boxSizing: "border-box",
+          }}
+          placeholder="Add any notes about this card..."
+        />
+        <div style={{ marginTop: "0.5rem", textAlign: "right" }}>
+          <button
+            className="nav-btn"
+            onClick={saveNotes}
+            disabled={notesSaving}
+          >
+            {notesSaving ? "Saving…" : "Save Notes"}
+          </button>
+        </div>
       </div>
 
       {/* Actions */}

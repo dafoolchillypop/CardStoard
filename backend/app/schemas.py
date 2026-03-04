@@ -29,6 +29,10 @@ class CardBase(BaseModel):
     value: Optional[float] = None
 
 
+    notes: Optional[str] = None
+    previous_value: Optional[float] = None
+    value_changed_at: Optional[datetime] = None
+
     # ✅ Always return relative paths
     front_image: Optional[str] = None
     back_image: Optional[str] = None
@@ -59,6 +63,7 @@ class CardUpdate(BaseModel):
     book_low_mid: Optional[float] = None
     book_low: Optional[float] = None
 
+    notes: Optional[str] = None
     front_image: Optional[str] = None
     back_image: Optional[str] = None
 

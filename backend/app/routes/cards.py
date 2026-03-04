@@ -695,6 +695,9 @@ def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends
     if not card:
         raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
+    # Capture value before any field changes
+    old_value = card.value
+
     for field, value in updated.dict(exclude_unset=True).items():
         setattr(card, field, value)
 
@@ -719,9 +722,42 @@ def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends
         card.market_factor = factor
         card.value = value
 
+        # Track value change — only when value actually moves
+        if (old_value is not None and value is not None
+                and round(value, 2) != round(old_value, 2)):
+            card.previous_value = old_value
+            card.value_changed_at = datetime.now(timezone.utc)
+
     db.commit()
     db.refresh(card)
     return card
+
+
+# Count duplicate cards (same player / brand / year / card_number, different id)
+@router.get("/{card_id}/duplicate-count")
+def get_duplicate_count(
+    card_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    card = db.query(models.Card).filter(
+        models.Card.id == card_id,
+        models.Card.user_id == current.id,
+    ).first()
+    if not card:
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
+
+    count = db.query(models.Card).filter(
+        models.Card.user_id == current.id,
+        models.Card.id != card_id,
+        func.lower(models.Card.first_name) == (card.first_name or "").lower(),
+        func.lower(models.Card.last_name) == (card.last_name or "").lower(),
+        func.lower(models.Card.brand) == (card.brand or "").lower(),
+        models.Card.year == card.year,
+        models.Card.card_number == card.card_number,
+    ).count()
+
+    return {"duplicate_count": count}
 
 # Identify a card
 #@router.post("/identify")
