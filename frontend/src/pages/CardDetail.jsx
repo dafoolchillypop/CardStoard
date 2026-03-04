@@ -34,6 +34,17 @@ export default function CardDetail() {
 
   if (!card) return <p>Loading card...</p>;
 
+  // Label ID — matches what's printed on the label
+  const labelId = `CS-CD-${String(card.id).padStart(6, "0")}`;
+
+  // Last updated — formatted
+  const updatedAt = card.updated_at
+    ? new Date(card.updated_at).toLocaleString("en-US", {
+        year: "numeric", month: "short", day: "numeric",
+        hour: "2-digit", minute: "2-digit",
+      })
+    : "—";
+
   // ✅ Rookie check
   const isRookie =
     card.rookie === "*" || card.rookie === "1" || Number(card.rookie) === 1 || card.rookie === true;
@@ -101,6 +112,13 @@ export default function CardDetail() {
         )}
       </h2>
 
+      {/* Card ID + meta row */}
+      <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: "0.25rem 0 0.5rem" }}>
+        <span style={{ fontFamily: "monospace", fontWeight: 600, color: "var(--text-secondary)" }}>{labelId}</span>
+        <span style={{ margin: "0 0.5rem" }}>·</span>
+        <span>Updated {updatedAt}</span>
+      </div>
+
       {/* Grade Badge */}
       <div style={{ margin: "0.5rem 0" }}>
         {card.grade && (
@@ -108,7 +126,7 @@ export default function CardDetail() {
             Grade: {card.grade}
           </span>
         )}
-      
+
       {/* Card Value Badge */}
         {cardValue !== null && (
           <span className={`badge badge-value ${valueClass}`}>
@@ -148,9 +166,16 @@ export default function CardDetail() {
       )}
       </div>
 
-      {/* Back link */}
-      <div style={{ marginTop: "1rem" }}>
-        <Link to="/list-cards" className="nav-btn">⬅ Back to List</Link>
+      {/* Actions */}
+      <div style={{ marginTop: "1.25rem", display: "flex", justifyContent: "center", gap: "0.75rem" }}>
+        <button
+          className="nav-btn"
+          onClick={handlePrintLabel}
+          disabled={labelLoading}
+        >
+          {labelLoading ? "Loading…" : "🖨️ Print Label"}
+        </button>
+        <Link to="/list-cards" className="nav-btn secondary">⬅ Back to List</Link>
       </div>
     </div>
     </>

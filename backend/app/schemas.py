@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, field_validator
 from typing import List, Optional
+from datetime import datetime
 
 VALID_GRADES = {3.0, 1.5, 1.0, 0.8, 0.4, 0.2}
 
@@ -64,6 +65,7 @@ class CardUpdate(BaseModel):
 class Card(CardBase):
     id: int
     user_id: int   # ✅ include owner
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
