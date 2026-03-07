@@ -173,6 +173,7 @@ async def import_cards(
                 book_low=to_float(row["BookLow"]),
                 grade=grade,
                 user_id=current.id,
+                book_values_updated_at=datetime.now(timezone.utc),
             )
             new_cards.append(card)
         except HTTPException:
@@ -695,11 +696,18 @@ def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends
     if not card:
         raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
 
-    # Capture value before any field changes
+    # Capture value + book values before any field changes
     old_value = card.value
+    BOOK_FIELDS = {"book_high", "book_high_mid", "book_mid", "book_low_mid", "book_low"}
+    old_books = {f: getattr(card, f) for f in BOOK_FIELDS}
 
     for field, value in updated.dict(exclude_unset=True).items():
         setattr(card, field, value)
+
+    # Reset book freshness timer if any book value changed
+    new_books = {f: getattr(card, f) for f in BOOK_FIELDS}
+    if new_books != old_books:
+        card.book_values_updated_at = datetime.now(timezone.utc)
 
     # Recalculate market factor and value after update
     settings = (

@@ -47,9 +47,13 @@ class Card(Base):
     value = Column(Float, nullable=True)
     previous_value = Column(Float, nullable=True)
     value_changed_at = Column(DateTime, nullable=True)
+    book_values_updated_at = Column(DateTime, nullable=True)
 
     # Free-text notes
     notes = Column(Text, nullable=True)
+
+    # Card variant attributes (JSON: parallel, refractor, short_print, autograph, numbered, traded, subset)
+    card_attributes = Column(JSON, nullable=True, default=dict)
 
     # Image paths (relative URLs)
     front_image = Column(String, nullable=True)

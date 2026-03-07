@@ -30,8 +30,10 @@ class CardBase(BaseModel):
 
 
     notes: Optional[str] = None
+    card_attributes: Optional[dict] = None
     previous_value: Optional[float] = None
     value_changed_at: Optional[datetime] = None
+    book_values_updated_at: Optional[datetime] = None
 
     # ✅ Always return relative paths
     front_image: Optional[str] = None
@@ -64,6 +66,7 @@ class CardUpdate(BaseModel):
     book_low: Optional[float] = None
 
     notes: Optional[str] = None
+    card_attributes: Optional[dict] = None
     front_image: Optional[str] = None
     back_image: Optional[str] = None
 

@@ -572,11 +572,14 @@ td.card-value-col, th.card-value-col {
   font-weight: bold;
 }
 
-/* Semantic value colors — kept hardcoded */
+/* Semantic value colors — used on CardDetail */
 .value-high    { background-color: #8fce00; color: #1b5e20; }
 .value-mid     { background-color: #4caf50; }
 .value-lowmid  { background-color: #2e7d32; }
 .value-low     { background-color: #1b5e20; }
+
+/* Above-book value — card trades above book_high */
+.value-above-book { background-color: #f59e0b; color: #1c1400; }
 
 .filter-input {
   padding: 4px 8px;
