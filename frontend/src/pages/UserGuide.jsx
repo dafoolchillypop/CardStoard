@@ -92,6 +92,12 @@ export default function UserGuide() {
             <li>Click <strong>✓ Save</strong>. If you changed book values, they automatically propagate to all other cards with the same player, brand, year, and card number.</li>
           </ol>
 
+          <p style={h4Style}>Card Detail</p>
+          <p style={{ marginTop: 0 }}>
+            Click the <strong>ℹ️</strong> icon in the action column (or a card's underlined card number if it has images)
+            to open the Card Detail page. See <strong>Section 3</strong> below for a full walkthrough.
+          </p>
+
           <p style={h4Style}>Duplicating and deleting</p>
           <ul style={{ marginTop: 0 }}>
             <li><strong>📋 Duplicate</strong> — creates a copy of the card and opens it for editing immediately.</li>
@@ -114,14 +120,56 @@ export default function UserGuide() {
 
           <p style={h4Style}>Pagination</p>
           <p style={{ marginTop: 0, marginBottom: 0 }}>
-            Use the selector in the centre toolbar to show <strong>10 / 25 / 50 / 100 / All</strong> cards per page.
-            The <strong>&lt;</strong> and <strong>&gt;</strong> arrows page through results. The total value shown updates to reflect the current filtered view.
+            My Cards defaults to showing <strong>All</strong> cards. Use the selector in the centre toolbar to switch to
+            a paged view (<strong>10 / 25 / 50 / 100</strong>). The <strong>&lt;</strong> and <strong>&gt;</strong> arrows
+            page through results. The total value shown updates to reflect the current filtered view.
           </p>
         </div>
 
-        {/* 3. Label Printing */}
+        {/* 3. Card Detail */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>3. Label Printing &amp; QR Codes</h3>
+          <h3 style={h3Style}>3. Card Detail</h3>
+
+          <p style={{ marginTop: 0 }}>
+            The Card Detail page shows a full view of a single card. Open it by clicking the <strong>ℹ️</strong> icon
+            in the action column, or by clicking the underlined card number of any card that has images attached.
+          </p>
+
+          <p style={h4Style}>What's shown</p>
+          <ul style={{ marginTop: 0 }}>
+            <li><strong>Label ID</strong> — the unique <code>CS-CD-XXXXXX</code> identifier printed on the physical label.</li>
+            <li><strong>Last updated</strong> — date and time the card record was last modified.</li>
+            <li><strong>Duplicate count</strong> — if you own multiple copies, a link shows the count and filters My Cards to those cards.</li>
+            <li><strong>Grade badge</strong> — condition grade with colour coding.</li>
+            <li><strong>Calculated value</strong> — computed from your book values and grade factors.</li>
+            <li><strong>Value change indicator</strong> — a green ↑ or red ↓ appears if the card's value changed within the past 90 days, with the old and new values shown on hover.</li>
+            <li><strong>Book freshness</strong> — a label shows if book values are aging (&gt; 30 days, amber) or stale (&gt; 90 days, red). If book values have <em>never</em> been entered, the label <strong>"Book: never updated"</strong> is clickable — clicking it returns you to My Cards with that card pinned at the top and already open for editing.</li>
+            <li><strong>Card images</strong> — front and back images at full size.</li>
+          </ul>
+
+          <p style={h4Style}>Notes</p>
+          <p style={{ marginTop: 0 }}>
+            Use the <strong>Notes</strong> text area to record anything about the card (provenance, condition details, purchase history, etc.).
+            Click <strong>Save Notes</strong> to persist them.
+          </p>
+
+          <p style={h4Style}>Actions</p>
+          <ul style={{ marginTop: 0 }}>
+            <li><strong>🖨️ Print Label</strong> — opens a label preview modal; click Print to send to your browser's print dialog.</li>
+            <li><strong>⬅ Back to List</strong> — returns to My Cards.</li>
+          </ul>
+
+          <p style={h4Style}>Navigating between cards</p>
+          <p style={{ marginTop: 0, marginBottom: 0 }}>
+            When you open Card Detail from My Cards, <strong>← Previous Card</strong> and <strong>Next Card →</strong> buttons
+            appear below the other actions. They step through your collection in the same sort order as the list you came from.
+            These buttons are not shown when accessing a card directly by URL.
+          </p>
+        </div>
+
+        {/* 4. Label Printing */}
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>4. Label Printing &amp; QR Codes</h3>
 
           <p style={{ marginTop: 0 }}>
             CardStoard generates Avery 6427 labels (1.75" × 0.75") with a QR code and card details for each card.
@@ -208,9 +256,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 5. Player Dictionary & Smart Fill */}
+        {/* 6. Player Dictionary & Smart Fill */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>5. Player Dictionary &amp; Smart Fill</h3>
+          <h3 style={h3Style}>6. Player Dictionary &amp; Smart Fill</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/dictionary" style={{ color: "var(--link)" }}>Player Dictionary</Link> is a reference
@@ -235,9 +283,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </ul>
         </div>
 
-        {/* 6. Analytics */}
+        {/* 7. Analytics */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>6. Analytics</h3>
+          <h3 style={h3Style}>7. Analytics</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/analytics" style={{ color: "var(--link)" }}>Analytics</Link> dashboard gives you a high-level
@@ -267,9 +315,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 7. Admin */}
+        {/* 8. Admin */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>7. Admin Settings</h3>
+          <h3 style={h3Style}>8. Admin Settings</h3>
 
           <p style={{ marginTop: 0 }}>
             All administrative tools are consolidated on the <Link to="/admin" style={{ color: "var(--link)" }}>Admin</Link> page.
@@ -321,9 +369,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </ul>
         </div>
 
-        {/* 8. Account & Security */}
+        {/* 9. Account & Security */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>8. Account &amp; Security</h3>
+          <h3 style={h3Style}>9. Account &amp; Security</h3>
 
           <p style={{ marginTop: 0 }}>
             Access your account settings by clicking your username in the top-right of the navigation bar.

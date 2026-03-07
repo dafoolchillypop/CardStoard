@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.6
+# 🧾 CardStoard — v1.7
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -34,6 +34,8 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 ### Collection Management
 - Add, edit, and delete cards with front & back image uploads
 - **Inline editing** — edit any card field directly in the card list without leaving the page
+- **Card Detail page** — full card view with label ID, value change indicator, book freshness, notes, duplicate count, and print label; prev/next navigation steps through the collection in sort order
+- **Book freshness quick-edit** — "Book: never updated" label on Card Detail is clickable and navigates directly to that card in edit mode in the list
 - Bulk import from CSV with grade validation
 - Filter by player, brand, year, grade, and rookie status (column-level search icons)
 - **Advanced multi-column sort** — configure up to 9 sort levels with direction; save as default sort order per user
@@ -183,6 +185,7 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.7** | Mar 2026 | Card Detail page (label ID, value change indicator, book freshness, notes, duplicate count, prev/next nav), default to show all cards, "Book: never updated" quick-edit link |
 | **v1.6** | Mar 2026 | Book value propagation, advanced multi-column sort, default sort persistence, batch label printing, dark mode FOUC fix, inline edit UX polish |
 | **v1.5** | Feb 2026 | Player dictionary expansion (Topps 1952–1980, 867+ entries), name autocomplete (Tab/Enter) |
 | **v1.4** | Feb 2026 | Dark mode (per-user, persisted), account management UX, EC2 deploy automation |

@@ -104,8 +104,9 @@ export default function ListCards() {
   const returnState = location.state || {};
 
   const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(returnState.page ?? 0);
-  const [limit, setLimit] = useState(returnState.limit ?? 25);
+  const [limit, setLimit] = useState(returnState.limit ?? "all");
   const [total, setTotal] = useState(0);
   const [settings, setSettings] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -131,6 +132,7 @@ export default function ListCards() {
   const defaultSortApplied = useRef(false);
   const tableSectionRef = useRef(null);
   const origBookVals = useRef({});
+  const autoEditRef = useRef(false);
   const [toast, setToast] = useState(null);
   const [refreshTick, setRefreshTick] = useState(0);
 
@@ -148,6 +150,19 @@ export default function ListCards() {
   }, [returnCardId]);
 
   const clearPin = () => { setReturnCardId(null); setPinnedCard(null); };
+
+  // Auto-enter edit mode when navigating back with editCardId in state (e.g. from "Book: never updated" link)
+  useEffect(() => {
+    if (!autoEditRef.current && returnState.editCardId) {
+      const target = pinnedCard?.id === returnState.editCardId
+        ? pinnedCard
+        : cards.find(c => c.id === returnState.editCardId);
+      if (target) {
+        handleEditStart(target);
+        autoEditRef.current = true;
+      }
+    }
+  }, [cards, pinnedCard]);
 
   // Focus the scroll container whenever cards load/refresh so arrow keys work immediately
   useEffect(() => {
@@ -314,8 +329,10 @@ export default function ListCards() {
       try {
         const res = await api.get("/cards/count");
         setTotal(res.data.count);
+        if (res.data.count === 0) setLoading(false); // empty collection — nothing to fetch
       } catch (err) {
         console.error("Error fetching count:", err);
+        setLoading(false);
       }
     };
     fetchCount();
@@ -391,6 +408,7 @@ export default function ListCards() {
     const fetchCards = async () => {
       // When showing all records, wait until the count is loaded
       if (limit === "all" && total === 0) return;
+      setLoading(true);
       try {
         const skip = page * (limit === "all" ? total : limit);
         const url =
@@ -401,6 +419,8 @@ export default function ListCards() {
         setCards(res.data);
       } catch (err) {
         console.error("Error fetching cards:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchCards();
@@ -612,7 +632,12 @@ export default function ListCards() {
 
         <div style={{ clear: "both" }} />  {/* ensures layout resets after float */}
       
-        {cards.length === 0 ? (
+        {loading ? (
+          <div style={{ textAlign: "center", marginTop: "3rem" }}>
+            <div className="cs-spinner" />
+            <p style={{ color: "var(--text-muted)", marginTop: "1rem", fontSize: "0.95rem" }}>Loading cards…</p>
+          </div>
+        ) : cards.length === 0 ? (
           <div style={{ textAlign: "center", marginTop: "2rem" }}>
             <p style={{ color: "#555" }}>No cards found.</p>
             <button className="nav-btn" onClick={() => navigate("/import-cards")}>
@@ -777,21 +802,31 @@ export default function ListCards() {
                     <tr
                       key={card.id}
                       style={(() => {
-                        if (isEditing) return { backgroundColor: "#f0f7ff", outline: "2px solid #1976d2" };
-                        if (selectedIds.has(card.id)) return { backgroundColor: "#dceeff" };
+                        // Book freshness left border
+                        const freshnessColor = (() => {
+                          if (!card.book_values_updated_at) return "#dc2626";
+                          const d = (Date.now() - new Date(card.book_values_updated_at)) / (1000 * 60 * 60 * 24);
+                          if (d < 30) return null;
+                          if (d < 90) return "#f59e0b";
+                          return "#dc2626";
+                        })();
+                        const freshnessBorder = freshnessColor ? { borderLeft: `4px solid ${freshnessColor}` } : {};
+
+                        if (isEditing) return { backgroundColor: "#f0f7ff", outline: "2px solid #1976d2", ...freshnessBorder };
+                        if (selectedIds.has(card.id)) return { backgroundColor: "#dceeff", ...freshnessBorder };
                         if (Number(card.id) === Number(returnCardId))
-                          return { backgroundColor: "#fffde7", outline: "2px solid #ffc107", transition: "background-color 0.5s" };
+                          return { backgroundColor: "#fffde7", outline: "2px solid #ffc107", transition: "background-color 0.5s", ...freshnessBorder };
                         const isDark = document.documentElement.getAttribute("data-theme") === "dark";
                         const def = isDark
                           ? { rg3: "#1d6090", g3: "#5f3d96", r: "#b8ad00" }
                           : { rg3: "#b8d8f7", g3: "#e8dcff", r: "#fff3c4" };
                         if (rookieVal && g === 3)
-                          return { backgroundColor: isDark ? def.rg3 : (settings?.row_color_rookie_grade3 || def.rg3) };
+                          return { backgroundColor: isDark ? def.rg3 : (settings?.row_color_rookie_grade3 || def.rg3), ...freshnessBorder };
                         if (g === 3)
-                          return { backgroundColor: isDark ? def.g3 : (settings?.row_color_grade3 || def.g3) };
+                          return { backgroundColor: isDark ? def.g3 : (settings?.row_color_grade3 || def.g3), ...freshnessBorder };
                         if (rookieVal)
-                          return { backgroundColor: isDark ? def.r : (settings?.row_color_rookie || def.r) };
-                        return {};
+                          return { backgroundColor: isDark ? def.r : (settings?.row_color_rookie || def.r), ...freshnessBorder };
+                        return freshnessBorder;
                       })()}
                     >
                       {/* Checkbox — only in selection mode */}
@@ -908,7 +943,7 @@ export default function ListCards() {
                         {isEditing
                           ? <input style={inp} value={editForm.card_number || ""} onChange={e => handleEditChange("card_number", e.target.value)} />
                           : card.front_image || card.back_image
-                            ? <span style={{ cursor: "pointer", color: "#007bff", textDecoration: "underline" }} onClick={() => navigate(`/card-detail/${card.id}`)}>{card.card_number}</span>
+                            ? <span style={{ cursor: "pointer", color: "#007bff", textDecoration: "underline" }} onClick={() => navigate(`/card-detail/${card.id}`, { state: { cardIds: sortedCards.map(c => c.id) } })}>{card.card_number}</span>
                             : <span>{card.card_number}</span>}
                       </td>
 
@@ -928,15 +963,8 @@ export default function ListCards() {
                           : card.grade && <span className={`badge badge-grade ${gradeClass}`}>{card.grade}</span>}
                       </td>
 
-                      {/* Book — tinted by freshness of book_values_updated_at */}
-                      <td className="book-col" style={(() => {
-                        const base = { textAlign: "center" };
-                        if (!card.book_values_updated_at) return base;
-                        const daysAgo = (Date.now() - new Date(card.book_values_updated_at)) / (1000 * 60 * 60 * 24);
-                        if (daysAgo < 30) return { ...base, backgroundColor: "rgba(34,197,94,0.12)" };
-                        if (daysAgo < 90) return { ...base, backgroundColor: "rgba(234,179,8,0.15)" };
-                        return base;
-                      })()} title={card.book_values_updated_at
+                      {/* Book — freshness shown via row left border */}
+                      <td className="book-col" style={{ textAlign: "center" }} title={card.book_values_updated_at
                         ? `Book values updated: ${new Date(card.book_values_updated_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`
                         : "Book values never updated"
                       }>
@@ -949,13 +977,15 @@ export default function ListCards() {
                                 </div>
                               ))}
                             </div>
-                          : <>
-                              {card.book_high && <span className="book-badge book-high">{card.book_high}</span>}
-                              {card.book_high_mid && <span className="book-badge book-highmid">{card.book_high_mid}</span>}
-                              {card.book_mid && <span className="book-badge book-mid">{card.book_mid}</span>}
-                              {card.book_low_mid && <span className="book-badge book-lowmid">{card.book_low_mid}</span>}
-                              {card.book_low && <span className="book-badge book-low">{card.book_low}</span>}
-                            </>}
+                          : (!card.book_values_updated_at && !card.book_high && !card.book_mid && !card.book_low)
+                            ? <span style={{ color: "#dc2626", fontWeight: 700, fontSize: "0.95rem" }} title="Book values never entered">!</span>
+                            : <>
+                                {card.book_high && <span className="book-badge book-high">{card.book_high}</span>}
+                                {card.book_high_mid && <span className="book-badge book-highmid">{card.book_high_mid}</span>}
+                                {card.book_mid && <span className="book-badge book-mid">{card.book_mid}</span>}
+                                {card.book_low_mid && <span className="book-badge book-lowmid">{card.book_low_mid}</span>}
+                                {card.book_low && <span className="book-badge book-low">{card.book_low}</span>}
+                              </>}
                       </td>
 
                       {/* Market Factor */}
@@ -1035,7 +1065,7 @@ export default function ListCards() {
                               title="Print label"
                             >🖨️</button>
                             <button
-                              onClick={() => navigate(`/card-detail/${card.id}`)}
+                              onClick={() => navigate(`/card-detail/${card.id}`, { state: { cardIds: sortedCards.map(c => c.id) } })}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.5rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
                               title="Card detail"
                             >ℹ️</button>

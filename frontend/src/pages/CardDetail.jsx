@@ -1,12 +1,18 @@
 // src/pages/CardDetail.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
 import LabelPreviewModal from "../components/LabelPreviewModal";
 
 export default function CardDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const cardIds = location.state?.cardIds ?? null;
+  const currentIndex = cardIds ? cardIds.indexOf(Number(id)) : -1;
+  const prevId = currentIndex > 0 ? cardIds[currentIndex - 1] : null;
+  const nextId = currentIndex >= 0 && currentIndex < cardIds.length - 1 ? cardIds[currentIndex + 1] : null;
   const [card, setCard] = useState(null);
   const [settings, setSettings] = useState(null);
   const [labelData, setLabelData] = useState(null);
@@ -62,6 +68,15 @@ export default function CardDetail() {
         hour: "2-digit", minute: "2-digit",
       })
     : "—";
+
+  // Book freshness
+  const bookFreshness = (() => {
+    if (!card.book_values_updated_at) return { color: "#dc2626", label: "Book: never updated" };
+    const d = (Date.now() - new Date(card.book_values_updated_at)) / (1000 * 60 * 60 * 24);
+    if (d < 30) return { color: null, label: null };
+    if (d < 90) return { color: "#f59e0b", label: "Book: aging" };
+    return { color: "#dc2626", label: "Book: stale" };
+  })();
 
   // ✅ Rookie check
   const isRookie =
@@ -146,9 +161,13 @@ export default function CardDetail() {
         {duplicateCount !== null && duplicateCount > 0 && (
           <>
             <span style={{ margin: "0 0.5rem" }}>·</span>
-            <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>
+            <Link
+              to="/list-cards"
+              state={{ lastNameFilter: card.last_name, yearFilter: String(card.year), brandFilter: card.brand }}
+              style={{ color: "var(--text-secondary)", fontWeight: 500, textDecoration: "underline", cursor: "pointer" }}
+            >
               {duplicateCount} duplicate{duplicateCount !== 1 ? "s" : ""} in collection
-            </span>
+            </Link>
           </>
         )}
       </div>
@@ -167,17 +186,39 @@ export default function CardDetail() {
             <span className={`badge badge-value ${valueClass}`}>
               Value: ${cardValue}
             </span>
-            {valueUp && (
+            {!card.book_values_updated_at ? (
               <span
-                title={`Was $${card.previous_value} → $${card.value}`}
-                style={{ color: "#28a745", fontSize: "1.2rem", marginLeft: "0.25rem", verticalAlign: "middle" }}
-              >↑</span>
+                title="Book values never entered"
+                style={{ color: "#dc2626", fontWeight: 700, fontSize: "1.2rem", marginLeft: "0.25rem", verticalAlign: "middle" }}
+              >!</span>
+            ) : (
+              <>
+                {valueUp && (
+                  <span
+                    title={`Was $${card.previous_value} → $${card.value}`}
+                    style={{ color: "#28a745", fontSize: "1.2rem", marginLeft: "0.25rem", verticalAlign: "middle" }}
+                  >↑</span>
+                )}
+                {valueDown && (
+                  <span
+                    title={`Was $${card.previous_value} → $${card.value}`}
+                    style={{ color: "#dc3545", fontSize: "1.2rem", marginLeft: "0.25rem", verticalAlign: "middle" }}
+                  >↓</span>
+                )}
+              </>
             )}
-            {valueDown && (
-              <span
-                title={`Was $${card.previous_value} → $${card.value}`}
-                style={{ color: "#dc3545", fontSize: "1.2rem", marginLeft: "0.25rem", verticalAlign: "middle" }}
-              >↓</span>
+            {bookFreshness.label && (
+              bookFreshness.label === "Book: never updated"
+                ? <span
+                    onClick={() => navigate("/list-cards", { state: { editCardId: card.id, returnCardId: card.id } })}
+                    style={{ color: bookFreshness.color, fontWeight: 600, fontSize: "0.85rem",
+                             marginLeft: "0.4rem", verticalAlign: "middle",
+                             cursor: "pointer", textDecoration: "underline" }}
+                  >· {bookFreshness.label}</span>
+                : <span style={{ color: bookFreshness.color, fontWeight: 600, fontSize: "0.85rem",
+                                 marginLeft: "0.4rem", verticalAlign: "middle" }}>
+                    · {bookFreshness.label}
+                  </span>
             )}
           </>
         )}
@@ -258,6 +299,24 @@ export default function CardDetail() {
         </button>
         <Link to="/list-cards" className="nav-btn secondary">⬅ Back to List</Link>
       </div>
+
+      {/* Prev / Next navigation */}
+      {cardIds && (
+        <div style={{ marginTop: "1rem", display: "flex", justifyContent: "center", gap: "0.75rem" }}>
+          <button
+            className="nav-btn secondary"
+            onClick={() => prevId && navigate(`/card-detail/${prevId}`, { state: { cardIds } })}
+            disabled={!prevId}
+            style={{ opacity: prevId ? 1 : 0.4, cursor: prevId ? "pointer" : "not-allowed" }}
+          >← Previous Card</button>
+          <button
+            className="nav-btn secondary"
+            onClick={() => nextId && navigate(`/card-detail/${nextId}`, { state: { cardIds } })}
+            disabled={!nextId}
+            style={{ opacity: nextId ? 1 : 0.4, cursor: nextId ? "pointer" : "not-allowed" }}
+          >Next Card →</button>
+        </div>
+      )}
     </div>
     </>
   );
