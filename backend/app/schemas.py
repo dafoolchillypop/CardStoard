@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, field_validator
 from typing import List, Optional
+from datetime import datetime
 
 VALID_GRADES = {3.0, 1.5, 1.0, 0.8, 0.4, 0.2}
 
@@ -27,6 +28,12 @@ class CardBase(BaseModel):
     market_factor: Optional[float] = None
     value: Optional[float] = None
 
+
+    notes: Optional[str] = None
+    card_attributes: Optional[dict] = None
+    previous_value: Optional[float] = None
+    value_changed_at: Optional[datetime] = None
+    book_values_updated_at: Optional[datetime] = None
 
     # ✅ Always return relative paths
     front_image: Optional[str] = None
@@ -58,12 +65,15 @@ class CardUpdate(BaseModel):
     book_low_mid: Optional[float] = None
     book_low: Optional[float] = None
 
+    notes: Optional[str] = None
+    card_attributes: Optional[dict] = None
     front_image: Optional[str] = None
     back_image: Optional[str] = None
 
 class Card(CardBase):
     id: int
     user_id: int   # ✅ include owner
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

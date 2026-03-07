@@ -104,8 +104,9 @@ export default function ListCards() {
   const returnState = location.state || {};
 
   const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(returnState.page ?? 0);
-  const [limit, setLimit] = useState(returnState.limit ?? 25);
+  const [limit, setLimit] = useState(returnState.limit ?? "all");
   const [total, setTotal] = useState(0);
   const [settings, setSettings] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -119,6 +120,8 @@ export default function ListCards() {
   const [pinnedCard, setPinnedCard] = useState(null);
   const [editingCardId, setEditingCardId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [variantOpenId, setVariantOpenId] = useState(null);
+  const [variantForm, setVariantForm] = useState({});
   const [labelData, setLabelData] = useState(null);
   const [labelLoading, setLabelLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -129,6 +132,7 @@ export default function ListCards() {
   const defaultSortApplied = useRef(false);
   const tableSectionRef = useRef(null);
   const origBookVals = useRef({});
+  const autoEditRef = useRef(false);
   const [toast, setToast] = useState(null);
   const [refreshTick, setRefreshTick] = useState(0);
 
@@ -146,6 +150,19 @@ export default function ListCards() {
   }, [returnCardId]);
 
   const clearPin = () => { setReturnCardId(null); setPinnedCard(null); };
+
+  // Auto-enter edit mode when navigating back with editCardId in state (e.g. from "Book: never updated" link)
+  useEffect(() => {
+    if (!autoEditRef.current && returnState.editCardId) {
+      const target = pinnedCard?.id === returnState.editCardId
+        ? pinnedCard
+        : cards.find(c => c.id === returnState.editCardId);
+      if (target) {
+        handleEditStart(target);
+        autoEditRef.current = true;
+      }
+    }
+  }, [cards, pinnedCard]);
 
   // Focus the scroll container whenever cards load/refresh so arrow keys work immediately
   useEffect(() => {
@@ -170,6 +187,8 @@ export default function ListCards() {
   };
 
   const handleEditStart = (card) => {
+    setVariantOpenId(null);
+    setVariantForm({});
     setEditingCardId(card.id);
     setEditForm({ ...card });
     origBookVals.current = {
@@ -244,6 +263,26 @@ export default function ListCards() {
     setEditForm({});
   };
 
+  const openVariant = (card) => {
+    setVariantOpenId(card.id);
+    setVariantForm(card.card_attributes || {});
+  };
+
+  const closeVariant = () => {
+    setVariantOpenId(null);
+    setVariantForm({});
+  };
+
+  const saveVariant = async (cardId) => {
+    try {
+      const res = await api.put(`/cards/${cardId}`, { card_attributes: variantForm });
+      setCards(prev => prev.map(c => c.id === cardId ? res.data : c));
+      closeVariant();
+    } catch (err) {
+      console.error("Variant save error:", err);
+    }
+  };
+
   const handleNewNameKeyDown = (e, field, names) => {
     if (e.key !== "Enter" && e.key !== "Tab") return;
     const typed = (editForm[field] || "").trim().toLowerCase();
@@ -290,8 +329,10 @@ export default function ListCards() {
       try {
         const res = await api.get("/cards/count");
         setTotal(res.data.count);
+        if (res.data.count === 0) setLoading(false); // empty collection — nothing to fetch
       } catch (err) {
         console.error("Error fetching count:", err);
+        setLoading(false);
       }
     };
     fetchCount();
@@ -367,6 +408,7 @@ export default function ListCards() {
     const fetchCards = async () => {
       // When showing all records, wait until the count is loaded
       if (limit === "all" && total === 0) return;
+      setLoading(true);
       try {
         const skip = page * (limit === "all" ? total : limit);
         const url =
@@ -377,6 +419,8 @@ export default function ListCards() {
         setCards(res.data);
       } catch (err) {
         console.error("Error fetching cards:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchCards();
@@ -588,7 +632,12 @@ export default function ListCards() {
 
         <div style={{ clear: "both" }} />  {/* ensures layout resets after float */}
       
-        {cards.length === 0 ? (
+        {loading ? (
+          <div style={{ textAlign: "center", marginTop: "3rem" }}>
+            <div className="cs-spinner" />
+            <p style={{ color: "var(--text-muted)", marginTop: "1rem", fontSize: "0.95rem" }}>Loading cards…</p>
+          </div>
+        ) : cards.length === 0 ? (
           <div style={{ textAlign: "center", marginTop: "2rem" }}>
             <p style={{ color: "#555" }}>No cards found.</p>
             <button className="nav-btn" onClick={() => navigate("/import-cards")}>
@@ -668,7 +717,7 @@ export default function ListCards() {
                   </th>
 
                   <th className="card-images-col" style={{ textAlign: "center", width: 65 }}>Images</th>
-                  <th className="action-col actions-col" style={{ textAlign: "center", width: 50 }}>
+                  <th className="action-col actions-col" style={{ textAlign: "center", width: 64 }}>
                     <button
                       onClick={() => {
                         if (editingCardId === "new") return;
@@ -753,21 +802,31 @@ export default function ListCards() {
                     <tr
                       key={card.id}
                       style={(() => {
-                        if (isEditing) return { backgroundColor: "#f0f7ff", outline: "2px solid #1976d2" };
-                        if (selectedIds.has(card.id)) return { backgroundColor: "#dceeff" };
+                        // Book freshness left border
+                        const freshnessColor = (() => {
+                          if (!card.book_values_updated_at) return "#dc2626";
+                          const d = (Date.now() - new Date(card.book_values_updated_at)) / (1000 * 60 * 60 * 24);
+                          if (d < 30) return null;
+                          if (d < 90) return "#f59e0b";
+                          return "#dc2626";
+                        })();
+                        const freshnessBorder = freshnessColor ? { borderLeft: `4px solid ${freshnessColor}` } : {};
+
+                        if (isEditing) return { backgroundColor: "#f0f7ff", outline: "2px solid #1976d2", ...freshnessBorder };
+                        if (selectedIds.has(card.id)) return { backgroundColor: "#dceeff", ...freshnessBorder };
                         if (Number(card.id) === Number(returnCardId))
-                          return { backgroundColor: "#fffde7", outline: "2px solid #ffc107", transition: "background-color 0.5s" };
+                          return { backgroundColor: "#fffde7", outline: "2px solid #ffc107", transition: "background-color 0.5s", ...freshnessBorder };
                         const isDark = document.documentElement.getAttribute("data-theme") === "dark";
                         const def = isDark
                           ? { rg3: "#1d6090", g3: "#5f3d96", r: "#b8ad00" }
                           : { rg3: "#b8d8f7", g3: "#e8dcff", r: "#fff3c4" };
                         if (rookieVal && g === 3)
-                          return { backgroundColor: isDark ? def.rg3 : (settings?.row_color_rookie_grade3 || def.rg3) };
+                          return { backgroundColor: isDark ? def.rg3 : (settings?.row_color_rookie_grade3 || def.rg3), ...freshnessBorder };
                         if (g === 3)
-                          return { backgroundColor: isDark ? def.g3 : (settings?.row_color_grade3 || def.g3) };
+                          return { backgroundColor: isDark ? def.g3 : (settings?.row_color_grade3 || def.g3), ...freshnessBorder };
                         if (rookieVal)
-                          return { backgroundColor: isDark ? def.r : (settings?.row_color_rookie || def.r) };
-                        return {};
+                          return { backgroundColor: isDark ? def.r : (settings?.row_color_rookie || def.r), ...freshnessBorder };
+                        return freshnessBorder;
                       })()}
                     >
                       {/* Checkbox — only in selection mode */}
@@ -808,13 +867,75 @@ export default function ListCards() {
                           : card.year}
                       </td>
 
-                      {/* Brand */}
-                      <td className="brand-col">
+                      {/* Brand — click to expand variant accordion */}
+                      <td className="brand-col" style={{ verticalAlign: "top" }}>
                         {isEditing
                           ? <select style={inp} value={editForm.brand || ""} onChange={e => handleEditChange("brand", e.target.value)}>
                               {(settings?.card_makes || []).map(m => <option key={m} value={m}>{m}</option>)}
                             </select>
-                          : card.brand && <span className="badge badge-brand">{card.brand}</span>}
+                          : <>
+                              <span
+                                className="badge badge-brand"
+                                style={{ cursor: "pointer", userSelect: "none" }}
+                                onClick={() => variantOpenId === card.id ? closeVariant() : openVariant(card)}
+                                title="Click to view/edit card variants"
+                              >{card.brand}</span>
+                              {/* Variant chips — shown when collapsed and attributes set */}
+                              {variantOpenId !== card.id && (() => {
+                                const a = card.card_attributes || {};
+                                const chips = [
+                                  a.parallel && <span key="par" style={{ display: "inline-block", fontSize: "0.65rem", background: "#7c3aed", color: "#fff", borderRadius: 10, padding: "1px 5px", marginLeft: 3 }}>{a.parallel}</span>,
+                                  a.refractor && <span key="ref" style={{ display: "inline-block", fontSize: "0.65rem", background: "#0ea5e9", color: "#fff", borderRadius: 10, padding: "1px 5px", marginLeft: 3 }}>Ref</span>,
+                                  a.autograph && <span key="auto" style={{ display: "inline-block", fontSize: "0.65rem", background: "#dc2626", color: "#fff", borderRadius: 10, padding: "1px 5px", marginLeft: 3 }}>Auto</span>,
+                                  a.short_print && <span key="sp" style={{ display: "inline-block", fontSize: "0.65rem", background: "#b45309", color: "#fff", borderRadius: 10, padding: "1px 5px", marginLeft: 3 }}>SP</span>,
+                                  a.numbered && <span key="num" style={{ display: "inline-block", fontSize: "0.65rem", background: "#374151", color: "#fff", borderRadius: 10, padding: "1px 5px", marginLeft: 3 }}>/{a.numbered}</span>,
+                                  a.traded && <span key="tr" style={{ display: "inline-block", fontSize: "0.65rem", background: "#065f46", color: "#fff", borderRadius: 10, padding: "1px 5px", marginLeft: 3 }}>T</span>,
+                                  a.subset && <span key="sub" style={{ display: "inline-block", fontSize: "0.65rem", background: "#6b7280", color: "#fff", borderRadius: 10, padding: "1px 5px", marginLeft: 3 }}>{a.subset}</span>,
+                                ].filter(Boolean);
+                                return chips.length > 0 ? <div style={{ marginTop: 3 }}>{chips}</div> : null;
+                              })()}
+                              {/* Variant accordion panel */}
+                              {variantOpenId === card.id && (
+                                <div style={{ marginTop: "6px", textAlign: "left", background: "var(--bg-input, #f8f8f8)", border: "1px solid var(--border-color, #ddd)", borderRadius: 6, padding: "8px 10px", minWidth: 200 }}>
+                                  {[
+                                    ["parallel",    "Parallel",   "text",     "e.g. Gold Prizm"],
+                                    ["numbered",    "Numbered",   "text",     "e.g. 100"],
+                                    ["subset",      "Subset",     "text",     "e.g. Future Stars"],
+                                  ].map(([key, label, type, ph]) => (
+                                    <div key={key} style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
+                                      <label style={{ fontSize: "0.72rem", width: 62, color: "var(--text-muted)", flexShrink: 0 }}>{label}</label>
+                                      <input
+                                        type={type}
+                                        placeholder={ph}
+                                        value={variantForm[key] || ""}
+                                        onChange={e => setVariantForm(f => ({ ...f, [key]: e.target.value || undefined }))}
+                                        style={{ fontSize: "0.78rem", padding: "2px 4px", border: "1px solid var(--border-color, #ccc)", borderRadius: 3, width: "100%", background: "var(--bg-input, #fff)" }}
+                                      />
+                                    </div>
+                                  ))}
+                                  {[
+                                    ["refractor",   "Refractor"],
+                                    ["short_print", "Short Print"],
+                                    ["autograph",   "Autograph"],
+                                    ["traded",      "Traded"],
+                                  ].map(([key, label]) => (
+                                    <label key={key} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: "0.78rem", marginBottom: 3, cursor: "pointer" }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={!!variantForm[key]}
+                                        onChange={e => setVariantForm(f => ({ ...f, [key]: e.target.checked || undefined }))}
+                                      />
+                                      {label}
+                                    </label>
+                                  ))}
+                                  <div style={{ display: "flex", gap: 5, marginTop: 6 }}>
+                                    <button onClick={() => saveVariant(card.id)} style={{ fontSize: "0.75rem", padding: "2px 8px", background: "#28a745", color: "#fff", border: "none", borderRadius: 3, cursor: "pointer" }}>Save</button>
+                                    <button onClick={closeVariant} style={{ fontSize: "0.75rem", padding: "2px 8px", background: "#6c757d", color: "#fff", border: "none", borderRadius: 3, cursor: "pointer" }}>Cancel</button>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                        }
                       </td>
 
                       {/* Card Number */}
@@ -822,7 +943,7 @@ export default function ListCards() {
                         {isEditing
                           ? <input style={inp} value={editForm.card_number || ""} onChange={e => handleEditChange("card_number", e.target.value)} />
                           : card.front_image || card.back_image
-                            ? <span style={{ cursor: "pointer", color: "#007bff", textDecoration: "underline" }} onClick={() => navigate(`/card-detail/${card.id}`)}>{card.card_number}</span>
+                            ? <span style={{ cursor: "pointer", color: "#007bff", textDecoration: "underline" }} onClick={() => navigate(`/card-detail/${card.id}`, { state: { cardIds: sortedCards.map(c => c.id) } })}>{card.card_number}</span>
                             : <span>{card.card_number}</span>}
                       </td>
 
@@ -842,8 +963,11 @@ export default function ListCards() {
                           : card.grade && <span className={`badge badge-grade ${gradeClass}`}>{card.grade}</span>}
                       </td>
 
-                      {/* Book */}
-                      <td className="book-col" style={{ textAlign: "center" }}>
+                      {/* Book — freshness shown via row left border */}
+                      <td className="book-col" style={{ textAlign: "center" }} title={card.book_values_updated_at
+                        ? `Book values updated: ${new Date(card.book_values_updated_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`
+                        : "Book values never updated"
+                      }>
                         {isEditing
                           ? <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                               {[["book_high","H"],["book_high_mid","HM"],["book_mid","M"],["book_low_mid","LM"],["book_low","L"]].map(([field, label]) => (
@@ -853,13 +977,15 @@ export default function ListCards() {
                                 </div>
                               ))}
                             </div>
-                          : <>
-                              {card.book_high && <span className="book-badge book-high">{card.book_high}</span>}
-                              {card.book_high_mid && <span className="book-badge book-highmid">{card.book_high_mid}</span>}
-                              {card.book_mid && <span className="book-badge book-mid">{card.book_mid}</span>}
-                              {card.book_low_mid && <span className="book-badge book-lowmid">{card.book_low_mid}</span>}
-                              {card.book_low && <span className="book-badge book-low">{card.book_low}</span>}
-                            </>}
+                          : (!card.book_values_updated_at && !card.book_high && !card.book_mid && !card.book_low)
+                            ? <span style={{ color: "#dc2626", fontWeight: 700, fontSize: "0.95rem" }} title="Book values never entered">!</span>
+                            : <>
+                                {card.book_high && <span className="book-badge book-high">{card.book_high}</span>}
+                                {card.book_high_mid && <span className="book-badge book-highmid">{card.book_high_mid}</span>}
+                                {card.book_mid && <span className="book-badge book-mid">{card.book_mid}</span>}
+                                {card.book_low_mid && <span className="book-badge book-lowmid">{card.book_low_mid}</span>}
+                                {card.book_low && <span className="book-badge book-low">{card.book_low}</span>}
+                              </>}
                       </td>
 
                       {/* Market Factor */}
@@ -875,15 +1001,21 @@ export default function ListCards() {
                         ) : null}
                       </td>
 
-                      {/* Card Value */}
+                      {/* Card Value — color matches nearest book tier */}
                       <td className="value-col" style={{ textAlign: "center" }}>
                         {(() => {
-                          const rounded = Math.round(Number(card.value) || 0);
-                          let valueClass = "value-low";
-                          if (rounded >= 500) valueClass = "value-high";
-                          else if (rounded >= 200) valueClass = "value-mid";
-                          else if (rounded >= 50) valueClass = "value-lowmid";
-                          return <span className={`badge badge-value ${valueClass}`}>{fmtDollar(rounded)}</span>;
+                          const v = Math.round(Number(card.value) || 0);
+                          const bH  = Number(card.book_high)     || null;
+                          const bHM = Number(card.book_high_mid)  || null;
+                          const bM  = Number(card.book_mid)       || null;
+                          const bLM = Number(card.book_low_mid)   || null;
+                          let valueClass = "book-low";
+                          if (bH  && v > bH)  valueClass = "value-above-book";
+                          else if (bH  && v >= bH)  valueClass = "book-high";
+                          else if (bHM && v >= bHM) valueClass = "book-highmid";
+                          else if (bM  && v >= bM)  valueClass = "book-mid";
+                          else if (bLM && v >= bLM) valueClass = "book-lowmid";
+                          return <span className={`badge badge-value ${valueClass}`}>{fmtDollar(v)}</span>;
                         })()}
                       </td>
 
@@ -932,6 +1064,11 @@ export default function ListCards() {
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.5rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
                               title="Print label"
                             >🖨️</button>
+                            <button
+                              onClick={() => navigate(`/card-detail/${card.id}`, { state: { cardIds: sortedCards.map(c => c.id) } })}
+                              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.5rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
+                              title="Card detail"
+                            >ℹ️</button>
                             <button
                               onClick={() => handleDelete(card)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.5rem", padding: "2px 4px", color: "#dc3545", width: "auto" }}

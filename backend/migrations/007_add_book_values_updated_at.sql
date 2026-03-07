@@ -1,0 +1,1 @@
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS book_values_updated_at TIMESTAMP;
