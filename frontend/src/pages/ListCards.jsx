@@ -105,8 +105,6 @@ export default function ListCards() {
 
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(returnState.page ?? 0);
-  const [limit, setLimit] = useState(returnState.limit ?? "all");
   const [total, setTotal] = useState(0);
   const [settings, setSettings] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -144,6 +142,7 @@ export default function ListCards() {
   const autoEditRef = useRef(false);
   const [toast, setToast] = useState(null);
   const [refreshTick, setRefreshTick] = useState(0);
+  const [jumpRate, setJumpRate] = useState(50);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -471,20 +470,14 @@ export default function ListCards() {
     return () => clearTimeout(timeout);
   }, [editForm.first_name, editForm.last_name, editForm.brand, editForm.year, editingCardId, settings?.enable_smart_fill]);
 
-  // Load page of cards when page/limit changes
+  // Load all cards whenever total or refreshTick changes
   useEffect(() => {
     if (skipNextFetchRef.current) { skipNextFetchRef.current = false; return; }
     const fetchCards = async () => {
-      // When showing all records, wait until the count is loaded
-      if (limit === "all" && total === 0) return;
+      if (total === 0) return;
       setLoading(true);
       try {
-        const skip = page * (limit === "all" ? total : limit);
-        const url =
-          limit === "all"
-            ? `/cards/?skip=0&limit=${total}`
-            : `/cards/?skip=${skip}&limit=${limit}`;
-        const res = await api.get(url);
+        const res = await api.get(`/cards/?skip=0&limit=${total}`);
         setCards(res.data);
       } catch (err) {
         console.error("Error fetching cards:", err);
@@ -493,31 +486,9 @@ export default function ListCards() {
       }
     };
     fetchCards();
-  }, [page, limit, location, total, refreshTick]);
+  }, [location, total, refreshTick]);
 
-  const handleLimitChange = (e) => {
-    const value = e.target.value;
-    clearPin(); clearCloneAnchor();
-    if (value === "all") {
-      setLimit("all");
-      setPage(0);
-    } else {
-      setLimit(parseInt(value, 10));
-      setPage(0);
-    }
-  };
 
-  const nextPage = () => {
-    if ((page + 1) * limit < total) { clearPin(); clearCloneAnchor(); setPage((prev) => prev + 1); }
-  };
-
-  const prevPage = () => {
-    clearPin(); clearCloneAnchor(); setPage((prev) => Math.max(prev - 1, 0));
-  };
-
-  const totalPages = limit === "all" ? 1 : Math.ceil(total / limit);
-
-  
   // Filtering Fields
   const filteredCards = cards.filter((card) => {
     const matchesLastName = lastNameFilter
@@ -614,6 +585,41 @@ export default function ListCards() {
     () => displayedCards.reduce((sum, card) => sum + Math.round(Number(card.value) || 0), 0), [displayedCards]
   );
 
+  const getAnchorIndex = () => {
+    const container = tableSectionRef.current;
+    if (!container || displayedCards.length === 0) return 0;
+    const scrollTop = container.scrollTop;
+    for (let i = 0; i < displayedCards.length; i++) {
+      const el = rowRefsMap.current[displayedCards[i].id];
+      if (el && el.offsetTop >= scrollTop) return i;
+    }
+    return displayedCards.length - 1;
+  };
+
+  const scrollToTop = () => {
+    clearCloneAnchor();
+    if (tableSectionRef.current) tableSectionRef.current.scrollTop = 0;
+  };
+
+  const scrollToBottom = () => {
+    clearCloneAnchor();
+    if (tableSectionRef.current) tableSectionRef.current.scrollTop = tableSectionRef.current.scrollHeight;
+  };
+
+  const jumpUp = () => {
+    if (displayedCards.length === 0) return;
+    clearCloneAnchor();
+    const targetIdx = Math.max(0, getAnchorIndex() - jumpRate);
+    setFocusCardId(displayedCards[targetIdx].id);
+  };
+
+  const jumpDown = () => {
+    if (displayedCards.length === 0) return;
+    clearCloneAnchor();
+    const targetIdx = Math.min(displayedCards.length - 1, getAnchorIndex() + jumpRate);
+    setFocusCardId(displayedCards[targetIdx].id);
+  };
+
     return (
       <>
       <AppHeader />
@@ -657,45 +663,20 @@ export default function ListCards() {
             )}
           </div>
 
-          {/* Center: inline paging + count + value */}
+          {/* Center: count [clear filters] · value */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.9rem", color: "#555" }}>
-            {limit !== "all" && (
-              <span
-                onClick={prevPage}
-                style={{ cursor: page === 0 ? "not-allowed" : "pointer", opacity: page === 0 ? 0.3 : 1, fontSize: "1.1rem", userSelect: "none" }}
-                aria-label="Previous page"
-              >{"<"}</span>
-            )}
-            <select
-              value={limit}
-              onChange={handleLimitChange}
-              style={{ fontSize: "0.9rem", border: "none", background: "transparent", cursor: "pointer", fontWeight: "bold", color: "#007bff" }}
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-              <option value="all">All</option>
-            </select>
-            <span>of <b>{total}</b> cards</span>
+            {(lastNameFilter || brandFilter || yearFilter || gradeFilter)
+              ? <>
+                  <span><span style={{ color: "#dc3545" }}>{displayedCards.length}</span><span style={{ color: "var(--accent-blue)" }}> of {total} cards</span></span>
+                  <span
+                    onClick={() => { setLastNameFilter(""); setBrandFilter(""); setYearFilter(""); setGradeFilter(""); clearCloneAnchor(); }}
+                    style={{ color: "#dc3545", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}
+                  >✕ Clear filters</span>
+                </>
+              : <span style={{ color: "var(--accent-blue)" }}>{total} cards</span>
+            }
             <span>&middot;</span>
             <span style={{ color: "#2e7d32" }}>Value: {fmtDollar(totalValue)}</span>
-            {limit !== "all" && (
-              <span
-                onClick={nextPage}
-                style={{ cursor: (page + 1) * limit >= total ? "not-allowed" : "pointer", opacity: (page + 1) * limit >= total ? 0.3 : 1, fontSize: "1.1rem", userSelect: "none" }}
-                aria-label="Next page"
-              >{">"}</span>
-            )}
-            {(lastNameFilter || brandFilter || yearFilter || gradeFilter) && (
-              <>
-                <span>&middot;</span>
-                <span
-                  onClick={() => { setLastNameFilter(""); setBrandFilter(""); setYearFilter(""); setGradeFilter(""); clearCloneAnchor(); }}
-                  style={{ color: "#dc3545", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}
-                >✕ Clear filters</span>
-              </>
-            )}
           </div>
 
           {/* Right: sort + print buttons */}
@@ -806,32 +787,67 @@ export default function ListCards() {
                   </th>
 
                   <th className="card-images-col" style={{ textAlign: "center", width: 65 }}>Images</th>
-                  <th className="action-col actions-col" style={{ textAlign: "center", width: 80 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}>
-                      <button
-                        onClick={() => pinnedRowId && setFocusCardId(pinnedRowId)}
-                        disabled={!pinnedRowId}
-                        style={{ background: "none", border: "none", padding: 0, fontSize: "1.1rem", width: "auto",
-                          cursor: pinnedRowId ? "pointer" : "default",
-                          opacity: pinnedRowId ? 1 : 0.2,
-                          color: "#0891b2" }}
-                        title={pinnedRowId ? "Jump to pinned row" : "No row pinned"}
-                      >📌</button>
-                      <button
-                        onClick={() => {
-                          if (editingCardId === "new") return;
-                          setEditingCardId("new");
-                          setEditForm({
-                            first_name: "", last_name: "", year: "", card_number: "",
-                            brand: settings?.card_makes?.[0] || "",
-                            grade: settings?.card_grades?.[0] || "",
-                            rookie: 0,
-                            book_high: "", book_high_mid: "", book_mid: "", book_low_mid: "", book_low: ""
-                          });
-                        }}
-                        style={{ background: "none", border: "none", cursor: editingCardId === "new" ? "not-allowed" : "pointer", fontSize: "1.5rem", color: editingCardId === "new" ? "#aaa" : "#28a745", width: "auto", padding: 0 }}
-                        title="Add"
-                      >＋</button>
+                  <th className="action-col actions-col" style={{ textAlign: "center", width: 140 }}>
+                    {/* Row 1: |◄ ▲ [rate] ▼ ►| */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1.2rem", marginBottom: "0.25rem" }}>
+                      <button onClick={scrollToTop} disabled={displayedCards.length === 0}
+                        style={{ background: "none", border: "none", padding: "2px 3px", fontSize: "0.85rem", width: "auto",
+                                 cursor: displayedCards.length === 0 ? "default" : "pointer",
+                                 opacity: displayedCards.length === 0 ? 0.25 : 1, color: "var(--text-secondary)" }}
+                        title="Jump to top">|◄</button>
+                      <button onClick={jumpUp} disabled={displayedCards.length === 0}
+                        style={{ background: "none", border: "none", padding: "2px 3px", fontSize: "0.85rem", width: "auto",
+                                 cursor: displayedCards.length === 0 ? "default" : "pointer",
+                                 opacity: displayedCards.length === 0 ? 0.25 : 1, color: "var(--text-secondary)" }}
+                        title={`Page up ${jumpRate} rows`}>▲</button>
+                      <select value={jumpRate} onChange={e => setJumpRate(Number(e.target.value))}
+                        style={{ fontSize: "0.75rem", padding: "1px 2px", border: "1px solid var(--border)",
+                                 background: "var(--bg-input)", color: "var(--text-primary)",
+                                 borderRadius: 4, cursor: "pointer", width: "auto" }}
+                        title="Page size (rows per step)">
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                        <option value={250}>250</option>
+                      </select>
+                      <button onClick={jumpDown} disabled={displayedCards.length === 0}
+                        style={{ background: "none", border: "none", padding: "2px 3px", fontSize: "0.85rem", width: "auto",
+                                 cursor: displayedCards.length === 0 ? "default" : "pointer",
+                                 opacity: displayedCards.length === 0 ? 0.25 : 1, color: "var(--text-secondary)" }}
+                        title={`Page down ${jumpRate} rows`}>▼</button>
+                      <button onClick={scrollToBottom} disabled={displayedCards.length === 0}
+                        style={{ background: "none", border: "none", padding: "2px 3px", fontSize: "0.85rem", width: "auto",
+                                 cursor: displayedCards.length === 0 ? "default" : "pointer",
+                                 opacity: displayedCards.length === 0 ? 0.25 : 1, color: "var(--text-secondary)" }}
+                        title="Jump to bottom">►|</button>
+                    </div>
+                    {/* Row 2: pin centered under left cluster, add centered under right cluster */}
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+                        <button onClick={() => pinnedRowId && setFocusCardId(pinnedRowId)} disabled={!pinnedRowId}
+                          style={{ background: "none", border: "none", padding: 0, fontSize: "1.1rem", width: "auto",
+                                   cursor: pinnedRowId ? "pointer" : "default",
+                                   opacity: pinnedRowId ? 1 : 0.2, color: "#0891b2" }}
+                          title={pinnedRowId ? "Jump to pinned row" : "No row pinned"}>📌</button>
+                      </div>
+                      <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+                        <button
+                          onClick={() => {
+                            if (editingCardId === "new") return;
+                            setEditingCardId("new");
+                            setEditForm({
+                              first_name: "", last_name: "", year: "", card_number: "",
+                              brand: settings?.card_makes?.[0] || "",
+                              grade: settings?.card_grades?.[0] || "",
+                              rookie: 0,
+                              book_high: "", book_high_mid: "", book_mid: "", book_low_mid: "", book_low: ""
+                            });
+                          }}
+                          style={{ background: "none", border: "none", fontSize: "1.5rem", width: "auto", padding: 0,
+                                   cursor: editingCardId === "new" ? "not-allowed" : "pointer",
+                                   color: editingCardId === "new" ? "#aaa" : "#28a745" }}
+                          title="Add card">＋</button>
+                      </div>
                     </div>
                   </th>
                 </tr>

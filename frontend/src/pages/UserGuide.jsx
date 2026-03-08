@@ -100,9 +100,25 @@ export default function UserGuide() {
 
           <p style={h4Style}>Duplicating and deleting</p>
           <ul style={{ marginTop: 0 }}>
-            <li><strong>📋 Duplicate</strong> — creates a copy of the card and opens it for editing immediately.</li>
+            <li><strong>📋 Duplicate</strong> — creates a copy of the card and inserts it directly below the source row, opened for editing. The table order is frozen until you save or cancel; cancelling removes the copy.</li>
             <li><strong>✕ Delete</strong> — asks for confirmation before permanently removing the card.</li>
           </ul>
+
+          <p style={h4Style}>Book freshness refresh</p>
+          <p style={{ marginTop: 0 }}>
+            Each row's Book column contains a small <strong>↻</strong> button (visible when book values are entered).
+            Click it to mark today as the book-value update date without opening edit mode — useful for confirming
+            prices are current after a quick check. The left border freshness indicator updates immediately.
+          </p>
+
+          <p style={h4Style}>Pin / bookmark</p>
+          <p style={{ marginTop: 0 }}>
+            Click the <strong>📌</strong> icon in any row's action column to pin that row. The pinned row is highlighted
+            and your selection is remembered across sessions (stored locally in your browser). Saving any card
+            automatically pins that row so you don't lose your place. To jump back to your pinned row from anywhere
+            in the list, click the <strong>📌</strong> button in the table header — the pinned row scrolls to the
+            centre of the view. Click the pin icon again on the same row to unpin.
+          </p>
 
           <p style={h4Style}>Filtering</p>
           <p style={{ marginTop: 0 }}>
@@ -118,11 +134,19 @@ export default function UserGuide() {
             <li>The Sort button turns <span style={{ color: "#1a7a1a", fontWeight: 600 }}>green</span> when a custom sort is active and shows the number of active levels.</li>
           </ul>
 
-          <p style={h4Style}>Pagination</p>
+          <p style={h4Style}>Table Navigation (CD Controls)</p>
           <p style={{ marginTop: 0, marginBottom: 0 }}>
-            My Cards defaults to showing <strong>All</strong> cards. Use the selector in the centre toolbar to switch to
-            a paged view (<strong>10 / 25 / 50 / 100</strong>). The <strong>&lt;</strong> and <strong>&gt;</strong> arrows
-            page through results. The total value shown updates to reflect the current filtered view.
+            All cards always load at once. The action column header contains a compact navigation block:
+          </p>
+          <ul style={{ marginTop: "0.4rem" }}>
+            <li><strong>|◄ / ►|</strong> — jump instantly to the top or bottom of the list.</li>
+            <li><strong>▲ / ▼</strong> — jump up or down by the selected jump rate.</li>
+            <li><strong>Jump rate selector</strong> — choose 25 / 50 / 100 / 250 rows per jump step.</li>
+            <li><strong>📌</strong> — jump to your currently pinned row.</li>
+            <li><strong>＋</strong> — open the inline new-card entry row.</li>
+          </ul>
+          <p style={{ marginTop: "0.4rem", marginBottom: 0 }}>
+            The centre toolbar shows the total card count and total collection value for the current filtered view.
           </p>
         </div>
 
@@ -143,7 +167,7 @@ export default function UserGuide() {
             <li><strong>Grade badge</strong> — condition grade with colour coding.</li>
             <li><strong>Calculated value</strong> — computed from your book values and grade factors.</li>
             <li><strong>Value change indicator</strong> — a green ↑ or red ↓ appears if the card's value changed within the past 90 days, with the old and new values shown on hover.</li>
-            <li><strong>Book freshness</strong> — a label shows if book values are aging (&gt; 30 days, amber) or stale (&gt; 90 days, red). If book values have <em>never</em> been entered, the label <strong>"Book: never updated"</strong> is clickable — clicking it returns you to My Cards with that card pinned at the top and already open for editing.</li>
+            <li><strong>Book freshness</strong> — a label shows if book values are aging (&gt; 30 days, amber) or stale (&gt; 90 days, red). If book values have <em>never</em> been entered, the label <strong>"Book: never updated"</strong> is clickable — clicking it returns you to My Cards with that card open for editing. A <strong>↻</strong> button next to the freshness label resets the timer to today without leaving the page.</li>
             <li><strong>Card images</strong> — front and back images at full size.</li>
           </ul>
 
@@ -341,6 +365,13 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
             Adjust the multipliers used by the valuation engine (grade factors, rookie factor, era factors).
             Changes are debounced and saved automatically. Click <strong>Revalue All Cards</strong> to recompute
             every card's value with the updated factors.
+          </p>
+
+          <p style={h4Style}>Book freshness reset</p>
+          <p style={{ marginTop: 0 }}>
+            Click <strong>⏱️ Reset Book Value Timers</strong> to mark today as the book-value update date for
+            every card that has book values entered. Use this after a bulk review session to establish a fresh
+            baseline — rows will show as current (no amber or red border) until 30 or 90 days pass.
           </p>
 
           <p style={h4Style}>Row colours</p>

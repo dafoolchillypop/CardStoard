@@ -20,6 +20,7 @@ PY_SRC="${SCRIPT_DIR}/provision-testusers.py"
 
 BACKEND_CONTAINER="stoarback"
 REMOTE_SCRIPT="/tmp/provision_testusers.py"
+EC2_REPO="~/CardStoard"
 
 EC2_HOST="ubuntu@3.221.77.22"
 EC2_KEY="$HOME/.ssh/id_rsa"
@@ -53,8 +54,10 @@ if $PROD; then
     echo "--- Provisioning test users on PRODUCTION (EC2) ---"
     echo "Target: $EC2_HOST — @cardstoard.prd users"
 
-    echo "Copying script to EC2 ..."
-    scp -i "$EC2_KEY" -q "$PY_SRC" "${EC2_HOST}:${REMOTE_SCRIPT}"
+    echo "Copying script into backend container ..."
+    # shellcheck disable=SC2029
+    ssh -i "$EC2_KEY" "$EC2_HOST" \
+        "docker cp ${EC2_REPO}/utils/provision-testusers.py ${BACKEND_CONTAINER}:${REMOTE_SCRIPT}"
 
     echo "Running inside backend container ..."
     # shellcheck disable=SC2029

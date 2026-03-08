@@ -4,6 +4,53 @@
 
 **<->**
 
+## v1.8 — Pin/Bookmark, Book Freshness UX & Test Data (March 2026)
+**Status:** Complete
+**Focus:** Collection navigation, book value freshness workflows, and QA tooling
+
+### Major Deliverables
+
+- **Pin / Bookmark Row**
+  - 📌 pin icon in every row's action column — click to pin, click again to unpin.
+  - Pinned row is highlighted (dark grey background + outline) and persists across sessions via `localStorage` (`cs-pinned-row` key).
+  - Any card save auto-pins that row so you never lose your place.
+  - 📌 button in the table header jumps directly to the pinned row, centered in the viewport.
+  - Clone and edit operations freeze the display order and restore scroll position on save or cancel.
+
+- **Book Freshness Refresh (↻ button)**
+  - New ↻ button in the Book column of each row — resets the freshness timer to today without opening edit mode.
+  - Same ↻ button added to the Card Detail page book freshness section.
+  - Powered by new `POST /cards/{id}/refresh-book-values` endpoint.
+
+- **Book Value Propagation Timer Fix**
+  - Previously, propagating book values to duplicate cards only reset the freshness timer on the card being directly edited.
+  - All matching duplicates now receive `book_values_updated_at = now` in the same propagation pass.
+
+- **Admin: Bulk Book Freshness Reset**
+  - New "↻ Reset Book Value Timers" action on the Admin page.
+  - Marks today as the book-value update date for every card with at least one book value entered.
+  - Useful for establishing a baseline after a bulk review of the collection.
+  - Powered by new `POST /cards/refresh-all-book-values` endpoint.
+
+- **Clone / Edit Scroll Preservation**
+  - Duplicating a card inserts the new row directly below the source row; the table order is frozen until the clone is saved or cancelled.
+  - Cancelling a clone deletes the in-progress card from the database and scrolls back to the source row.
+  - Saving any edit scrolls smoothly to the saved row (centred in viewport).
+
+- **Test User Seed Scripts** (`utils/provision-testusers.py` / `.sh`)
+  - Seeds 5 named test users with distinct collector profiles (80–240 cards each).
+  - 35 Hall-of-Fame players with real rookie years; realistic book values, freshness distributions (fresh/aging/stale/null), and card attributes.
+  - Valuation history with shaped growth curves (strong/moderate/slow/flat/S-curve) for 3–12 months of Analytics data.
+  - Supports `--prod` flag (seeds `@cardstoard.prd` domain against EC2) and `--reset` to wipe and reseed cleanly.
+
+- **Bug Fixes & Internal**
+  - `GlobalSettingsBase` Pydantic validator coerces NULL DB booleans to `False` — fixes ResponseValidationError for users with legacy settings rows.
+  - Admin loading guard replaced bare `<p>Loading...</p>` with full page shell (AppHeader + spinner).
+  - Login now applies dark mode theme before navigation to eliminate flash of light mode on dark-mode accounts.
+  - `applyTheme` exposed from `AuthContext` for use in Login and future callers.
+
+---
+
 ## v1.6 — Sort, Labels, Propagation & Dark Mode Fix (March 2026)
 **Status:** Complete
 **Focus:** Collection UX polish, label printing, and session reliability

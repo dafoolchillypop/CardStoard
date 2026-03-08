@@ -27,6 +27,18 @@
   - Smoke test / validation only: `./utils/deploy-ec2-prod.sh --check`
 - EC2 host: `ubuntu@3.221.77.22`, SSH key: `~/.ssh/id_rsa`
 
+## Documentation
+- **Update docs before merging to main.** Every user-facing change must be reflected in:
+  - `README.md` — version header, features list, version history table
+  - `MILESTONES.md` — add a version section for the release
+  - `frontend/src/pages/UserGuide.jsx` — in-app user guide
+  - `ARCHITECTURE.md` / `STRUCTURE.md` — if infrastructure, schema, or file layout changes
+- Create a `dev/v<version>-docs` branch for doc updates and merge alongside or just after the feature branch.
+
+## Shorthand Commands
+- **"go dev"** — commit staged/unstaged changes, run `./utils/deploy-local-dev.sh` (full rebuild + smoke test), then show a summary of all commits on the branch not yet in `main`
+- **"go prod"** — doc updates are required before merge; verify docs are current (README.md, MILESTONES.md, UserGuide.jsx) and prompt the user to confirm before proceeding; then merge current branch to `main`, push to GitHub, run `./utils/deploy-ec2-prod.sh` (full deploy + smoke test)
+
 ## Commit Style
 - Use concise conventional commit messages focused on the "why"
 - Always include the Co-Authored-By footer:

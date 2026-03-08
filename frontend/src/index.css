@@ -325,7 +325,7 @@ button:active {
 /* Center Actions columns */
 .card-section td.actions-col {
   text-align: center;
-  width: 50px;
+  width: 140px;
 }
 
 /* Shrink and center rookie, grade, and values columns */
