@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.7
+# 🧾 CardStoard — v1.8
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -40,7 +40,9 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - Filter by player, brand, year, grade, and rookie status (column-level search icons)
 - **Advanced multi-column sort** — configure up to 9 sort levels with direction; save as default sort order per user
 - Row color coding: Mint (lavender), Rookie (gold), Rookie + Mint (rose) — colors customizable in Admin
-- **Book value propagation** — updating book values on one card automatically updates all matching cards (same player/brand/year/card#)
+- **Book value propagation** — updating book values on one card automatically updates all matching cards (same player/brand/year/card#); propagation now also resets the freshness timer on all updated duplicates
+- **Book freshness refresh** — ↻ button per row (and on Card Detail) resets the freshness timer without opening edit mode; Admin has a bulk "Reset Book Value Timers" action to baseline your entire collection at once
+- **Pin / bookmark** — pin any row with the 📌 icon; the pin persists across sessions (localStorage); auto-pins after every save; jump to your pinned row from the 📌 button in the table header; clone/edit operations preserve table scroll position
 
 ### Valuation Engine
 - Book value inputs: Hi, Hi-Mid, Mid, Lo-Mid, Lo
@@ -95,6 +97,7 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - All tools in one place: settings, valuation factors, Smart Fill toggle, chatbot toggle, dark mode toggle, dictionary tools, card import, data management
 - Row color customization with color pickers and restore-defaults button
 - Card brand management via tag input
+- **Bulk book freshness reset** — mark today as the book-value update date for every card that has values entered
 
 ---
 
@@ -185,6 +188,7 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.8** | Mar 2026 | Pin/bookmark rows (localStorage persistence, auto-pin on save, jump-to-pin header button), book freshness ↻ refresh per row and on Card Detail, Admin bulk freshness reset, book value propagation timer fix, clone/edit scroll preservation, test user seed scripts |
 | **v1.7** | Mar 2026 | Card Detail page (label ID, value change indicator, book freshness, notes, duplicate count, prev/next nav), default to show all cards, "Book: never updated" quick-edit link |
 | **v1.6** | Mar 2026 | Book value propagation, advanced multi-column sort, default sort persistence, batch label printing, dark mode FOUC fix, inline edit UX polish |
 | **v1.5** | Feb 2026 | Player dictionary expansion (Topps 1952–1980, 867+ entries), name autocomplete (Tab/Enter) |
