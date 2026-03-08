@@ -134,11 +134,19 @@ export default function UserGuide() {
             <li>The Sort button turns <span style={{ color: "#1a7a1a", fontWeight: 600 }}>green</span> when a custom sort is active and shows the number of active levels.</li>
           </ul>
 
-          <p style={h4Style}>Pagination</p>
+          <p style={h4Style}>Table Navigation (CD Controls)</p>
           <p style={{ marginTop: 0, marginBottom: 0 }}>
-            My Cards defaults to showing <strong>All</strong> cards. Use the selector in the centre toolbar to switch to
-            a paged view (<strong>10 / 25 / 50 / 100</strong>). The <strong>&lt;</strong> and <strong>&gt;</strong> arrows
-            page through results. The total value shown updates to reflect the current filtered view.
+            All cards always load at once. The action column header contains a compact navigation block:
+          </p>
+          <ul style={{ marginTop: "0.4rem" }}>
+            <li><strong>|◄ / ►|</strong> — jump instantly to the top or bottom of the list.</li>
+            <li><strong>▲ / ▼</strong> — jump up or down by the selected jump rate.</li>
+            <li><strong>Jump rate selector</strong> — choose 25 / 50 / 100 / 250 rows per jump step.</li>
+            <li><strong>📌</strong> — jump to your currently pinned row.</li>
+            <li><strong>＋</strong> — open the inline new-card entry row.</li>
+          </ul>
+          <p style={{ marginTop: "0.4rem", marginBottom: 0 }}>
+            The centre toolbar shows the total card count and total collection value for the current filtered view.
           </p>
         </div>
 
