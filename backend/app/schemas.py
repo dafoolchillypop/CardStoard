@@ -85,6 +85,11 @@ class GlobalSettingsBase(BaseModel):
     enable_smart_fill: bool = False
     chatbot_enabled: bool = False
 
+    @field_validator("enable_smart_fill", "chatbot_enabled", "dark_mode", mode="before")
+    @classmethod
+    def coerce_null_bool(cls, v):
+        return False if v is None else v
+
     rookie_factor: Optional[float] = .80
     auto_factor: Optional[float] = 1.00
     mtgrade_factor: Optional[float] = .85

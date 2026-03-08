@@ -6,7 +6,7 @@ import api from "../api/api";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setUser, setIsLoggedIn } = useAuth();
+  const { setUser, setIsLoggedIn, applyTheme } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false); // ⏳ new
@@ -29,14 +29,19 @@ export default function Login() {
       // ✅ Populate user context immediately
       if (res.data.user) {
         setUser(res.data.user);
-        setIsLoggedIn(true);
       } else {
         // fallback: validate cookies
         const me = await api.get("/auth/me");
         setUser(me.data);
-        setIsLoggedIn(true);
       }
 
+      // Apply theme before navigating so the protected page renders in the right mode
+      try {
+        const sr = await api.get("/settings/");
+        applyTheme(sr.data.dark_mode);
+      } catch (_) {}
+
+      setIsLoggedIn(true);
       setForm({ email: "", password: "" });
       navigate("/"); // redirect home
     } catch (err) {

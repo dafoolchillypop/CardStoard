@@ -120,6 +120,15 @@ export default function ListCards() {
   const [pinnedCard, setPinnedCard] = useState(null);
   const [editingCardId, setEditingCardId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [cloningCardId, setCloningCardId] = useState(null);
+  const [cloningParentId, setCloningParentId] = useState(null);
+  const [displaySnapshot, setDisplaySnapshot] = useState(null); // frozen ordered id list during clone session
+  const [focusCardId, setFocusCardId] = useState(null);
+  const [pinnedRowId, setPinnedRowId] = useState(() => {
+    const stored = localStorage.getItem("cs-pinned-row");
+    return stored ? Number(stored) : null;
+  });
+  const rowRefsMap = useRef({});
   const [variantOpenId, setVariantOpenId] = useState(null);
   const [variantForm, setVariantForm] = useState({});
   const [labelData, setLabelData] = useState(null);
@@ -150,6 +159,15 @@ export default function ListCards() {
   }, [returnCardId]);
 
   const clearPin = () => { setReturnCardId(null); setPinnedCard(null); };
+  const clearCloneAnchor = () => { setCloningCardId(null); setCloningParentId(null); setDisplaySnapshot(null); };
+  const handlePinRow = (cardId) => {
+    setPinnedRowId(prev => {
+      const next = prev === cardId ? null : cardId;
+      if (next) localStorage.setItem("cs-pinned-row", String(next));
+      else localStorage.removeItem("cs-pinned-row");
+      return next;
+    });
+  };
 
   // Auto-enter edit mode when navigating back with editCardId in state (e.g. from "Book: never updated" link)
   useEffect(() => {
@@ -164,10 +182,12 @@ export default function ListCards() {
     }
   }, [cards, pinnedCard]);
 
-  // Focus the scroll container whenever cards load/refresh so arrow keys work immediately
+  // Focus the scroll container whenever cards load/refresh so arrow keys work immediately.
+  // preventScroll avoids browsers resetting the container's scroll position on focus.
   useEffect(() => {
-    tableSectionRef.current?.focus();
+    tableSectionRef.current?.focus({ preventScroll: true });
   }, [cards]);
+
 
   const handlePrintLabel = (card) => {
     setLabelLoading(card.id);
@@ -227,7 +247,11 @@ export default function ListCards() {
         setCards(prev => prev.map(c => c.id === cardId ? res.data : c));
         if (pinnedCard?.id === cardId) setPinnedCard(res.data);
         setEditingCardId(null);
-        reapplySort();
+        setPinnedRowId(cardId);
+        localStorage.setItem("cs-pinned-row", String(cardId));
+        // For clone saves the snapshot already keeps the row in place; only
+        // trigger a scroll for regular edits where the row may have moved.
+        if (cardId !== cloningCardId) setFocusCardId(cardId);
 
         const BOOK_FIELDS = ["book_high", "book_high_mid", "book_mid", "book_low_mid", "book_low"];
         const bookChanged = BOOK_FIELDS.some(f => (editForm[f] || null) !== (origBookVals.current[f] || null));
@@ -259,6 +283,19 @@ export default function ListCards() {
   };
 
   const handleEditCancel = () => {
+    if (cloningCardId) {
+      // Clone in progress — delete the new card and scroll back to parent
+      api.delete(`/cards/${cloningCardId}`).catch(console.error);
+      setCards(prev => prev.filter(c => c.id !== cloningCardId));
+      setTotal(prev => prev - 1);
+      setDisplaySnapshot(null);
+      setFocusCardId(cloningParentId);
+      setCloningCardId(null);
+      setCloningParentId(null);
+    } else if (editingCardId && editingCardId !== "new") {
+      // Regular edit cancel — scroll back to the row's current position
+      setFocusCardId(editingCardId);
+    }
     setEditingCardId(null);
     setEditForm({});
   };
@@ -300,10 +337,32 @@ export default function ListCards() {
       const res = await api.post("/cards/", fields);
       const newCard = res.data;
       skipNextFetchRef.current = true;
-      setCards(prev => [newCard, ...prev]);
+      // Insert directly after the original card in the raw cards array
+      setCards(prev => {
+        const idx = prev.findIndex(c => c.id === card.id);
+        if (idx >= 0) {
+          const next = [...prev];
+          next.splice(idx + 1, 0, newCard);
+          return next;
+        }
+        return [newCard, ...prev];
+      });
       setTotal(prev => prev + 1);
+      // Freeze the current display order with the new card inserted after its parent
+      const parentIdx = displayedCards.findIndex(c => c.id === card.id);
+      const snap = displayedCards.map(c => c.id);
+      snap.splice(parentIdx >= 0 ? parentIdx + 1 : snap.length, 0, newCard.id);
+      setDisplaySnapshot(snap);
+      setCloningCardId(newCard.id);
+      setCloningParentId(card.id);
       setEditingCardId(newCard.id);
       setEditForm({ ...newCard });
+      // Initialise origBookVals so clone save doesn't false-positive bookChanged
+      origBookVals.current = {
+        book_high: newCard.book_high, book_high_mid: newCard.book_high_mid,
+        book_mid: newCard.book_mid, book_low_mid: newCard.book_low_mid, book_low: newCard.book_low,
+      };
+      setFocusCardId(newCard.id);
     } catch (err) {
       console.error("Duplicate failed:", err);
       alert("Failed to duplicate card.");
@@ -320,6 +379,16 @@ export default function ListCards() {
     } catch (err) {
       console.error("Error deleting card:", err);
       alert("Failed to delete card.");
+    }
+  };
+
+  const handleRefreshBook = async (card) => {
+    try {
+      const res = await api.post(`/cards/${card.id}/refresh-book-values`);
+      setCards(prev => prev.map(c => c.id === card.id ? res.data : c));
+      if (pinnedCard?.id === card.id) setPinnedCard(res.data);
+    } catch (err) {
+      console.error("Book refresh failed:", err);
     }
   };
 
@@ -428,7 +497,7 @@ export default function ListCards() {
 
   const handleLimitChange = (e) => {
     const value = e.target.value;
-    clearPin();
+    clearPin(); clearCloneAnchor();
     if (value === "all") {
       setLimit("all");
       setPage(0);
@@ -439,11 +508,11 @@ export default function ListCards() {
   };
 
   const nextPage = () => {
-    if ((page + 1) * limit < total) { clearPin(); setPage((prev) => prev + 1); }
+    if ((page + 1) * limit < total) { clearPin(); clearCloneAnchor(); setPage((prev) => prev + 1); }
   };
 
   const prevPage = () => {
-    clearPin(); setPage((prev) => Math.max(prev - 1, 0));
+    clearPin(); clearCloneAnchor(); setPage((prev) => Math.max(prev - 1, 0));
   };
 
   const totalPages = limit === "all" ? 1 : Math.ceil(total / limit);
@@ -500,16 +569,36 @@ export default function ListCards() {
     return sortable;
   }, [filteredCards, sortConfig, settings]);
 
-  // Prepend the single return-navigation pinned card to the top
+  // When a clone session is active, use the frozen snapshot order (updated data only).
+  // Otherwise, apply pin-to-top for return navigation.
   const displayedCards = React.useMemo(() => {
-    if (!pinnedCard) return sortedCards;
-    const pinId = Number(pinnedCard.id);
-    const rest = sortedCards.filter(c => Number(c.id) !== pinId);
-    return [pinnedCard, ...rest];
-  }, [sortedCards, pinnedCard]);
+    if (displaySnapshot) {
+      const cardMap = new Map(cards.map(c => [c.id, c]));
+      if (pinnedCard) cardMap.set(pinnedCard.id, pinnedCard);
+      return displaySnapshot.map(id => cardMap.get(id)).filter(Boolean);
+    }
+
+    let result = [...sortedCards];
+    if (pinnedCard) {
+      const pinId = Number(pinnedCard.id);
+      result = [pinnedCard, ...result.filter(c => Number(c.id) !== pinId)];
+    }
+    return result;
+  }, [displaySnapshot, cards, sortedCards, pinnedCard]);
+
+  // Scroll a specific row into view after render (edit save / clone / cancel)
+  useEffect(() => {
+    if (!focusCardId) return;
+    const el = rowRefsMap.current[focusCardId];
+    if (el) {
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      setFocusCardId(null);
+    }
+  }, [focusCardId, displayedCards]);
 
   const requestSort = (key) => {
     clearPin();
+    clearCloneAnchor();
     const existing = sortConfig.find(s => s.key === key);
     const direction = (existing && sortConfig.length === 1 && existing.direction === "asc") ? "desc" : "asc";
     setSortConfig([{ key, direction }]);
@@ -602,7 +691,7 @@ export default function ListCards() {
               <>
                 <span>&middot;</span>
                 <span
-                  onClick={() => { setLastNameFilter(""); setBrandFilter(""); setYearFilter(""); setGradeFilter(""); }}
+                  onClick={() => { setLastNameFilter(""); setBrandFilter(""); setYearFilter(""); setGradeFilter(""); clearCloneAnchor(); }}
                   style={{ color: "#dc3545", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}
                 >✕ Clear filters</span>
               </>
@@ -717,22 +806,33 @@ export default function ListCards() {
                   </th>
 
                   <th className="card-images-col" style={{ textAlign: "center", width: 65 }}>Images</th>
-                  <th className="action-col actions-col" style={{ textAlign: "center", width: 64 }}>
-                    <button
-                      onClick={() => {
-                        if (editingCardId === "new") return;
-                        setEditingCardId("new");
-                        setEditForm({
-                          first_name: "", last_name: "", year: "", card_number: "",
-                          brand: settings?.card_makes?.[0] || "",
-                          grade: settings?.card_grades?.[0] || "",
-                          rookie: 0,
-                          book_high: "", book_high_mid: "", book_mid: "", book_low_mid: "", book_low: ""
-                        });
-                      }}
-                      style={{ background: "none", border: "none", cursor: editingCardId === "new" ? "not-allowed" : "pointer", fontSize: "1.5rem", color: editingCardId === "new" ? "#aaa" : "#28a745", width: "auto", padding: 0 }}
-                      title="Add"
-                    >＋</button>
+                  <th className="action-col actions-col" style={{ textAlign: "center", width: 80 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}>
+                      <button
+                        onClick={() => pinnedRowId && setFocusCardId(pinnedRowId)}
+                        disabled={!pinnedRowId}
+                        style={{ background: "none", border: "none", padding: 0, fontSize: "1.1rem", width: "auto",
+                          cursor: pinnedRowId ? "pointer" : "default",
+                          opacity: pinnedRowId ? 1 : 0.2,
+                          color: "#0891b2" }}
+                        title={pinnedRowId ? "Jump to pinned row" : "No row pinned"}
+                      >📌</button>
+                      <button
+                        onClick={() => {
+                          if (editingCardId === "new") return;
+                          setEditingCardId("new");
+                          setEditForm({
+                            first_name: "", last_name: "", year: "", card_number: "",
+                            brand: settings?.card_makes?.[0] || "",
+                            grade: settings?.card_grades?.[0] || "",
+                            rookie: 0,
+                            book_high: "", book_high_mid: "", book_mid: "", book_low_mid: "", book_low: ""
+                          });
+                        }}
+                        style={{ background: "none", border: "none", cursor: editingCardId === "new" ? "not-allowed" : "pointer", fontSize: "1.5rem", color: editingCardId === "new" ? "#aaa" : "#28a745", width: "auto", padding: 0 }}
+                        title="Add"
+                      >＋</button>
+                    </div>
                   </th>
                 </tr>
               </thead>
@@ -801,6 +901,7 @@ export default function ListCards() {
                   return (
                     <tr
                       key={card.id}
+                      ref={el => { if (el) rowRefsMap.current[card.id] = el; else delete rowRefsMap.current[card.id]; }}
                       style={(() => {
                         // Book freshness left border
                         const freshnessColor = (() => {
@@ -816,6 +917,8 @@ export default function ListCards() {
                         if (selectedIds.has(card.id)) return { backgroundColor: "#dceeff", ...freshnessBorder };
                         if (Number(card.id) === Number(returnCardId))
                           return { backgroundColor: "#fffde7", outline: "2px solid #ffc107", transition: "background-color 0.5s", ...freshnessBorder };
+                        if (Number(card.id) === Number(pinnedRowId))
+                          return { backgroundColor: "#6b7280", outline: "2px solid #374151", ...freshnessBorder };
                         const isDark = document.documentElement.getAttribute("data-theme") === "dark";
                         const def = isDark
                           ? { rg3: "#1d6090", g3: "#5f3d96", r: "#b8ad00" }
@@ -985,6 +1088,13 @@ export default function ListCards() {
                                 {card.book_mid && <span className="book-badge book-mid">{card.book_mid}</span>}
                                 {card.book_low_mid && <span className="book-badge book-lowmid">{card.book_low_mid}</span>}
                                 {card.book_low && <span className="book-badge book-low">{card.book_low}</span>}
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleRefreshBook(card); }}
+                                  title="Confirm book values are current (resets freshness timer)"
+                                  style={{ background: "none", border: "none", cursor: "pointer",
+                                           fontSize: "0.9rem", padding: "0 3px", color: "#0891b2",
+                                           verticalAlign: "middle", lineHeight: 1 }}
+                                >↻</button>
                               </>}
                       </td>
 
@@ -1049,6 +1159,15 @@ export default function ListCards() {
                         ) : (
                           <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
                             <button
+                              onClick={() => handlePinRow(card.id)}
+                              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", padding: "2px 4px", width: "auto",
+                                opacity: Number(card.id) === Number(pinnedRowId) ? 1 : 0.25,
+                                color: Number(card.id) === Number(pinnedRowId) ? "#0891b2" : "inherit",
+                                transform: Number(card.id) === Number(pinnedRowId) ? "none" : "rotate(45deg)",
+                                transition: "opacity 0.15s, color 0.15s" }}
+                              title={Number(card.id) === Number(pinnedRowId) ? "Unpin row" : "Pin row"}
+                            >📌</button>
+                            <button
                               onClick={() => handleEditStart(card)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.5rem", padding: "2px 4px", color: "#1976d2", width: "auto" }}
                               title="Edit"
@@ -1106,7 +1225,7 @@ export default function ListCards() {
       <SortModal
         sortConfig={sortConfig}
         hasDefault={settings?.default_sort?.length > 0}
-        onApply={(levels) => { clearPin(); setSortConfig(levels); }}
+        onApply={(levels) => { clearPin(); clearCloneAnchor(); setSortConfig(levels); }}
         onClose={() => { setShowSortModal(false); tableSectionRef.current?.focus(); }}
       />
     )}

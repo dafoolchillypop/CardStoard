@@ -56,6 +56,15 @@ export default function CardDetail() {
       .finally(() => setNotesSaving(false));
   };
 
+  const handleRefreshBook = async () => {
+    try {
+      const res = await api.post(`/cards/${id}/refresh-book-values`);
+      setCard(res.data);
+    } catch (err) {
+      console.error("Book refresh failed:", err);
+    }
+  };
+
   if (!card) return <p>Loading card...</p>;
 
   // Label ID — matches what's printed on the label
@@ -219,6 +228,15 @@ export default function CardDetail() {
                                  marginLeft: "0.4rem", verticalAlign: "middle" }}>
                     · {bookFreshness.label}
                   </span>
+            )}
+            {(card.book_high || card.book_mid || card.book_low) && (
+              <button
+                onClick={handleRefreshBook}
+                title="Confirm book values are current (resets freshness timer)"
+                style={{ background: "none", border: "none", cursor: "pointer",
+                         fontSize: "1.1rem", color: "#0891b2", marginLeft: "0.3rem",
+                         verticalAlign: "middle" }}
+              >↻</button>
             )}
           </>
         )}

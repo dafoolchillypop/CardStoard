@@ -176,8 +176,15 @@ export default function Admin() {
     </span>
   );
 
-  // ✅ Loading check should be here
-  if (!settings) return <p>Loading...</p>;
+  if (!settings) return (
+    <>
+      <AppHeader />
+      <div className="container" style={{ textAlign: "center", marginTop: "3rem" }}>
+        <div className="cs-spinner" />
+        <p style={{ color: "var(--text-muted)", marginTop: "1rem", fontSize: "0.95rem" }}>Loading settings…</p>
+      </div>
+    </>
+  );
 
   return (
     <>
@@ -359,6 +366,30 @@ export default function Admin() {
               💰 Apply Global Valuation 💰
             </button>
             <InfoIcon id="revalue" text="Recalculates the estimated value for every card in your collection using current factor settings." />
+          </div>
+
+          {/* ↻ Bulk Book Freshness Reset */}
+          <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!window.confirm("Reset the book freshness timer to today for all cards that have book values entered?")) return;
+                try {
+                  const res = await api.post("/cards/refresh-all-book-values");
+                  setModalMessage(res.data.message || `↻ Reset freshness for ${res.data.updated} cards.`);
+                  setShowModal(true);
+                } catch (err) {
+                  console.error(err);
+                  setModalMessage("❌ Error resetting freshness timers. See console for details.");
+                  setShowModal(true);
+                }
+              }}
+              className="val-btn"
+              style={{ background: "#0891b2" }}
+            >
+              ⏱️ Reset Book Value Timers ⏱️
+            </button>
+            <InfoIcon id="refreshbook" text="Marks today as the book-value update date for every card that has book values entered. Use this to establish a baseline after a bulk review." />
           </div>
 
           {/* Era Settings

@@ -818,12 +818,14 @@ def propagate_book_values(
         models.GlobalSettings.user_id == current.id
     ).first()
 
+    now = datetime.now(timezone.utc)
     for card in cards:
         card.book_high = book_high
         card.book_high_mid = book_high_mid
         card.book_mid = book_mid
         card.book_low_mid = book_low_mid
         card.book_low = book_low
+        card.book_values_updated_at = now
         if settings:
             avg_book = pick_avg_book(card)
             factor = calculate_market_factor(card, settings)
@@ -864,6 +866,27 @@ def delete_card(
     db.delete(card)
     db.commit()
     return {"ok": True, "message": "Card and associated images deleted"}
+
+
+# Confirm book values are current (touch freshness timestamp without changing values)
+@router.post("/{card_id}/refresh-book-values", response_model=schemas.Card)
+def refresh_book_values(
+    card_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    card = db.query(Card).filter(Card.id == card_id, Card.user_id == current.id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)
+    card.book_values_updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(card)
+    settings = db.query(models.GlobalSettings).filter(
+        models.GlobalSettings.user_id == current.id
+    ).first()
+    card.market_factor = calculate_market_factor(card, settings) if settings else None
+    return card
+
 
 # AI Quick Add
 #@router.post("/quick-add")
@@ -950,6 +973,30 @@ def compute_and_save_card_value(
     db.commit()
     db.refresh(card)
     return card
+
+# Reset book freshness timers for all cards that have book values
+@router.post("/refresh-all-book-values")
+def refresh_all_book_values(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    """Touch book_values_updated_at to now for every card with at least one book value set."""
+    from sqlalchemy import or_
+    updated = (
+        db.query(models.Card)
+        .filter(
+            models.Card.user_id == current.id,
+            or_(
+                models.Card.book_high.isnot(None),
+                models.Card.book_mid.isnot(None),
+                models.Card.book_low.isnot(None),
+            )
+        )
+        .update({"book_values_updated_at": datetime.now(timezone.utc)}, synchronize_session=False)
+    )
+    db.commit()
+    return {"updated": updated, "message": f"Reset freshness timer for {updated} cards."}
+
 
 # Recalculate All Card Values
 @router.post("/revalue-all")
