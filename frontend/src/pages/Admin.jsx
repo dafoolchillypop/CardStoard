@@ -429,6 +429,18 @@ export default function Admin() {
         </div>
         
 
+        {/* Set Import */}
+        <div className="card-section" style={{ marginTop: "1rem", textAlign: "center" }}>
+          <h3>Card Sets</h3>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.75rem" }}>
+            Import global set master lists. Users can then track completion card-by-card.
+          </p>
+          <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", justifyContent: "center" }}>
+            <button className="nav-btn" onClick={() => navigate("/sets")}>🗂️ View Sets</button>
+            <button className="nav-btn" onClick={() => navigate("/sets/import")}>📥 Import Set CSV</button>
+          </div>
+        </div>
+
         {/* Card Import */}
         <div className="card-section" style={{ marginTop: "1rem", textAlign: "center" }}>
           <h3 style={{ marginBottom: "1rem" }}>

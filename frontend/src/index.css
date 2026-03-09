@@ -652,3 +652,7 @@ td.card-value-col, th.card-value-col {
 .nav-btn:hover {
   opacity: 0.9;
 }
+
+/* Set detail table column widths */
+.set-section td.set-cardnum-col  { width: 55px;  text-align: center; }
+.set-section td.set-rookie-col   { width: 36px;  text-align: center; }

@@ -164,6 +164,53 @@ class UserRead(UserBase):
     class Config:
         orm_mode = True
 
+class SetEntryOut(BaseModel):
+    id: int
+    set_id: int
+    card_number: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    rookie: bool
+    # User overlay (None if not in user's build)
+    user_set_card_id: Optional[int] = None
+    in_build: bool = False
+    grade: Optional[float] = None
+    book_high: Optional[float] = None
+    book_high_mid: Optional[float] = None
+    book_mid: Optional[float] = None
+    book_low_mid: Optional[float] = None
+    book_low: Optional[float] = None
+    value: Optional[float] = None
+    notes: Optional[str] = None
+    book_values_updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class SetListOut(BaseModel):
+    id: int
+    name: str
+    brand: str
+    year: int
+    created_at: datetime
+    entry_count: int = 0
+    in_collection_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+class UserSetCardCreate(BaseModel):
+    set_entry_id: int
+
+class UserSetCardUpdate(BaseModel):
+    grade: Optional[float] = None
+    book_high: Optional[float] = None
+    book_high_mid: Optional[float] = None
+    book_mid: Optional[float] = None
+    book_low_mid: Optional[float] = None
+    book_low: Optional[float] = None
+    notes: Optional[str] = None
+
 class DictionaryEntryBase(BaseModel):
     first_name: str
     last_name: str

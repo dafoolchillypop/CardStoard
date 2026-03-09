@@ -53,9 +53,11 @@ export default function AppHeader() {
         <button className="header-btn" disabled title="Coming soon">
           ⚾ My Balls
         </button>
-        <button className="header-btn" disabled title="Coming soon">
-          🗂️ My Sets
-        </button>
+        <Link to="/sets">
+          <button className="header-btn" title="My Sets">
+            🗂️ My Sets
+          </button>
+        </Link>
         <button className="header-btn" disabled title="Coming soon">
           🧱 My Wax
         </button>
