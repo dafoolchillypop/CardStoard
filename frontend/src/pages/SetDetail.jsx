@@ -31,12 +31,19 @@ export default function SetDetail() {
   const [lastNameFilter, setLastNameFilter] = useState("");
   const [rookieFilter, setRookieFilter] = useState("all"); // "all" | "rookie" | "non"
   const [buildFilter, setBuildFilter] = useState("all"); // "all" | "in" | "out"
+  const [cardNumFilter, setCardNumFilter] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: "card_number", direction: "asc" });
+  const [openFilterCols, setOpenFilterCols] = useState(new Set());
 
   const [editingEntryId, setEditingEntryId] = useState(null);
   const [editForm, setEditForm] = useState({});
 
   const [focusEntryId, setFocusEntryId] = useState(null);
   const [jumpRate, setJumpRate] = useState(50);
+  const [pinnedEntryId, setPinnedEntryId] = useState(() => {
+    const stored = localStorage.getItem(`cs-pinned-set-entry-${setId}`);
+    return stored ? Number(stored) : null;
+  });
 
   const tableSectionRef = useRef(null);
   const rowRefsMap = useRef({});
@@ -78,15 +85,44 @@ export default function SetDetail() {
     }
   }, [focusEntryId, entries]);
 
-  // --- Filtering ---
-  const filteredEntries = entries.filter(e => {
-    if (lastNameFilter && !(e.last_name || "").toLowerCase().includes(lastNameFilter.toLowerCase())) return false;
-    if (rookieFilter === "rookie" && !e.rookie) return false;
-    if (rookieFilter === "non" && e.rookie) return false;
-    if (buildFilter === "in" && !e.in_build) return false;
-    if (buildFilter === "out" && e.in_build) return false;
-    return true;
-  });
+  // --- Filtering + Sorting ---
+  const filteredEntries = (() => {
+    let result = entries.filter(e => {
+      if (cardNumFilter && !(e.card_number || "").toLowerCase().includes(cardNumFilter.toLowerCase())) return false;
+      if (lastNameFilter && !(e.last_name || "").toLowerCase().includes(lastNameFilter.toLowerCase())) return false;
+      if (rookieFilter === "rookie" && !e.rookie) return false;
+      if (rookieFilter === "non" && e.rookie) return false;
+      if (buildFilter === "in" && !e.in_build) return false;
+      if (buildFilter === "out" && e.in_build) return false;
+      return true;
+    });
+
+    const { key, direction } = sortConfig;
+    result = [...result].sort((a, b) => {
+      let aVal, bVal;
+      if (key === "card_number") {
+        const toNum = s => { const n = parseInt((s || "").replace(/\D/g, ""), 10); return isNaN(n) ? 9999 : n; };
+        aVal = toNum(a.card_number); bVal = toNum(b.card_number);
+      } else if (key === "last_name") {
+        aVal = (a.last_name || "").toLowerCase(); bVal = (b.last_name || "").toLowerCase();
+      } else if (key === "rookie") {
+        aVal = a.rookie ? 1 : 0; bVal = b.rookie ? 1 : 0;
+      } else if (key === "grade") {
+        aVal = a.in_build ? (parseFloat(a.grade) || 0) : -1;
+        bVal = b.in_build ? (parseFloat(b.grade) || 0) : -1;
+      } else if (key === "value") {
+        aVal = a.in_build ? (Number(a.value) || 0) : -1;
+        bVal = b.in_build ? (Number(b.value) || 0) : -1;
+      } else {
+        return 0;
+      }
+      if (aVal < bVal) return direction === "asc" ? -1 : 1;
+      if (aVal > bVal) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  })();
 
   // --- Row color ---
   const getRowStyle = (entry) => {
@@ -98,13 +134,28 @@ export default function SetDetail() {
       ? { rg3: "#1d6090", g3: "#5f3d96", r: "#b8ad00" }
       : { rg3: "#b8d8f7", g3: "#e8dcff", r: "#fff3c4" };
 
+    let style;
     if (isRookie && g === 3)
-      return { backgroundColor: isDark ? def.rg3 : (settings?.row_color_rookie_grade3 || def.rg3) };
-    if (g === 3)
-      return { backgroundColor: isDark ? def.g3 : (settings?.row_color_grade3 || def.g3) };
-    if (isRookie)
-      return { backgroundColor: isDark ? def.r : (settings?.row_color_rookie || def.r) };
-    return {};
+      style = { backgroundColor: isDark ? def.rg3 : (settings?.row_color_rookie_grade3 || def.rg3) };
+    else if (g === 3)
+      style = { backgroundColor: isDark ? def.g3 : (settings?.row_color_grade3 || def.g3) };
+    else if (isRookie)
+      style = { backgroundColor: isDark ? def.r : (settings?.row_color_rookie || def.r) };
+    else
+      // In build but no special grade/rookie highlight — use the same green as DictionaryList
+      style = { backgroundColor: isDark ? "#052e16" : "#f0fdf4" };
+
+    // Freshness indicator (left border)
+    const freshnessColor = (() => {
+      if (!entry.book_values_updated_at) return "#dc2626";
+      const d = (Date.now() - new Date(entry.book_values_updated_at)) / (1000 * 60 * 60 * 24);
+      if (d < 30) return null;
+      if (d < 90) return "#f59e0b";
+      return "#dc2626";
+    })();
+    if (freshnessColor) style = { ...style, borderLeft: `4px solid ${freshnessColor}` };
+
+    return style;
   };
 
   // --- Actions ---
@@ -194,6 +245,38 @@ export default function SetDetail() {
     return filteredEntries.length - 1;
   };
 
+  const handlePinRow = (entryId) => {
+    setPinnedEntryId(prev => {
+      const next = prev === entryId ? null : entryId;
+      const key = `cs-pinned-set-entry-${setId}`;
+      if (next) localStorage.setItem(key, String(next));
+      else localStorage.removeItem(key);
+      return next;
+    });
+  };
+
+  const requestSort = (key) => {
+    setSortConfig(prev =>
+      prev.key === key
+        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
+        : { key, direction: "asc" }
+    );
+  };
+
+  const getSortIndicator = (key) => {
+    if (sortConfig.key !== key) return "";
+    return sortConfig.direction === "asc" ? " ▲" : " ▼";
+  };
+
+  const toggleFilter = (col) => {
+    setOpenFilterCols(prev => {
+      const next = new Set(prev);
+      if (next.has(col)) next.delete(col);
+      else next.add(col);
+      return next;
+    });
+  };
+
   const scrollToTop = () => { if (tableSectionRef.current) tableSectionRef.current.scrollTop = 0; };
   const scrollToBottom = () => { if (tableSectionRef.current) tableSectionRef.current.scrollTop = tableSectionRef.current.scrollHeight; };
   const jumpUp = () => {
@@ -251,12 +334,12 @@ export default function SetDetail() {
                 <span style={{ color: "#2e7d32" }}>Value: {fmtDollar(totalValue)}</span>
               </>
             )}
-            {(lastNameFilter || rookieFilter !== "all" || buildFilter !== "all") && (
+            {(cardNumFilter || lastNameFilter || rookieFilter !== "all" || buildFilter !== "all") && (
               <>
                 <span>&middot;</span>
                 <span style={{ color: "#dc3545" }}>{filteredEntries.length} shown</span>
                 <span
-                  onClick={() => { setLastNameFilter(""); setRookieFilter("all"); setBuildFilter("all"); }}
+                  onClick={() => { setLastNameFilter(""); setRookieFilter("all"); setBuildFilter("all"); setCardNumFilter(""); }}
                   style={{ color: "#dc3545", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}
                 >✕ Clear</span>
               </>
@@ -306,13 +389,39 @@ export default function SetDetail() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  <th className="set-cardnum-col" style={{ width: 55, textAlign: "center" }}>#</th>
-                  <th style={{ textAlign: "left", padding: "4px 8px" }}>First</th>
-                  <th style={{ textAlign: "left", padding: "4px 8px" }}>Last</th>
-                  <th className="set-rookie-col" style={{ width: 36, textAlign: "center" }}>RC</th>
-                  <th style={{ textAlign: "center", width: 65 }}>Grade</th>
+                  <th className="set-cardnum-col" style={{ width: 55, textAlign: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
+                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("card_number")}>#{ getSortIndicator("card_number") }</span>
+                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("card_number")} title="Filter by #">🔍</span>
+                    </div>
+                    {openFilterCols.has("card_number") && (
+                      <input type="text" value={cardNumFilter} onChange={e => setCardNumFilter(e.target.value)}
+                        placeholder="#..." autoFocus
+                        style={{ width: "100%", fontSize: "0.75rem", padding: "1px 2px", boxSizing: "border-box", marginTop: "2px" }} />
+                    )}
+                  </th>
+                  <th style={{ textAlign: "left", padding: "4px 8px", width: 80 }}>First</th>
+                  <th style={{ textAlign: "left", padding: "4px 8px", width: 100 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("last_name")}>Last{ getSortIndicator("last_name") }</span>
+                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("last_name")} title="Filter by last name">🔍</span>
+                    </div>
+                    {openFilterCols.has("last_name") && (
+                      <input type="text" value={lastNameFilter} onChange={e => setLastNameFilter(e.target.value)}
+                        placeholder="Filter..." autoFocus
+                        style={{ width: "100%", fontSize: "0.75rem", padding: "1px 2px", boxSizing: "border-box", marginTop: "2px" }} />
+                    )}
+                  </th>
+                  <th className="set-rookie-col" style={{ width: 36, textAlign: "center" }}>
+                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("rookie")} title="Sort by rookie">RC{ getSortIndicator("rookie") }</span>
+                  </th>
+                  <th style={{ textAlign: "center", width: 65 }}>
+                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("grade")} title="Sort by grade">Grade{ getSortIndicator("grade") }</span>
+                  </th>
                   <th className="book-col" style={{ textAlign: "center", minWidth: 180 }}>Book</th>
-                  <th className="card-value-col" style={{ textAlign: "center" }}>Value</th>
+                  <th className="card-value-col" style={{ textAlign: "center" }}>
+                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("value")} title="Sort by value">Value{ getSortIndicator("value") }</span>
+                  </th>
                   <th className="action-col actions-col" style={{ textAlign: "center", width: 140 }}>
                     {/* CD nav row 1 */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1.2rem", marginBottom: "0.25rem" }}>
@@ -347,8 +456,22 @@ export default function SetDetail() {
                                  opacity: filteredEntries.length === 0 ? 0.25 : 1, color: "var(--text-secondary)" }}
                         title="Jump to bottom">►|</button>
                     </div>
-                    {/* CD nav row 2: spacer */}
-                    <div style={{ height: "1.5rem" }} />
+                    {/* CD nav row 2: pin + add */}
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+                        <button onClick={() => pinnedEntryId && setFocusEntryId(pinnedEntryId)} disabled={!pinnedEntryId}
+                          style={{ background: "none", border: "none", padding: 0, fontSize: "1.1rem", width: "auto",
+                                   cursor: pinnedEntryId ? "pointer" : "default",
+                                   opacity: pinnedEntryId ? 1 : 0.5, color: "#ff0000" }}
+                          title={pinnedEntryId ? "Jump to pinned row" : "No row pinned"}>📌</button>
+                      </div>
+                      <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+                        <button disabled
+                          style={{ background: "none", border: "none", fontSize: "1.5rem", width: "auto", padding: 0,
+                                   color: "#28a745", cursor: "not-allowed" }}
+                          title="Set entries are managed via import">＋</button>
+                      </div>
+                    </div>
                   </th>
                 </tr>
               </thead>
@@ -382,10 +505,10 @@ export default function SetDetail() {
                       </td>
 
                       {/* First */}
-                      <td style={{ padding: "4px 8px" }}>{entry.first_name || ""}</td>
+                      <td style={{ padding: "4px 8px", width: 80 }}>{entry.first_name || ""}</td>
 
                       {/* Last */}
-                      <td style={{ padding: "4px 8px" }}>{entry.last_name || ""}</td>
+                      <td style={{ padding: "4px 8px", width: 100 }}>{entry.last_name || ""}</td>
 
                       {/* RC */}
                       <td className="set-rookie-col" style={{ textAlign: "center" }}>
@@ -461,6 +584,14 @@ export default function SetDetail() {
                         ) : entry.in_build ? (
                           <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
                             <button
+                              onClick={() => handlePinRow(entry.id)}
+                              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", padding: "2px 4px", width: "auto",
+                                opacity: Number(entry.id) === Number(pinnedEntryId) ? 1 : 0.5,
+                                color: Number(entry.id) === Number(pinnedEntryId) ? "#ff0000" : "inherit",
+                                transform: Number(entry.id) === Number(pinnedEntryId) ? "none" : "rotate(45deg)",
+                                transition: "opacity 0.15s, color 0.15s" }}
+                              title={Number(entry.id) === Number(pinnedEntryId) ? "Unpin row" : "Pin row"}>📌</button>
+                            <button
                               onClick={() => handleEditStart(entry)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#1976d2", width: "auto" }}
                               title="Edit">✏️</button>
@@ -470,10 +601,20 @@ export default function SetDetail() {
                               title="Remove from build">✕</button>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => handleAddToBuild(entry)}
-                            style={{ background: "none", border: "1px solid var(--border)", borderRadius: 4, cursor: "pointer", fontSize: "0.8rem", padding: "3px 8px", color: "#28a745", width: "auto" }}
-                            title="Add to build">＋ Add</button>
+                          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", alignItems: "center" }}>
+                            <button
+                              onClick={() => handlePinRow(entry.id)}
+                              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", padding: "2px 4px", width: "auto",
+                                opacity: Number(entry.id) === Number(pinnedEntryId) ? 1 : 0.5,
+                                color: Number(entry.id) === Number(pinnedEntryId) ? "#ff0000" : "inherit",
+                                transform: Number(entry.id) === Number(pinnedEntryId) ? "none" : "rotate(45deg)",
+                                transition: "opacity 0.15s, color 0.15s" }}
+                              title={Number(entry.id) === Number(pinnedEntryId) ? "Unpin row" : "Pin row"}>📌</button>
+                            <button
+                              onClick={() => handleAddToBuild(entry)}
+                              style={{ background: "none", border: "1px solid var(--border)", borderRadius: 4, cursor: "pointer", fontSize: "0.8rem", padding: "3px 8px", color: "#28a745", width: "auto" }}
+                              title="Add to build">＋ Add</button>
+                          </div>
                         )}
                       </td>
                     </tr>

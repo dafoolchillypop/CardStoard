@@ -31,7 +31,10 @@ export default function SetsPage() {
           </div>
         ) : sets.length === 0 ? (
           <div style={{ textAlign: "center", marginTop: "2rem" }}>
-            <p style={{ color: "var(--text-muted)" }}>No sets available. Import a set CSV from the Admin page.</p>
+            <p style={{ color: "var(--text-muted)", marginBottom: "1rem" }}>No sets available yet.</p>
+            <button className="nav-btn" onClick={() => navigate("/sets/import")}>
+              📥 Import Set CSV
+            </button>
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem", padding: "0 1rem" }}>

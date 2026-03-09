@@ -4,7 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, cast, Integer
 
 from app import models, schemas
 from app.database import get_db
@@ -65,7 +65,10 @@ def list_set_entries(
     entries = (
         db.query(models.SetEntry)
         .filter(models.SetEntry.set_id == set_id)
-        .order_by(models.SetEntry.card_number)
+        .order_by(
+            cast(func.regexp_replace(models.SetEntry.card_number, r"[^0-9]", "", "g"), Integer),
+            models.SetEntry.card_number,
+        )
         .all()
     )
 
