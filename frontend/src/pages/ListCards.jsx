@@ -49,7 +49,7 @@ function SortModal({ sortConfig, defaultSort, onApply, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
+      <div className="modal-box" style={{ width: 640, maxWidth: "95vw" }} onClick={e => e.stopPropagation()}>
         <h3 style={{ marginTop: 0 }}>Advanced Sort</h3>
 
         {levels.length === 0 && (
