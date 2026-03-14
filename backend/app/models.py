@@ -138,6 +138,20 @@ class UserSetCard(Base):
     book_values_updated_at = Column(DateTime, nullable=True)
     updated_at             = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
+class BoxBinder(Base):
+    __tablename__ = "boxes_binders"
+    id         = Column(Integer, primary_key=True)
+    user_id    = Column(Integer, ForeignKey(USER_ID_REF), nullable=False)
+    brand      = Column(String, nullable=False)
+    year       = Column(Integer, nullable=False)
+    name       = Column(String, nullable=True)
+    set_type   = Column(String, nullable=False, default="factory")
+    value      = Column(Float, nullable=True)
+    notes      = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    user       = relationship("User")
+
 class ValuationHistory(Base):
     __tablename__ = "valuation_history"
 

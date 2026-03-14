@@ -213,6 +213,34 @@ class UserSetCardUpdate(BaseModel):
     book_low: Optional[float] = None
     notes: Optional[str] = None
 
+BOX_TYPES = {"factory", "collated", "binder"}
+
+class BoxBinderBase(BaseModel):
+    brand:    str
+    year:     int
+    name:     Optional[str] = None
+    set_type: str = "factory"
+    value:    Optional[float] = None
+    notes:    Optional[str] = None
+
+class BoxBinderCreate(BoxBinderBase):
+    pass
+
+class BoxBinderUpdate(BaseModel):
+    brand:    Optional[str] = None
+    year:     Optional[int] = None
+    name:     Optional[str] = None
+    set_type: Optional[str] = None
+    value:    Optional[float] = None
+    notes:    Optional[str] = None
+
+class BoxBinderOut(BoxBinderBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    class Config: from_attributes = True
+
 class DictionaryEntryBase(BaseModel):
     first_name: str
     last_name: str
