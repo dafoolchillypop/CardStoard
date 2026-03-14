@@ -23,9 +23,9 @@ const SORT_COLUMNS = [
   { key: "rookie",        label: "Rookie" },
 ];
 
-function SortModal({ sortConfig, hasDefault, onApply, onClose }) {
+function SortModal({ sortConfig, defaultSort, onApply, onClose }) {
   const [levels, setLevels] = useState([...sortConfig]);
-  const [setAsDefault, setSetAsDefault] = useState(!!hasDefault);
+  const [setAsDefault, setSetAsDefault] = useState(false);
   const usedKeys = new Set(levels.map(l => l.key));
   const available = SORT_COLUMNS.filter(c => !usedKeys.has(c.key));
 
@@ -49,7 +49,7 @@ function SortModal({ sortConfig, hasDefault, onApply, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+      <div className="modal-box" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
         <h3 style={{ marginTop: 0 }}>Advanced Sort</h3>
 
         {levels.length === 0 && (
@@ -87,9 +87,12 @@ function SortModal({ sortConfig, hasDefault, onApply, onClose }) {
           Set as my default sort order
         </label>
 
-        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem", justifyContent: "center" }}>
           <button className="nav-btn" style={{ background: "#c62828" }}
             onClick={() => { onApply([]); onClose(); }}>Clear All</button>
+          <button className="nav-btn secondary" disabled={!defaultSort?.length}
+            onClick={() => setLevels([...defaultSort])}
+            title={defaultSort?.length ? "Restore saved default sort" : "No default sort saved"}>↺ Default</button>
           <button className="nav-btn secondary" onClick={onClose}>Cancel</button>
           <button className="nav-btn" onClick={handleApply}>Apply</button>
         </div>
@@ -627,7 +630,7 @@ export default function ListCards() {
 
         {/* Line 1: compact title */}
         <h2 className="page-header" style={{ textAlign: "center", margin: "0.5rem 0 0.25rem" }}>
-          My Cards
+          Cards
         </h2>
 
         {/* Line 2: single toolbar — left / center / right */}
@@ -1244,7 +1247,7 @@ export default function ListCards() {
     {showSortModal && (
       <SortModal
         sortConfig={sortConfig}
-        hasDefault={settings?.default_sort?.length > 0}
+        defaultSort={settings?.default_sort || []}
         onApply={(levels) => { clearPin(); clearCloneAnchor(); setSortConfig(levels); }}
         onClose={() => { setShowSortModal(false); tableSectionRef.current?.focus(); }}
       />

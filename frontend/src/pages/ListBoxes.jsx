@@ -20,6 +20,90 @@ function TypeBadge({ type }) {
   );
 }
 
+const BOX_SORT_COLUMNS = [
+  { key: "year",     label: "Year" },
+  { key: "brand",    label: "Brand" },
+  { key: "name",     label: "Name" },
+  { key: "set_type", label: "Type" },
+  { key: "value",    label: "Value" },
+];
+
+function SortBoxModal({ sortConfig, defaultSort, onApply, onClose }) {
+  const [levels, setLevels] = useState([...sortConfig]);
+  const [setAsDefault, setSetAsDefault] = useState(false);
+  const usedKeys = new Set(levels.map(l => l.key));
+  const available = BOX_SORT_COLUMNS.filter(c => !usedKeys.has(c.key));
+
+  const addLevel = () => {
+    if (available.length === 0) return;
+    setLevels(prev => [...prev, { key: available[0].key, direction: "asc" }]);
+  };
+  const removeLevel = (i) => setLevels(prev => prev.filter((_, idx) => idx !== i));
+  const updateLevel = (i, field, value) =>
+    setLevels(prev => prev.map((l, idx) => idx === i ? { ...l, [field]: value } : l));
+
+  const selStyle = { padding: "0.4rem", borderRadius: 4, border: "1px solid var(--border)", background: "var(--bg-input)", color: "var(--text-primary)" };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+        <h3 style={{ marginTop: 0 }}>Advanced Sort</h3>
+
+        {levels.length === 0 && (
+          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>No sort levels. Add one below.</p>
+        )}
+
+        {levels.map((level, i) => (
+          <div key={i} style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.5rem" }}>
+            <span style={{ color: "var(--text-muted)", fontSize: "0.85rem", width: 20 }}>{i + 1}.</span>
+            <select value={level.key} onChange={e => updateLevel(i, "key", e.target.value)} style={{ ...selStyle, flex: 1 }}>
+              {BOX_SORT_COLUMNS.filter(c => c.key === level.key || !usedKeys.has(c.key)).map(c => (
+                <option key={c.key} value={c.key}>{c.label}</option>
+              ))}
+            </select>
+            <select value={level.direction} onChange={e => updateLevel(i, "direction", e.target.value)} style={{ ...selStyle, width: 130 }}>
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </select>
+            <button onClick={() => removeLevel(i)}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+              title="Remove">✕</button>
+          </div>
+        ))}
+
+        <button onClick={addLevel} disabled={available.length === 0}
+          style={{ marginTop: "0.5rem", background: "none", border: "1px dashed var(--border)",
+            borderRadius: 6, padding: "0.35rem 0.75rem", cursor: available.length === 0 ? "not-allowed" : "pointer",
+            color: "var(--text-muted)", fontSize: "0.85rem", width: "100%" }}>
+          + Add Level
+        </button>
+
+        <label style={{ display: "flex", alignItems: "center", gap: "0.5rem",
+          marginTop: "1rem", fontSize: "0.9rem", color: "var(--text-secondary)", cursor: "pointer" }}>
+          <input type="checkbox" checked={setAsDefault} onChange={e => setSetAsDefault(e.target.checked)} />
+          Set as my default sort order
+        </label>
+
+        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem", justifyContent: "center" }}>
+          <button className="nav-btn" style={{ background: "#c62828" }}
+            onClick={() => { onApply([]); onClose(); }}>Clear All</button>
+          <button className="nav-btn secondary" disabled={!defaultSort?.length}
+            onClick={() => setLevels([...defaultSort])}
+            title={defaultSort?.length ? "Restore saved default sort" : "No default sort saved"}>↺ Default</button>
+          <button className="nav-btn secondary" onClick={onClose}>Cancel</button>
+          <button className="nav-btn" onClick={async () => {
+            if (setAsDefault) {
+              try { await api.put("/settings/", { default_sort_boxes: levels }); } catch (e) {}
+            }
+            onApply(levels);
+            onClose();
+          }}>Apply</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ListBoxes() {
   const navigate = useNavigate();
 
@@ -30,7 +114,8 @@ export default function ListBoxes() {
   const [brandFilter, setBrandFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [sortConfig, setSortConfig] = useState({ key: "year", direction: "desc" });
+  const [sortConfig, setSortConfig] = useState([{ key: "year", direction: "desc" }]);
+  const [showSortModal, setShowSortModal] = useState(false);
   const [openFilterCols, setOpenFilterCols] = useState(new Set());
 
   const [editingId, setEditingId] = useState(null);
@@ -44,6 +129,7 @@ export default function ListBoxes() {
 
   const tableSectionRef = useRef(null);
   const rowRefsMap = useRef({});
+  const defaultSortApplied = useRef(false);
 
   useEffect(() => {
     Promise.all([api.get("/boxes/"), api.get("/settings/")])
@@ -54,6 +140,16 @@ export default function ListBoxes() {
       .catch(err => console.error("Error loading boxes:", err))
       .finally(() => setLoading(false));
   }, []);
+
+  // Apply saved default sort on first settings load
+  useEffect(() => {
+    if (defaultSortApplied.current) return;
+    if (!settings) return;
+    defaultSortApplied.current = true;
+    if (settings.default_sort_boxes?.length > 0) {
+      setSortConfig(settings.default_sort_boxes);
+    }
+  }, [settings]);
 
   useEffect(() => {
     tableSectionRef.current?.focus({ preventScroll: true });
@@ -77,17 +173,18 @@ export default function ListBoxes() {
       return true;
     });
 
-    const { key, direction } = sortConfig;
     result = [...result].sort((a, b) => {
-      let aVal, bVal;
-      if (key === "year")     { aVal = a.year; bVal = b.year; }
-      else if (key === "brand")    { aVal = (a.brand || "").toLowerCase();    bVal = (b.brand || "").toLowerCase(); }
-      else if (key === "name")     { aVal = (a.name || "").toLowerCase();     bVal = (b.name || "").toLowerCase(); }
-      else if (key === "set_type") { aVal = a.set_type;                       bVal = b.set_type; }
-      else if (key === "value")    { aVal = Number(a.value) || 0;             bVal = Number(b.value) || 0; }
-      else return 0;
-      if (aVal < bVal) return direction === "asc" ? -1 : 1;
-      if (aVal > bVal) return direction === "asc" ? 1 : -1;
+      for (const { key, direction } of sortConfig) {
+        let aVal, bVal;
+        if (key === "year")          { aVal = a.year;                          bVal = b.year; }
+        else if (key === "brand")    { aVal = (a.brand || "").toLowerCase();   bVal = (b.brand || "").toLowerCase(); }
+        else if (key === "name")     { aVal = (a.name || "").toLowerCase();    bVal = (b.name || "").toLowerCase(); }
+        else if (key === "set_type") { aVal = a.set_type;                      bVal = b.set_type; }
+        else if (key === "value")    { aVal = Number(a.value) || 0;            bVal = Number(b.value) || 0; }
+        else continue;
+        if (aVal < bVal) return direction === "asc" ? -1 : 1;
+        if (aVal > bVal) return direction === "asc" ? 1 : -1;
+      }
       return 0;
     });
 
@@ -95,16 +192,14 @@ export default function ListBoxes() {
   })();
 
   const requestSort = (key) => {
-    setSortConfig(prev =>
-      prev.key === key
-        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
-        : { key, direction: key === "year" ? "desc" : "asc" }
-    );
+    const existing = sortConfig.find(s => s.key === key);
+    const direction = (existing && sortConfig.length === 1 && existing.direction === "asc") ? "desc" : "asc";
+    setSortConfig([{ key, direction }]);
   };
 
   const getSortIndicator = (key) => {
-    if (sortConfig.key !== key) return "";
-    return sortConfig.direction === "asc" ? " ▲" : " ▼";
+    if (sortConfig.length !== 1 || sortConfig[0].key !== key) return "";
+    return sortConfig[0].direction === "asc" ? " ▲" : " ▼";
   };
 
   const toggleFilter = (col) => {
@@ -233,16 +328,12 @@ export default function ListBoxes() {
             )}
           </div>
 
-          <div style={{ flex: 1, display: "flex", gap: "0.5rem", justifyContent: "flex-end", alignItems: "center" }}>
-            <input type="text" placeholder="Filter brand..." value={brandFilter} onChange={e => setBrandFilter(e.target.value)}
-              style={{ fontSize: "0.85rem", padding: "0.25rem 0.5rem", borderRadius: 4, border: "1px solid var(--border)", background: "var(--bg-input)", color: "var(--text-primary)", width: 130 }} />
-            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
-              style={{ fontSize: "0.85rem", padding: "0.25rem 0.4rem", borderRadius: 4, border: "1px solid var(--border)", background: "var(--bg-input)", color: "var(--text-primary)" }}>
-              <option value="all">All types</option>
-              <option value="factory">Factory</option>
-              <option value="collated">Collated</option>
-              <option value="binder">Binder</option>
-            </select>
+          <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
+            <button className="nav-btn" onClick={() => setShowSortModal(true)}
+              style={{ padding: "0.3rem 0.9rem", fontSize: "0.85rem", ...(sortConfig.length > 0 && { background: "#1a7a1a" }) }}
+              title="Advanced sort">
+              ⇅ Sort{sortConfig.length > 0 ? ` (${sortConfig.length})` : ""}
+            </button>
           </div>
         </div>
 
@@ -299,7 +390,19 @@ export default function ListBoxes() {
 
                   {/* Type */}
                   <th style={{ width: 90, textAlign: "center" }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("set_type")}>Type{getSortIndicator("set_type")}</span>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
+                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("set_type")}>Type{getSortIndicator("set_type")}</span>
+                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("set_type")} title="Filter by type">🔍</span>
+                    </div>
+                    {openFilterCols.has("set_type") && (
+                      <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} autoFocus
+                        style={{ width: "100%", fontSize: "0.75rem", padding: "1px 2px", boxSizing: "border-box", marginTop: "2px" }}>
+                        <option value="all">All</option>
+                        <option value="factory">Factory</option>
+                        <option value="collated">Collated</option>
+                        <option value="binder">Binder</option>
+                      </select>
+                    )}
                   </th>
 
                   {/* Value */}
@@ -440,6 +543,14 @@ export default function ListBoxes() {
           </div>
         )}
       </div>
+    {showSortModal && (
+      <SortBoxModal
+        sortConfig={sortConfig}
+        defaultSort={settings?.default_sort_boxes || []}
+        onApply={(levels) => setSortConfig(levels.length > 0 ? levels : [{ key: "year", direction: "desc" }])}
+        onClose={() => setShowSortModal(false)}
+      />
+    )}
     </>
   );
 }

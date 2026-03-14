@@ -100,7 +100,7 @@ export default function Analytics() {
     <>
       <AppHeader />
       <div className="container" style={{ textAlign: "center", maxWidth: "1000px" }}>
-        <h2 className="page-header">📈 Collection Analytics</h2>
+        <h2 className="page-header">Collection Analytics</h2>
 
         {/* --- Summary boxes --- */}
         <div
@@ -205,12 +205,22 @@ export default function Analytics() {
                       <XAxis dataKey="month" />
                       <YAxis
                         yAxisId="left"
-                        label={{ value: "Cards", position: "bottom", offset: 10, style: { fill: "#517fd4", fontWeight: "bold" },}}
+                        label={{
+                          content: ({ viewBox }) => {
+                            const cx = viewBox.x - 5;
+                            const cy = viewBox.y + viewBox.height / 2;
+                            return (
+                              <text transform={`translate(${cx},${cy}) rotate(-90)`} textAnchor="middle" fill="#517fd4" fontWeight="bold" fontSize={13}>
+                                Card Count
+                              </text>
+                            );
+                          }
+                        }}
                       />
                       <YAxis
                         yAxisId="right"
                         orientation="right"
-                        label={{ value: "Value ($)", position: "bottom", offset: 10, style: { fill: "#167e30", fontWeight: "bold" }, }}
+                        tickFormatter={(v) => `$${v.toLocaleString()}`}
                       />
                       <Tooltip
                         formatter={(v, n) => (n?.includes("Value") ? fmtDollar(v) : v)}
