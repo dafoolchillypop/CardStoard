@@ -4,6 +4,45 @@
 
 **<->**
 
+## v1.9 — Sets, Boxes/Binders & UI Polish (March 2026)
+**Status:** Complete
+**Focus:** Two new collection item types (Sets and Boxes/Binders), set checklist data, and UI improvements across Cards, Analytics, and nav
+
+### Major Deliverables
+
+- **My Sets (Checklists & Collection Tracking)**
+  - Global set checklists seeded with 39 Topps sets (1952–1990), totalling 17,504 cards across 869 players.
+  - Per-user set tracking: mark any checklist entry as "in your build" with grade, book values, and notes.
+  - Set list view shows entry count and in-collection count per set; freshness indicators on rows with book values.
+  - Column-level sort and filter on the set detail view (year, brand, card number, player, rookie flag).
+  - Inline editing — edit grade, book values, notes without leaving the page.
+  - Keyman Collectibles scraper utility (`utils/scrape_keyman.py`) for importing new set checklists.
+
+- **Per-User Set Visibility**
+  - Admin chip picker lets each user select which sets appear on their Sets page.
+  - Persisted as `visible_set_ids` JSON column in `global_settings`.
+  - Sets are organised by brand→year chips; select all/deselect all supported.
+
+- **Boxes & Binders**
+  - New collection item type for factory-sealed boxes, hand-collated sets, and binder-organised sets.
+  - Direct user-entered value (no grade-based calculation).
+  - Type badge: Factory (blue), Collated (amber), Binder (green).
+  - Full inline editing, CD player nav (same pattern as Cards), pin/bookmark row (localStorage).
+  - Multi-level advanced sort modal — save as default sort order per user (`default_sort_boxes` column in `global_settings`).
+
+- **UI & UX Improvements**
+  - Nav bar: removed "My" prefix from all collection nav buttons (Cards, Sets, Boxes/Binders, etc.).
+  - Cards page: renamed "My Cards" header to "Cards".
+  - Sort modals (Cards and Boxes): widened to 640px to comfortably fit the 4-button footer row.
+  - Analytics combined chart: fixed Y-axis label overlap with X-axis dates; left axis shows "Card Count" label vertically centred; right axis uses $ tick formatter.
+  - Removed emoji from Collection Analytics page header.
+
+- **Migrations**
+  - `011_add_boxes_binders.sql` — new `boxes_binders` table
+  - `012_add_default_sort_boxes.sql` — `default_sort_boxes` JSON column in `global_settings`
+
+---
+
 ## v1.8 — Pin/Bookmark, Book Freshness UX & Test Data (March 2026)
 **Status:** Complete
 **Focus:** Collection navigation, book value freshness workflows, and QA tooling

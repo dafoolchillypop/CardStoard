@@ -101,6 +101,57 @@ class GlobalSettings(Base):
 
     dark_mode = Column(Boolean, default=False)
     default_sort = Column(JSON, nullable=True, default=None)
+    default_sort_boxes = Column(JSON, nullable=True, default=None)
+    visible_set_ids = Column(JSON, nullable=True, default=None)
+
+class SetList(Base):
+    __tablename__ = "sets"
+    id         = Column(Integer, primary_key=True)
+    name       = Column(String, nullable=False)
+    brand      = Column(String, nullable=False)
+    year       = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    entries    = relationship("SetEntry", back_populates="set_list", cascade="all, delete-orphan")
+
+class SetEntry(Base):
+    __tablename__ = "set_entries"
+    id          = Column(Integer, primary_key=True)
+    set_id      = Column(Integer, ForeignKey("sets.id"))
+    card_number = Column(String, nullable=False)
+    first_name  = Column(String, nullable=True)
+    last_name   = Column(String, nullable=True)
+    rookie      = Column(Boolean, default=False)
+    set_list    = relationship("SetList", back_populates="entries")
+
+class UserSetCard(Base):
+    __tablename__ = "user_set_cards"
+    id                     = Column(Integer, primary_key=True)
+    user_id                = Column(Integer, ForeignKey(USER_ID_REF))
+    set_entry_id           = Column(Integer, ForeignKey("set_entries.id"))
+    grade                  = Column(Float, nullable=True)
+    book_high              = Column(Float, nullable=True)
+    book_high_mid          = Column(Float, nullable=True)
+    book_mid               = Column(Float, nullable=True)
+    book_low_mid           = Column(Float, nullable=True)
+    book_low               = Column(Float, nullable=True)
+    value                  = Column(Float, nullable=True)
+    notes                  = Column(Text, nullable=True)
+    book_values_updated_at = Column(DateTime, nullable=True)
+    updated_at             = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+
+class BoxBinder(Base):
+    __tablename__ = "boxes_binders"
+    id         = Column(Integer, primary_key=True)
+    user_id    = Column(Integer, ForeignKey(USER_ID_REF), nullable=False)
+    brand      = Column(String, nullable=False)
+    year       = Column(Integer, nullable=False)
+    name       = Column(String, nullable=True)
+    set_type   = Column(String, nullable=False, default="factory")
+    value      = Column(Float, nullable=True)
+    notes      = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    user       = relationship("User")
 
 class ValuationHistory(Base):
     __tablename__ = "valuation_history"

@@ -23,9 +23,9 @@ const SORT_COLUMNS = [
   { key: "rookie",        label: "Rookie" },
 ];
 
-function SortModal({ sortConfig, hasDefault, onApply, onClose }) {
+function SortModal({ sortConfig, defaultSort, onApply, onClose }) {
   const [levels, setLevels] = useState([...sortConfig]);
-  const [setAsDefault, setSetAsDefault] = useState(!!hasDefault);
+  const [setAsDefault, setSetAsDefault] = useState(false);
   const usedKeys = new Set(levels.map(l => l.key));
   const available = SORT_COLUMNS.filter(c => !usedKeys.has(c.key));
 
@@ -49,7 +49,7 @@ function SortModal({ sortConfig, hasDefault, onApply, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+      <div className="modal-box" style={{ width: 640, maxWidth: "95vw" }} onClick={e => e.stopPropagation()}>
         <h3 style={{ marginTop: 0 }}>Advanced Sort</h3>
 
         {levels.length === 0 && (
@@ -87,9 +87,12 @@ function SortModal({ sortConfig, hasDefault, onApply, onClose }) {
           Set as my default sort order
         </label>
 
-        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem", justifyContent: "center" }}>
           <button className="nav-btn" style={{ background: "#c62828" }}
             onClick={() => { onApply([]); onClose(); }}>Clear All</button>
+          <button className="nav-btn secondary" disabled={!defaultSort?.length}
+            onClick={() => setLevels([...defaultSort])}
+            title={defaultSort?.length ? "Restore saved default sort" : "No default sort saved"}>↺ Default</button>
           <button className="nav-btn secondary" onClick={onClose}>Cancel</button>
           <button className="nav-btn" onClick={handleApply}>Apply</button>
         </div>
@@ -627,7 +630,7 @@ export default function ListCards() {
 
         {/* Line 1: compact title */}
         <h2 className="page-header" style={{ textAlign: "center", margin: "0.5rem 0 0.25rem" }}>
-          My Cards
+          Cards
         </h2>
 
         {/* Line 2: single toolbar — left / center / right */}
@@ -827,7 +830,7 @@ export default function ListCards() {
                         <button onClick={() => pinnedRowId && setFocusCardId(pinnedRowId)} disabled={!pinnedRowId}
                           style={{ background: "none", border: "none", padding: 0, fontSize: "1.1rem", width: "auto",
                                    cursor: pinnedRowId ? "pointer" : "default",
-                                   opacity: pinnedRowId ? 1 : 0.2, color: "#0891b2" }}
+                                   opacity: pinnedRowId ? 1 : 0.5, color: "#ff0000" }}
                           title={pinnedRowId ? "Jump to pinned row" : "No row pinned"}>📌</button>
                       </div>
                       <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
@@ -877,10 +880,10 @@ export default function ListCards() {
                       </td>
                       <td className="book-col">
                         <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                          {[["book_high","H"],["book_high_mid","HM"],["book_mid","M"],["book_low_mid","LM"],["book_low","L"]].map(([field, label]) => (
+                          {[["book_high","H","High (NM-MT+)"],["book_high_mid","HM","High Mid (NM)"],["book_mid","M","Mid (EX)"],["book_low_mid","LM","Low Mid (VG)"],["book_low","L","Low (PR)"]].map(([field, label, title]) => (
                             <div key={field} style={{ display: "flex", alignItems: "center", gap: "2px" }}>
                               <span style={{ fontSize: "0.7rem", color: "#888", width: "18px", flexShrink: 0 }}>{label}</span>
-                              <input style={inp} type="number" value={editForm[field] || ""} onChange={e => handleEditChange(field, e.target.value)} />
+                              <input style={inp} type="number" title={title} value={editForm[field] || ""} onChange={e => handleEditChange(field, e.target.value)} />
                             </div>
                           ))}
                         </div>
@@ -987,7 +990,11 @@ export default function ListCards() {
                       </td>
 
                       {/* Brand — click to expand variant accordion */}
-                      <td className="brand-col" style={{ verticalAlign: "top" }}>
+                      <td className="brand-col" style={(() => {
+                        const a = card.card_attributes || {};
+                        const hasExtra = !isEditing && (variantOpenId === card.id || a.parallel || a.refractor || a.autograph || a.short_print || a.numbered || a.traded || a.subset);
+                        return hasExtra ? { verticalAlign: "top" } : { verticalAlign: "middle", textAlign: "center" };
+                      })()}>
                         {isEditing
                           ? <select style={inp} value={editForm.brand || ""} onChange={e => handleEditChange("brand", e.target.value)}>
                               {(settings?.card_makes || []).map(m => <option key={m} value={m}>{m}</option>)}
@@ -1089,21 +1096,21 @@ export default function ListCards() {
                       }>
                         {isEditing
                           ? <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                              {[["book_high","H"],["book_high_mid","HM"],["book_mid","M"],["book_low_mid","LM"],["book_low","L"]].map(([field, label]) => (
+                              {[["book_high","H","High (NM-MT+)"],["book_high_mid","HM","High Mid (NM)"],["book_mid","M","Mid (EX)"],["book_low_mid","LM","Low Mid (VG)"],["book_low","L","Low (PR)"]].map(([field, label, title]) => (
                                 <div key={field} style={{ display: "flex", alignItems: "center", gap: "2px" }}>
                                   <span style={{ fontSize: "0.7rem", color: "#888", width: "18px", flexShrink: 0 }}>{label}</span>
-                                  <input style={inp} type="number" value={editForm[field] || ""} onChange={e => handleEditChange(field, e.target.value)} />
+                                  <input style={inp} type="number" title={title} value={editForm[field] || ""} onChange={e => handleEditChange(field, e.target.value)} />
                                 </div>
                               ))}
                             </div>
                           : (!card.book_values_updated_at && !card.book_high && !card.book_mid && !card.book_low)
                             ? <span style={{ color: "#dc2626", fontWeight: 700, fontSize: "0.95rem" }} title="Book values never entered">!</span>
                             : <>
-                                {card.book_high && <span className="book-badge book-high">{card.book_high}</span>}
-                                {card.book_high_mid && <span className="book-badge book-highmid">{card.book_high_mid}</span>}
-                                {card.book_mid && <span className="book-badge book-mid">{card.book_mid}</span>}
-                                {card.book_low_mid && <span className="book-badge book-lowmid">{card.book_low_mid}</span>}
-                                {card.book_low && <span className="book-badge book-low">{card.book_low}</span>}
+                                {card.book_high && <span className="book-badge book-high" title="High (NM-MT+)">{card.book_high}</span>}
+                                {card.book_high_mid && <span className="book-badge book-highmid" title="High Mid (NM)">{card.book_high_mid}</span>}
+                                {card.book_mid && <span className="book-badge book-mid" title="Mid (EX)">{card.book_mid}</span>}
+                                {card.book_low_mid && <span className="book-badge book-lowmid" title="Low Mid (VG)">{card.book_low_mid}</span>}
+                                {card.book_low && <span className="book-badge book-low" title="Low (PR)">{card.book_low}</span>}
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleRefreshBook(card); }}
                                   title="Confirm book values are current (resets freshness timer)"
@@ -1177,8 +1184,8 @@ export default function ListCards() {
                             <button
                               onClick={() => handlePinRow(card.id)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", padding: "2px 4px", width: "auto",
-                                opacity: Number(card.id) === Number(pinnedRowId) ? 1 : 0.25,
-                                color: Number(card.id) === Number(pinnedRowId) ? "#0891b2" : "inherit",
+                                opacity: Number(card.id) === Number(pinnedRowId) ? 1 : 0.5,
+                                color: Number(card.id) === Number(pinnedRowId) ? "#ff0000" : "inherit",
                                 transform: Number(card.id) === Number(pinnedRowId) ? "none" : "rotate(45deg)",
                                 transition: "opacity 0.15s, color 0.15s" }}
                               title={Number(card.id) === Number(pinnedRowId) ? "Unpin row" : "Pin row"}
@@ -1240,7 +1247,7 @@ export default function ListCards() {
     {showSortModal && (
       <SortModal
         sortConfig={sortConfig}
-        hasDefault={settings?.default_sort?.length > 0}
+        defaultSort={settings?.default_sort || []}
         onApply={(levels) => { clearPin(); clearCloneAnchor(); setSortConfig(levels); }}
         onClose={() => { setShowSortModal(false); tableSectionRef.current?.focus(); }}
       />

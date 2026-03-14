@@ -47,20 +47,27 @@ export default function AppHeader() {
       <div className="app-header-center">
         <Link to="/list-cards">
           <button className="header-btn" title="View your collection">
-            📋 My Cards
+            📋 Cards
           </button>
         </Link>
         <button className="header-btn" disabled title="Coming soon">
-          ⚾ My Balls
+          ⚾ Balls
+        </button>
+        <Link to="/sets">
+          <button className="header-btn" title="My Sets">
+            🗂️ Sets
+          </button>
+        </Link>
+        <Link to="/boxes">
+          <button className="header-btn" title="Boxes / Binders">
+            📦 Boxes/Binders
+          </button>
+        </Link>
+        <button className="header-btn" disabled title="Coming soon">
+          🧱 Wax
         </button>
         <button className="header-btn" disabled title="Coming soon">
-          🗂️ My Sets
-        </button>
-        <button className="header-btn" disabled title="Coming soon">
-          🧱 My Wax
-        </button>
-        <button className="header-btn" disabled title="Coming soon">
-          📦 My Packs
+          📦 Packs
         </button>
       </div>
 

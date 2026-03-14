@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.8
+# 🧾 CardStoard — v1.9
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -10,9 +10,9 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 | Layer | Directory | Purpose / Key Contents |
 |--------|------------|-------------------------|
 | **Backend** | `backend/app/` | FastAPI core (auth, routes, models, services) |
-| | `backend/app/routes/` | REST endpoints: auth, cards, analytics, account, dictionary, chat, settings |
+| | `backend/app/routes/` | REST endpoints: auth, cards, analytics, account, dictionary, chat, settings, boxes, sets |
 | | `backend/app/services/` | Business logic: valuations, fuzzy match, image pipeline |
-| | `backend/app/models.py` | SQLAlchemy entities (Card, User, GlobalSettings, DictionaryEntry, ValuationHistory) |
+| | `backend/app/models.py` | SQLAlchemy entities (Card, User, GlobalSettings, SetList, SetEntry, UserSetCard, BoxBinder, DictionaryEntry, ValuationHistory) |
 | | `backend/app/schemas.py` | Pydantic models for validation & API I/O |
 | | `backend/app/data/` | Player dictionary seed data (867+ entries, Topps 1952–1980) |
 | **Frontend** | `frontend/src/` | React client app root |
@@ -43,6 +43,21 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - **Book value propagation** — updating book values on one card automatically updates all matching cards (same player/brand/year/card#); propagation now also resets the freshness timer on all updated duplicates
 - **Book freshness refresh** — ↻ button per row (and on Card Detail) resets the freshness timer without opening edit mode; Admin has a bulk "Reset Book Value Timers" action to baseline your entire collection at once
 - **Pin / bookmark** — pin any row with the 📌 icon; the pin persists across sessions (localStorage); auto-pins after every save; jump to your pinned row from the 📌 button in the table header; clone/edit operations preserve table scroll position
+
+### Sets (Checklists & Collection Tracking)
+- **My Sets** — browse global set checklists (39 Topps sets, 1952–1990, 17,504 cards); track which cards you own per set
+- Per-set build progress: entry count, in-collection count, freshness indicators per row
+- Inline editing of grade, book values, and notes directly in the set view
+- Column-level sort and filter (year, brand, name, card number, player, rookie)
+- Per-user set visibility — Admin chip picker lets each user choose which sets appear in their Sets page
+- Keyman Collectibles checklist scraper utility (`utils/scrape_keyman.py`) for importing new set data
+
+### Boxes & Binders
+- Track complete sets as standalone inventory items — factory-sealed boxes, hand-collated sets, or binder-organized sets
+- User-entered direct value (no grade-based calculation)
+- Type badge display: Factory (blue), Collated (amber), Binder (green)
+- Inline editing, CD player nav, multi-level sort with save-as-default per user
+- Pin / bookmark row — persists across sessions via localStorage
 
 ### Valuation Engine
 - Book value inputs: Hi, Hi-Mid, Mid, Lo-Mid, Lo
@@ -94,7 +109,8 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - Account deletion with confirmation
 
 ### Admin
-- All tools in one place: settings, valuation factors, Smart Fill toggle, chatbot toggle, dark mode toggle, dictionary tools, card import, data management
+- All tools in one place: settings, valuation factors, Smart Fill toggle, chatbot toggle, dark mode toggle, dictionary tools, card import, data management, set visibility
+- **Set visibility** — per-user chip picker to select which sets appear on the Sets page
 - Row color customization with color pickers and restore-defaults button
 - Card brand management via tag input
 - **Bulk book freshness reset** — mark today as the book-value update date for every card that has values entered
