@@ -9,15 +9,15 @@ const fmtDollar = (n) => {
   return `$${val.toLocaleString()}`;
 };
 
+const TYPE_COLORS = { factory: "#1976d2", collated: "#d97706", binder: "#16a34a" };
 const TYPE_LABELS = { factory: "Factory", collated: "Collated", binder: "Binder" };
 
 function TypeBadge({ type }) {
-  const styles = {
-    factory:  { background: "var(--accent-blue-muted, #dbeafe)", color: "var(--accent-blue, #1d4ed8)", border: "1px solid #93c5fd", borderRadius: 4, padding: "1px 7px", fontSize: "0.75rem", fontWeight: 600, whiteSpace: "nowrap" },
-    collated: { background: "#fef3c7", color: "#b45309", border: "1px solid #f59e0b", borderRadius: 4, padding: "1px 7px", fontSize: "0.75rem", fontWeight: 600, whiteSpace: "nowrap" },
-    binder:   { background: "#dcfce7", color: "#166534", border: "1px solid #4ade80", borderRadius: 4, padding: "1px 7px", fontSize: "0.75rem", fontWeight: 600, whiteSpace: "nowrap" },
-  };
-  return <span style={styles[type] || styles.factory}>{TYPE_LABELS[type] || type}</span>;
+  return (
+    <span className="badge" style={{ backgroundColor: TYPE_COLORS[type] || TYPE_COLORS.factory, marginRight: 0 }}>
+      {TYPE_LABELS[type] || type}
+    </span>
+  );
 }
 
 export default function ListBoxes() {
@@ -280,8 +280,8 @@ export default function ListBoxes() {
                   </th>
 
                   {/* Brand */}
-                  <th style={{ width: 110, textAlign: "left", padding: "4px 8px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                  <th style={{ width: 110, textAlign: "center", padding: "4px 8px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
                       <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("brand")}>Brand{getSortIndicator("brand")}</span>
                       <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("brand")} title="Filter by brand">🔍</span>
                     </div>
@@ -293,7 +293,7 @@ export default function ListBoxes() {
                   </th>
 
                   {/* Name */}
-                  <th style={{ textAlign: "left", padding: "4px 8px" }}>
+                  <th style={{ width: 180, textAlign: "center", padding: "4px 8px" }}>
                     <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("name")}>Name{getSortIndicator("name")}</span>
                   </th>
 
@@ -308,11 +308,11 @@ export default function ListBoxes() {
                   </th>
 
                   {/* Notes */}
-                  <th style={{ textAlign: "left", padding: "4px 8px" }}>Notes</th>
+                  <th style={{ width: 160, textAlign: "center", padding: "4px 8px" }}>Notes</th>
 
                   {/* Actions — CD nav */}
-                  <th className="action-col actions-col" style={{ textAlign: "center", width: 140 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1.2rem", marginBottom: "0.25rem" }}>
+                  <th className="action-col actions-col" style={{ textAlign: "center", width: 140, minWidth: 140 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1.2rem", marginBottom: "0.25rem", whiteSpace: "nowrap" }}>
                       <button onClick={scrollToTop}    disabled={filteredBoxes.length === 0} style={cdBtn(filteredBoxes.length === 0)} title="Jump to top">|◄</button>
                       <button onClick={jumpUp}         disabled={filteredBoxes.length === 0} style={cdBtn(filteredBoxes.length === 0)} title={`Jump up ${jumpRate} rows`}>▲</button>
                       <select value={jumpRate} onChange={e => setJumpRate(Number(e.target.value))}
@@ -363,16 +363,16 @@ export default function ListBoxes() {
                       </td>
 
                       {/* Brand */}
-                      <td style={{ padding: "4px 8px", width: 110 }}>
+                      <td style={{ padding: "4px 8px", width: 110, textAlign: "center" }}>
                         {isEditing
                           ? <select style={inp} value={editForm.brand} onChange={e => handleEditChange("brand", e.target.value)}>
                               {cardMakes.map(m => <option key={m} value={m}>{m}</option>)}
                             </select>
-                          : box.brand}
+                          : <span className="badge badge-brand" style={{ marginRight: 0 }}>{box.brand}</span>}
                       </td>
 
                       {/* Name */}
-                      <td style={{ padding: "4px 8px" }}>
+                      <td style={{ padding: "4px 8px", width: 180, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {isEditing
                           ? <input style={inp} type="text" value={editForm.name} onChange={e => handleEditChange("name", e.target.value)} placeholder="Optional name" />
                           : box.name || <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>—</span>}
@@ -399,7 +399,7 @@ export default function ListBoxes() {
                       </td>
 
                       {/* Notes */}
-                      <td style={{ padding: "4px 8px" }}>
+                      <td style={{ padding: "4px 8px", width: 160, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {isEditing
                           ? <input style={inp} type="text" value={editForm.notes} onChange={e => handleEditChange("notes", e.target.value)} placeholder="Notes" />
                           : box.notes || ""}
