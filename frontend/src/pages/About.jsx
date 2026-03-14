@@ -135,12 +135,29 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.6</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.9</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.9 (March 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Sets — browse Topps 1952–1990 checklists (39 sets, 17,504 cards) and track your build</li>
+            <li>Boxes &amp; Binders — track complete sets as inventory items (factory, collated, binder)</li>
+            <li>Per-user set visibility — Admin chip picker to choose which sets appear on your Sets page</li>
+            <li>Sort modal improvements — wider modal, save-as-default for Boxes sort</li>
+            <li>Analytics combined chart Y-axis label fix; nav bar cleanup</li>
+          </ul>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.8 (March 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Pin / bookmark any row — persists across sessions; auto-pins after every save</li>
+            <li>Book freshness ↻ button — reset timer per row or in bulk from Admin</li>
+            <li>CD player nav controls replace pagination in the Cards list</li>
+            <li>Clone / edit scroll preservation — table stays in place after saves</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.6 (March 2026)</p>
           <ul style={{ marginTop: 0 }}>
