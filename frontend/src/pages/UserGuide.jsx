@@ -307,9 +307,72 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </ul>
         </div>
 
-        {/* 7. Analytics */}
+        {/* 7. Sets */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>7. Analytics</h3>
+          <h3 style={h3Style}>7. Sets</h3>
+
+          <p style={{ marginTop: 0 }}>
+            The <Link to="/sets" style={{ color: "var(--link)" }}>Sets</Link> page lets you browse global set
+            checklists and track which cards you own in each set. CardStoard ships with 39 Topps sets
+            (1952–1990) covering 17,504 cards.
+          </p>
+
+          <p style={h4Style}>Browsing sets</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>The set list shows each set's name, brand, year, total entries, and how many you own.</li>
+            <li>Click a set row to open the full checklist.</li>
+            <li>Use the column 🔍 icons to filter by year, brand, or name.</li>
+          </ul>
+
+          <p style={h4Style}>Tracking your build</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>In a set checklist, click <strong>＋</strong> on any row to add that card to your build.</li>
+            <li>Rows in your build are highlighted green. Edit grade, book values, and notes inline.</li>
+            <li>Book freshness indicators (amber / red border) appear once book values are entered.</li>
+          </ul>
+
+          <p style={h4Style}>Set visibility</p>
+          <p style={{ marginTop: 0, marginBottom: 0 }}>
+            Only sets you've selected appear on your Sets page. Manage visibility in{" "}
+            <Link to="/admin" style={{ color: "var(--link)" }}>Admin → Set Visibility</Link> — use the
+            brand chip picker to select or deselect entire brands, or toggle individual sets.
+          </p>
+        </div>
+
+        {/* 8. Boxes & Binders */}
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>8. Boxes &amp; Binders</h3>
+
+          <p style={{ marginTop: 0 }}>
+            The <Link to="/boxes" style={{ color: "var(--link)" }}>Boxes/Binders</Link> page tracks complete
+            sets as standalone inventory items — factory-sealed boxes, hand-collated sets, or binder-organised sets.
+          </p>
+
+          <p style={h4Style}>Item types</p>
+          <ul style={{ marginTop: 0 }}>
+            <li><strong>Factory</strong> (blue badge) — factory-sealed complete set box</li>
+            <li><strong>Collated</strong> (amber badge) — hand-assembled complete set</li>
+            <li><strong>Binder</strong> (green badge) — binder-organised set</li>
+          </ul>
+
+          <p style={h4Style}>Adding &amp; editing</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Click <strong>＋</strong> in the header to add a new item (brand, year, name, type, value, notes).</li>
+            <li>Value is entered directly — no grade-based calculation is applied.</li>
+            <li>Click any row to edit inline. Click ✓ to save or ✕ to cancel.</li>
+          </ul>
+
+          <p style={h4Style}>Navigation &amp; sort</p>
+          <p style={{ marginTop: 0, marginBottom: 0 }}>
+            Use the CD player controls in the header (|◄ ▲ ▼ ►|) to jump to the top, bottom, or step
+            through items. Click <strong>Sort</strong> in the toolbar to configure a multi-level sort order
+            and optionally save it as your default.
+          </p>
+        </div>
+
+        {/* 9. Analytics */}
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>9. Analytics</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/analytics" style={{ color: "var(--link)" }}>Analytics</Link> dashboard gives you a high-level
@@ -339,9 +402,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 8. Admin */}
+        {/* 10. Admin */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>8. Admin Settings</h3>
+          <h3 style={h3Style}>10. Admin Settings</h3>
 
           <p style={{ marginTop: 0 }}>
             All administrative tools are consolidated on the <Link to="/admin" style={{ color: "var(--link)" }}>Admin</Link> page.
@@ -380,6 +443,12 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
             using the colour pickers. Click <strong>Restore Defaults</strong> to reset to the original colours.
           </p>
 
+          <p style={h4Style}>Set visibility</p>
+          <p style={{ marginTop: 0 }}>
+            Use the brand chip picker to select which sets appear on your Sets page.
+            Deselect all chips in a brand to hide that brand's sets; select individual chips to show only specific sets.
+          </p>
+
           <p style={h4Style}>Dictionary tools</p>
           <ul style={{ marginTop: 0 }}>
             <li>View/Edit dictionary, Import CSV, Add Entry — all accessible directly from Admin.</li>
@@ -400,9 +469,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </ul>
         </div>
 
-        {/* 9. Account & Security */}
+        {/* 11. Account & Security */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>9. Account &amp; Security</h3>
+          <h3 style={h3Style}>11. Account &amp; Security</h3>
 
           <p style={{ marginTop: 0 }}>
             Access your account settings by clicking your username in the top-right of the navigation bar.
