@@ -19,6 +19,8 @@ export default function Admin() {
   const [dmLoading, setDmLoading] = useState(null);
   const [saveStatus, setSaveStatus] = useState("");
   const debounceRef = useRef(null);
+  const [allSets, setAllSets] = useState([]);
+  const [activeBrand, setActiveBrand] = useState(null);
 
   useEffect(() => {
     api.get("/settings/")
@@ -34,6 +36,10 @@ export default function Admin() {
     api.get("/dictionary/count")
       .then(res => setDictCount(res.data.count))
       .catch(err => console.error("Error fetching dictionary count:", err));
+
+    api.get("/sets/")
+      .then(res => setAllSets(res.data))
+      .catch(err => console.error("Error fetching sets:", err));
   }, []);
   
   const debouncedSave = (updatedSettings) => {
@@ -175,6 +181,51 @@ export default function Admin() {
       )}
     </span>
   );
+
+  // --- Set visibility helpers ---
+  const setsByBrand = allSets.reduce((acc, s) => {
+    (acc[s.brand] = acc[s.brand] || []).push(s);
+    return acc;
+  }, {});
+  const brands = Object.keys(setsByBrand).sort();
+
+  const isSetVisible = (id) =>
+    !settings || settings.visible_set_ids === null || (settings.visible_set_ids || []).includes(id);
+
+  const visibleCountForBrand = (brand) => {
+    if (!settings || settings.visible_set_ids === null) return setsByBrand[brand]?.length ?? 0;
+    return (setsByBrand[brand] ?? []).filter(s => (settings.visible_set_ids || []).includes(s.id)).length;
+  };
+
+  const toggleYear = (setId) => {
+    const allIds = allSets.map(s => s.id);
+    const currentIds = settings.visible_set_ids ?? allIds;
+    const next = currentIds.includes(setId)
+      ? currentIds.filter(x => x !== setId)
+      : [...currentIds, setId];
+    const value = next.length === allIds.length ? null : next;
+    setSettings(prev => ({ ...prev, visible_set_ids: value }));
+    debouncedSave({ visible_set_ids: value });
+  };
+
+  const selectAllForBrand = (brand) => {
+    const brandIds = setsByBrand[brand].map(s => s.id);
+    const allIds = allSets.map(s => s.id);
+    const currentIds = settings.visible_set_ids ?? allIds;
+    const next = [...new Set([...currentIds, ...brandIds])];
+    const value = next.length === allIds.length ? null : next;
+    setSettings(prev => ({ ...prev, visible_set_ids: value }));
+    debouncedSave({ visible_set_ids: value });
+  };
+
+  const clearAllForBrand = (brand) => {
+    const brandIds = new Set(setsByBrand[brand].map(s => s.id));
+    const allIds = allSets.map(s => s.id);
+    const currentIds = settings.visible_set_ids ?? allIds;
+    const next = currentIds.filter(id => !brandIds.has(id));
+    setSettings(prev => ({ ...prev, visible_set_ids: next }));
+    debouncedSave({ visible_set_ids: next });
+  };
 
   if (!settings) return (
     <>
@@ -429,16 +480,106 @@ export default function Admin() {
         </div>
         
 
-        {/* Set Import */}
-        <div className="card-section" style={{ marginTop: "1rem", textAlign: "center" }}>
-          <h3>Card Sets</h3>
-          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.75rem" }}>
+        {/* Card Sets */}
+        <div className="card-section" style={{ marginTop: "1rem" }}>
+          <h3 style={{ textAlign: "center" }}>Card Sets</h3>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.75rem", textAlign: "center" }}>
             Import global set master lists. Users can then track completion card-by-card.
           </p>
-          <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", justifyContent: "center" }}>
+          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem", justifyContent: "center" }}>
             <button className="nav-btn" onClick={() => navigate("/sets")}>🗂️ View Sets</button>
             <button className="nav-btn" onClick={() => navigate("/sets/import")}>📥 Import Set CSV</button>
           </div>
+
+          {allSets.length > 0 && (
+            <div>
+              {/* Header: label + global Select All / Deselect All */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+                <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-secondary)" }}>Visible Sets</span>
+                <div style={{ display: "flex", gap: "0.4rem" }}>
+                  <button type="button"
+                    onClick={() => { setSettings(prev => ({ ...prev, visible_set_ids: null })); debouncedSave({ visible_set_ids: null }); }}
+                    style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--border)", background: "var(--bg-input)", cursor: "pointer", color: "var(--text-secondary)" }}>
+                    Select All</button>
+                  <button type="button"
+                    onClick={() => { setSettings(prev => ({ ...prev, visible_set_ids: [] })); debouncedSave({ visible_set_ids: [] }); }}
+                    style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--border)", background: "var(--bg-input)", cursor: "pointer", color: "var(--text-secondary)" }}>
+                    Deselect All</button>
+                </div>
+              </div>
+
+              {/* Brand label */}
+              <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.4rem" }}>Brand</div>
+
+              {/* Brand chips */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
+                {brands.map(brand => {
+                  const total = setsByBrand[brand].length;
+                  const nVis = visibleCountForBrand(brand);
+                  const isActive = activeBrand === brand;
+                  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+                  const countColor = nVis === 0 ? "#dc2626" : nVis === total ? "#16a34a" : "#f59e0b";
+                  const bgColor = nVis === total
+                    ? (isDark ? "#052e16" : "#f0fdf4")
+                    : nVis === 0 ? "var(--bg-muted)" : "var(--bg-input)";
+                  return (
+                    <button key={brand} type="button"
+                      onClick={() => setActiveBrand(isActive ? null : brand)}
+                      style={{
+                        border: `2px solid ${isActive ? "#1976d2" : "var(--border)"}`,
+                        borderRadius: 20, padding: "0.35rem 0.9rem",
+                        background: bgColor,
+                        color: nVis === 0 ? "var(--text-muted)" : "var(--text-primary)",
+                        cursor: "pointer", fontSize: "0.85rem",
+                        fontWeight: isActive ? 700 : 500,
+                        transition: "border-color 0.15s",
+                      }}>
+                      {brand}{" "}
+                      <span style={{ color: countColor, fontSize: "0.78rem" }}>{nVis}/{total}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Year chips (shown when a brand is active) */}
+              {activeBrand && setsByBrand[activeBrand] && (
+                <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                    <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      Years — {activeBrand}
+                    </span>
+                    <div style={{ display: "flex", gap: "0.4rem" }}>
+                      <button type="button" onClick={() => selectAllForBrand(activeBrand)}
+                        style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--border)", background: "var(--bg-input)", cursor: "pointer", color: "var(--text-secondary)" }}>All</button>
+                      <button type="button" onClick={() => clearAllForBrand(activeBrand)}
+                        style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--border)", background: "var(--bg-input)", cursor: "pointer", color: "var(--text-secondary)" }}>None</button>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                    {setsByBrand[activeBrand].map(s => {
+                      const vis = isSetVisible(s.id);
+                      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+                      return (
+                        <button key={s.id} type="button"
+                          onClick={() => toggleYear(s.id)}
+                          style={{
+                            border: `2px solid ${vis ? "#16a34a" : "var(--border)"}`,
+                            borderRadius: 20, padding: "0.25rem 0.65rem",
+                            background: vis ? (isDark ? "#052e16" : "#f0fdf4") : "var(--bg-muted)",
+                            color: vis ? "#16a34a" : "var(--text-muted)",
+                            cursor: "pointer", fontSize: "0.85rem",
+                            fontWeight: vis ? 600 : 400,
+                            transition: "all 0.1s",
+                          }}>
+                          {s.year}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Card Import */}

@@ -111,6 +111,7 @@ class GlobalSettingsBase(BaseModel):
 
     dark_mode: bool = False
     default_sort: Optional[list] = None
+    visible_set_ids: Optional[List[int]] = None
 
 class GlobalSettingsCreate(GlobalSettingsBase):
     pass
@@ -142,6 +143,7 @@ class GlobalSettingsUpdate(BaseModel):
 
     dark_mode: Optional[bool] = None
     default_sort: Optional[list] = None
+    visible_set_ids: Optional[List[int]] = None
 
 class GlobalSettings(GlobalSettingsBase):
     id: int

@@ -101,6 +101,7 @@ class GlobalSettings(Base):
 
     dark_mode = Column(Boolean, default=False)
     default_sort = Column(JSON, nullable=True, default=None)
+    visible_set_ids = Column(JSON, nullable=True, default=None)
 
 class SetList(Base):
     __tablename__ = "sets"
