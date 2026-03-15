@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
+import LabelPreviewModal from "../components/LabelPreviewModal";
 
 const fmtDollar = (n) => {
   const val = Math.round(Number(n || 0));
@@ -106,45 +107,6 @@ function SortBoxModal({ sortConfig, defaultSort, onApply, onClose }) {
   );
 }
 
-function InfoModal({ box, onClose }) {
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box box-info-print" style={{ width: 420, maxWidth: "95vw" }}
-           onClick={e => e.stopPropagation()}>
-        <h3 style={{ marginTop: 0 }}>
-          {[box.brand, box.year, box.name].filter(Boolean).join(" · ")}
-        </h3>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
-          <tbody>
-            {[
-              ["Year",     box.year],
-              ["Brand",    box.brand],
-              ["Name",     box.name || "—"],
-              ["Type",     TYPE_LABELS[box.set_type] || box.set_type],
-              ["Quantity", box.quantity ?? 1],
-              ["Value",    box.value != null ? fmtDollar(box.value) : "—"],
-              ["Total",    box.value != null ? fmtDollar((box.quantity ?? 1) * box.value) : "—"],
-              ["Notes",    box.notes || "—"],
-              ["Added",    new Date(box.created_at).toLocaleDateString()],
-              ["Updated",  box.updated_at ? new Date(box.updated_at).toLocaleDateString() : "—"],
-            ].map(([label, value]) => (
-              <tr key={label}>
-                <td style={{ fontWeight: 600, padding: "4px 8px 4px 0",
-                             color: "var(--text-secondary)", width: 90 }}>{label}</td>
-                <td style={{ padding: "4px 0" }}>{value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem", justifyContent: "center" }}>
-          <button className="nav-btn" onClick={() => window.print()}>🖨️ Print</button>
-          <button className="nav-btn secondary" onClick={onClose}>Close</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function ListBoxes() {
   const navigate = useNavigate();
 
@@ -162,7 +124,7 @@ export default function ListBoxes() {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
 
-  const [infoBox, setInfoBox] = useState(null);
+  const [labelData, setLabelData] = useState(null);
 
   const [focusId, setFocusId] = useState(null);
   const [jumpRate, setJumpRate] = useState(25);
@@ -360,6 +322,16 @@ export default function ListBoxes() {
     } catch (err) {
       console.error("Duplicate failed:", err);
       alert("Failed to duplicate.");
+    }
+  };
+
+  const handlePrintLabel = async (box) => {
+    try {
+      const res = await api.get(`/boxes/${box.id}/public`);
+      setLabelData(res.data);
+    } catch (err) {
+      console.error("Label fetch error:", err);
+      alert("Failed to load label.");
     }
   };
 
@@ -633,10 +605,10 @@ export default function ListBoxes() {
                             <button onClick={() => handleDuplicate(box)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#28a745", width: "auto" }}
                               title="Duplicate">📋</button>
-                            <button onClick={() => setInfoBox(box)}
+                            <button onClick={() => handlePrintLabel(box)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
                               title="Print">🖨️</button>
-                            <button onClick={() => setInfoBox(box)}
+                            <button onClick={() => navigate(`/set-detail/${box.id}`)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
                               title="Details">ℹ️</button>
                             <button onClick={() => handleDelete(box)}
@@ -661,7 +633,13 @@ export default function ListBoxes() {
         onClose={() => setShowSortModal(false)}
       />
     )}
-    {infoBox && <InfoModal box={infoBox} onClose={() => setInfoBox(null)} />}
+    {labelData && (
+      <LabelPreviewModal
+        labelData={labelData}
+        onPrint={() => { window.open(`/set-label/${labelData.id}`, "_blank"); setLabelData(null); }}
+        onClose={() => setLabelData(null)}
+      />
+    )}
     </>
   );
 }
