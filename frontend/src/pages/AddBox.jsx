@@ -59,7 +59,7 @@ export default function AddBox() {
       <AppHeader />
       <div className="list-container" style={{ maxWidth: 480, margin: "0 auto", padding: "1rem 1.5rem" }}>
         <h2 className="page-header" style={{ textAlign: "center", margin: "0.5rem 0 1.5rem" }}>
-          Add Box / Binder
+          Add Set / Binder
         </h2>
 
         <form onSubmit={handleSubmit}>

@@ -32,7 +32,7 @@ export default function SetsPage() {
       <AppHeader />
       <div className="list-container">
         <h2 className="page-header" style={{ textAlign: "center", margin: "0.5rem 0 1rem" }}>
-          My Sets
+          Builds
         </h2>
 
         {loading ? (

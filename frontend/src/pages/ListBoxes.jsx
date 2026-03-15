@@ -308,7 +308,7 @@ export default function ListBoxes() {
       <AppHeader />
       <div className="list-container">
         <h2 className="page-header" style={{ textAlign: "center", margin: "0.5rem 0 0.25rem" }}>
-          Boxes / Binders
+          Sets / Binders
         </h2>
 
         {/* Toolbar */}

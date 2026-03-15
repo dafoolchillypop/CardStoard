@@ -287,6 +287,46 @@ export default function Admin() {
           </div>
         </div>
 
+        {/* Nav Bar Customization */}
+        {settings && (() => {
+          const ALL_NAV = [
+            { key: "cards",        label: "📋 Cards" },
+            { key: "balls",        label: "⚾ Balls" },
+            { key: "builds",       label: "🗂️ Builds" },
+            { key: "sets_binders", label: "📦 Sets/Binders" },
+            { key: "wax",          label: "🧱 Wax" },
+            { key: "packs",        label: "📦 Packs" },
+            { key: "analytics",    label: "📈 Analytics" },
+          ];
+          const current = settings.nav_items ?? ALL_NAV.map(n => n.key);
+          const toggle = (key) => {
+            const next = current.includes(key)
+              ? current.filter(k => k !== key)
+              : [...current, key];
+            const value = next.length === ALL_NAV.length ? null : next;
+            setSettings(prev => ({ ...prev, nav_items: value }));
+            debouncedSave({ nav_items: value });
+          };
+          return (
+            <div className="card-section" style={{ marginBottom: "1rem" }}>
+              <h3>Nav Bar <InfoIcon id="navbar" text="Choose which buttons appear in the navigation bar. Changes take effect immediately." /></h3>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem 1.5rem", justifyContent: "center" }}>
+                {ALL_NAV.map(({ key, label }) => (
+                  <label key={key} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.9rem", fontWeight: "bold", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={current.includes(key)}
+                      onChange={() => toggle(key)}
+                      style={{ width: "16px", height: "16px", margin: 0, cursor: "pointer" }}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
          <form className="settings-form" onSubmit={handleSubmit}>
           {/* General Settings */}
           <div className="card-section">

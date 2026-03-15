@@ -103,6 +103,7 @@ class GlobalSettings(Base):
     default_sort = Column(JSON, nullable=True, default=None)
     default_sort_boxes = Column(JSON, nullable=True, default=None)
     visible_set_ids = Column(JSON, nullable=True, default=None)
+    nav_items = Column(JSON, nullable=True, default=None)
 
 class SetList(Base):
     __tablename__ = "sets"

@@ -113,6 +113,7 @@ class GlobalSettingsBase(BaseModel):
     default_sort: Optional[list] = None
     default_sort_boxes: Optional[list] = None
     visible_set_ids: Optional[List[int]] = None
+    nav_items: Optional[List[str]] = None
 
 class GlobalSettingsCreate(GlobalSettingsBase):
     pass
@@ -146,6 +147,7 @@ class GlobalSettingsUpdate(BaseModel):
     default_sort: Optional[list] = None
     default_sort_boxes: Optional[list] = None
     visible_set_ids: Optional[List[int]] = None
+    nav_items: Optional[List[str]] = None
 
 class GlobalSettings(GlobalSettingsBase):
     id: int
