@@ -15,6 +15,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    last_login = Column(DateTime, nullable=True)
 
     # Relationships
     cards = relationship("Card", back_populates="user", cascade="all, delete-orphan")

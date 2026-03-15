@@ -50,6 +50,7 @@ def get_account(current: User = Depends(get_current_user)):
         "username": current.username,
         "is_verified": current.is_verified,
         "created_at": current.created_at,
+        "last_login": current.last_login,
     }
 
 @router.post("/update-username")

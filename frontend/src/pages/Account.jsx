@@ -103,6 +103,7 @@ export default function Account() {
           <p><b>Account ID:</b> {account.id}</p>
           <p><b>Verified:</b> {account.is_verified ? "✅ Yes" : "❌ No"}</p>
           <p><b>Created:</b> {new Date(account.created_at).toLocaleDateString()}</p>
+          <p><b>Last Login:</b> {account.last_login ? new Date(account.last_login).toLocaleString() : "—"}</p>
         </div>
 
         {/* --- USERNAME FORM --- */}

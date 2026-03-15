@@ -47,7 +47,8 @@ export default function AddBox() {
       await api.post("/boxes/", payload);
       navigate("/boxes");
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to add.");
+      const detail = err.response?.data?.detail;
+      setError(Array.isArray(detail) ? detail.map(d => d.msg).join(", ") : (detail || "Failed to add."));
     }
   };
 
@@ -63,6 +64,13 @@ export default function AddBox() {
         </h2>
 
         <form onSubmit={handleSubmit}>
+          {error && (
+            <div style={{ background: "#fdecea", border: "1px solid #f5c6cb", borderRadius: 6,
+              padding: "0.6rem 0.85rem", marginBottom: "1rem", color: "#dc3545", fontSize: "0.9rem" }}>
+              {error}
+            </div>
+          )}
+
           <div style={{ marginBottom: "1rem" }}>
             <label style={labelStyle}>Brand *</label>
             <select name="brand" value={form.brand} onChange={handleChange} style={inputStyle} required>
@@ -105,11 +113,9 @@ export default function AddBox() {
               placeholder="Any additional notes…" />
           </div>
 
-          {error && <p style={{ color: "#dc3545", marginBottom: "1rem", fontSize: "0.9rem" }}>{error}</p>}
-
           <div style={{ display: "flex", gap: "0.75rem" }}>
             <button type="submit" className="nav-btn" style={{ flex: 1 }}>
-              ＋ Add Box / Binder
+              ＋ Add Set / Binder
             </button>
             <Link to="/boxes">
               <button type="button" className="nav-btn secondary">Cancel</button>
