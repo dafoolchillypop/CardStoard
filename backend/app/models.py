@@ -149,6 +149,7 @@ class BoxBinder(Base):
     year       = Column(Integer, nullable=False)
     name       = Column(String, nullable=True)
     set_type   = Column(String, nullable=False, default="factory")
+    quantity   = Column(Integer, default=1)
     value      = Column(Float, nullable=True)
     notes      = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))

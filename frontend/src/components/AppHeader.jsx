@@ -54,7 +54,7 @@ export default function AppHeader() {
         {show("cards") && (
           <Link to="/list-cards">
             <button className="header-btn" title="View your collection">
-              📋 Cards
+              📇 Cards
             </button>
           </Link>
         )}
@@ -66,20 +66,20 @@ export default function AppHeader() {
         {show("builds") && (
           <Link to="/sets">
             <button className="header-btn" title="Builds">
-              🗂️ Builds
+              🏗️ Builds
             </button>
           </Link>
         )}
         {show("sets_binders") && (
           <Link to="/boxes">
             <button className="header-btn" title="Sets / Binders">
-              📦 Sets/Binders
+              📓 Sets/Binders
             </button>
           </Link>
         )}
         {show("wax") && (
           <button className="header-btn" disabled title="Coming soon">
-            🧱 Wax
+            📦 Wax
           </button>
         )}
         {show("packs") && (
@@ -96,7 +96,7 @@ export default function AppHeader() {
         </Link>
         {show("analytics") && (
           <button className="header-icon-btn" onClick={() => navigate("/analytics")} title="Analytics">
-            📈
+            📊
           </button>
         )}
         <button className="header-icon-btn" onClick={() => navigate("/admin")} title="Admin Settings">

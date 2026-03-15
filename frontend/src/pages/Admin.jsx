@@ -290,13 +290,13 @@ export default function Admin() {
         {/* Nav Bar Customization */}
         {settings && (() => {
           const ALL_NAV = [
-            { key: "cards",        label: "📋 Cards" },
+            { key: "cards",        label: "📇 Cards" },
             { key: "balls",        label: "⚾ Balls" },
-            { key: "builds",       label: "🗂️ Builds" },
-            { key: "sets_binders", label: "📦 Sets/Binders" },
-            { key: "wax",          label: "🧱 Wax" },
+            { key: "builds",       label: "🏗️ Builds" },
+            { key: "sets_binders", label: "📓 Sets/Binders" },
+            { key: "wax",          label: "📦 Wax" },
             { key: "packs",        label: "📦 Packs" },
-            { key: "analytics",    label: "📈 Analytics" },
+            { key: "analytics",    label: "📊 Analytics" },
           ];
           const current = settings.nav_items ?? ALL_NAV.map(n => n.key);
           const toggle = (key) => {
@@ -527,7 +527,7 @@ export default function Admin() {
             Import global set master lists. Users can then track completion card-by-card.
           </p>
           <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem", justifyContent: "center" }}>
-            <button className="nav-btn" onClick={() => navigate("/sets")}>🗂️ View Sets</button>
+            <button className="nav-btn" onClick={() => navigate("/sets")}>🏗️ View Builds</button>
             <button className="nav-btn" onClick={() => navigate("/sets/import")}>📥 Import Set CSV</button>
           </div>
 

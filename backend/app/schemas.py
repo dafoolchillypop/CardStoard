@@ -224,6 +224,7 @@ class BoxBinderBase(BaseModel):
     year:     int
     name:     Optional[str] = None
     set_type: str = "factory"
+    quantity: int = 1
     value:    Optional[float] = None
     notes:    Optional[str] = None
 
@@ -235,6 +236,7 @@ class BoxBinderUpdate(BaseModel):
     year:     Optional[int] = None
     name:     Optional[str] = None
     set_type: Optional[str] = None
+    quantity: Optional[int] = None
     value:    Optional[float] = None
     notes:    Optional[str] = None
 

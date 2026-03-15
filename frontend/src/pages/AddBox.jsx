@@ -11,6 +11,7 @@ export default function AddBox() {
     year: "",
     name: "",
     set_type: "factory",
+    quantity: "1",
     value: "",
     notes: "",
   });
@@ -39,6 +40,7 @@ export default function AddBox() {
       year:     Number(form.year),
       name:     form.name || null,
       set_type: form.set_type,
+      quantity: Number(form.quantity) || 1,
       value:    form.value !== "" ? parseFloat(form.value) : null,
       notes:    form.notes || null,
     };
@@ -98,6 +100,12 @@ export default function AddBox() {
               <option value="collated">Collated (hand-built set)</option>
               <option value="binder">Binder (organized set)</option>
             </select>
+          </div>
+
+          <div style={{ marginBottom: "1rem" }}>
+            <label style={labelStyle}>Quantity</label>
+            <input name="quantity" type="number" min="1" value={form.quantity} onChange={handleChange}
+              style={inputStyle} placeholder="1" />
           </div>
 
           <div style={{ marginBottom: "1rem" }}>
