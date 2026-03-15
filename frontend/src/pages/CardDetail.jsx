@@ -288,7 +288,7 @@ export default function CardDetail() {
             borderRadius: "6px",
             border: "1px solid var(--border-color, #ccc)",
             background: "var(--input-bg, #fff)",
-            color: "var(--text-primary, #222)",
+            color: "#111",
             fontSize: "0.95rem",
             resize: "vertical",
             boxSizing: "border-box",
