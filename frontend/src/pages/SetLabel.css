@@ -66,6 +66,16 @@
   color: #333;
 }
 
+.set-label-notes {
+  font-size: 9px;
+  color: #555;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
 /* ── Print styles ── */
 @media print {
   @page {
@@ -116,5 +126,9 @@
 
   .set-label-type {
     font-size: 6.5pt;
+  }
+
+  .set-label-notes {
+    font-size: 6pt;
   }
 }

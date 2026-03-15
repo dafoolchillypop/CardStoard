@@ -155,7 +155,7 @@ export default function SetBinderDetail() {
           >
             {labelLoading ? "Loading…" : "🖨️ Print Label"}
           </button>
-          <Link to="/sets-binders" className="nav-btn secondary">⬅ Back to List</Link>
+          <Link to="/boxes" className="nav-btn secondary">⬅ Back to List</Link>
         </div>
 
       </div>

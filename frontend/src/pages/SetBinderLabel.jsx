@@ -48,6 +48,9 @@ export default function SetBinderLabel() {
           <span className="set-label-id">{data.label_id}</span>
           <span className="set-label-desc">{data.descriptor}</span>
           <span className="set-label-type">{data.set_type} · {data.created_at}</span>
+          {data.notes && (
+            <span className="set-label-notes">{data.notes}</span>
+          )}
         </div>
       </div>
     </>
