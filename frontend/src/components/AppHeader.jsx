@@ -84,7 +84,7 @@ export default function AppHeader() {
         )}
         {show("packs") && (
           <button className="header-btn" disabled title="Coming soon">
-            📦 Packs
+            🧧 Packs
           </button>
         )}
       </div>

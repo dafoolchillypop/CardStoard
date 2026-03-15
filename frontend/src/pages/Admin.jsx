@@ -295,7 +295,7 @@ export default function Admin() {
             { key: "builds",       label: "🏗️ Builds" },
             { key: "sets_binders", label: "📓 Sets/Binders" },
             { key: "wax",          label: "📦 Wax" },
-            { key: "packs",        label: "📦 Packs" },
+            { key: "packs",        label: "🧧 Packs" },
             { key: "analytics",    label: "📊 Analytics" },
           ];
           const current = settings.nav_items ?? ALL_NAV.map(n => n.key);

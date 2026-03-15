@@ -656,3 +656,12 @@ td.card-value-col, th.card-value-col {
 /* Set detail table column widths */
 .set-section td.set-cardnum-col  { width: 55px;  text-align: center; }
 .set-section td.set-rookie-col   { width: 36px;  text-align: center; }
+
+/* --- Box info print --- */
+@media print {
+  body > * { display: none !important; }
+  .modal-overlay { position: static !important; background: none !important; display: block !important; }
+  .box-info-print,
+  .box-info-print * { display: revert !important; visibility: visible !important; }
+  .box-info-print button { display: none !important; }
+}
