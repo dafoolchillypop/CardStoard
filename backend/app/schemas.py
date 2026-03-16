@@ -243,8 +243,15 @@ class BoxBinderUpdate(BaseModel):
 class BoxBinderOut(BoxBinderBase):
     id: int
     user_id: int
+    quantity: int = 1  # override: coerce NULL from legacy rows to default
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+    @field_validator("quantity", mode="before")
+    @classmethod
+    def coerce_null_quantity(cls, v):
+        return v if v is not None else 1
+
     class Config: from_attributes = True
 
 class DictionaryEntryBase(BaseModel):
