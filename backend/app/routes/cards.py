@@ -1,3 +1,34 @@
+"""
+backend/app/routes/cards.py
+----------------------------
+Card inventory CRUD and related operations — all mounted under /cards.
+
+Key endpoints:
+  POST /cards/                     Create card, auto-calculate value, auto-seed DictionaryEntry
+  GET  /cards/                     List all cards for current user (paginated)
+  GET  /cards/count                Total card count
+  GET  /cards/players              Distinct player names (dictionary + user's cards)
+  GET  /cards/smart-fill           Lookup card_number + rookie flag from DictionaryEntry
+  GET  /cards/{id}                 Single card with computed market_factor
+  PUT  /cards/{id}                 Partial update + recalculate value, track value change
+  DELETE /cards/{id}               Delete card and associated disk images
+  POST /cards/{id}/upload-front    Upload front image to /static/cards/
+  POST /cards/{id}/upload-back     Upload back image to /static/cards/
+  POST /cards/{id}/value           Compute and persist value for a single card
+  POST /cards/{id}/refresh-book-values  Touch book freshness timestamp
+  GET  /cards/{id}/public          Public label data + QR code (no auth required)
+  GET  /cards/{id}/duplicate-count Count similar cards for the same player/brand/year
+  POST /cards/labels/batch         Batch label data for selected card IDs
+  GET  /cards/labels/all           Label data for all user's cards
+  POST /cards/import-csv           Bulk import from CSV file
+  POST /cards/validate-csv         Validate CSV structure without importing
+  GET  /cards/export               Export cards as CSV / TSV / JSON
+  GET  /cards/backup               Full user backup (cards + settings) as JSON
+  POST /cards/restore              Restore from backup JSON (replaces all cards)
+  POST /cards/revalue-all          Recompute all values, snapshot ValuationHistory
+  POST /cards/refresh-all-book-values  Touch book freshness for all cards with values
+  PATCH /cards/propagate-book-values   Spread book values to all duplicate cards
+"""
 # Standard library
 import io, os, csv, shutil, json, base64, qrcode
 from pydantic import BaseModel
@@ -284,6 +315,12 @@ def create_card(
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ):
+    """
+    Create a new card for the current user.
+    - Strips market_factor and value from input (both are computed server-side).
+    - Calculates value using GlobalSettings factors after insert.
+    - Auto-seeds DictionaryEntry if the card has all required fields and no entry exists.
+    """
     try:
         data = card.dict(exclude_unset=True)
         data.pop("market_factor", None)
@@ -342,6 +379,7 @@ def read_cards(
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ):
+    """Return paginated list of cards for the current user with market_factor attached."""
     cards = (
         db.query(models.Card)
         .filter(Card.user_id == current.id)
@@ -692,6 +730,13 @@ def read_card(
 # Update a card
 @router.put("/{card_id}", response_model=schemas.Card)
 def update_card(card_id: int, updated: schemas.CardUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user),):
+    """
+    Partial update for a card. Applies only fields present in the request body.
+    - Resets book_values_updated_at if any book_* field changed.
+    - Recalculates value and market_factor from current settings.
+    - Tracks value change: if rounded value differs from previous, saves previous_value
+      and sets value_changed_at (used by the value change indicator in CardDetail).
+    """
     card = db.query(models.Card).filter(Card.user_id == current.id).filter(models.Card.id == card_id).first()
     if not card:
         raise HTTPException(status_code=404, detail=CARD_NOT_FOUND_MSG)

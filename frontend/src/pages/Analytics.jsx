@@ -1,4 +1,26 @@
 // src/pages/Analytics.jsx
+/**
+ * pages/Analytics.jsx
+ * --------------------
+ * Collection analytics dashboard — charts and summary tables.
+ *
+ * Data source: GET /analytics/ (single call, returns all stats)
+ *
+ * Sections:
+ *   Summary stats:  total cards, total value, avg value, rookie count
+ *   Trend charts:   Recharts line/bar charts with toggle:
+ *                     "inventory"  — card count over time (LineChart)
+ *                     "valuation"  — collection value over time (LineChart)
+ *                     "combined"   — both on dual-axis (ComposedChart)
+ *   By brand table: sortable — brand name, card count, total value
+ *   By year table:  sortable — year, card count, total value
+ *   By player table: sortable — player name, card count, total value
+ *
+ * Helpers:
+ *   fmtDollar(n)          — formats number as "$1,234"
+ *   mergeTrends(inv, val) — merges inventory and valuation datasets by month key
+ *   sortData(data, col, dir) — client-side sort for table sections
+ */
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";

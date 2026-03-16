@@ -1,3 +1,18 @@
+/**
+ * components/ChatPanel.jsx
+ * -------------------------
+ * Fixed sidebar AI chat panel — "Cy" the collection assistant.
+ *
+ * Behavior:
+ *   - Rendered by AppHeader when chatbot_enabled=true in settings and user clicks 💬.
+ *   - Maintains local message history (role: "user" | "assistant").
+ *   - POST /chat/ sends current message + full conversation history to the backend.
+ *   - Enter key (without Shift) submits; Shift+Enter inserts a newline.
+ *   - Scrolls to the bottom after each new message via bottomRef.
+ *
+ * Props:
+ *   onClose()  — callback to close/hide the panel (sets chatOpen=false in AppHeader).
+ */
 import React, { useState, useRef, useEffect } from "react";
 import api from "../api/api";
 import "./ChatPanel.css";

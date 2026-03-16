@@ -1,3 +1,22 @@
+/**
+ * components/AppHeader.jsx
+ * -------------------------
+ * Sticky top navigation bar — renders only when the user is logged in.
+ *
+ * Layout:
+ *   Left   — "CardStoard" logo link → /
+ *   Center — Nav buttons controlled by settings.nav_items (null = show all):
+ *              cards, balls (disabled), builds, sets_binders, wax (disabled), packs (disabled)
+ *   Right  — Username (→ /account), analytics icon, admin gear, chat bubble (if chatbot enabled),
+ *              about (?), logout door
+ *
+ * Settings integration:
+ *   - fetchSettings() reads /settings/ for chatbot_enabled and nav_items.
+ *   - Listens to the "settings-changed" custom event so changes in Admin propagate immediately
+ *     without a page reload.
+ *
+ * show(key) — returns true if nav_items is null (show all) or includes the given key.
+ */
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";

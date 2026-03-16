@@ -1,3 +1,28 @@
+/**
+ * pages/Admin.jsx
+ * ----------------
+ * Application settings hub — all per-user configuration in one place.
+ *
+ * Settings sections:
+ *   - General:       app name, dark mode toggle
+ *   - Valuation:     grade factors (MT/EX/VG/GD/FR/PR), rookie factor, auto factor
+ *   - Era factors:   vintage/modern era year thresholds and their adjustment factors
+ *   - Card data:     card makes (brands) and grade labels (chip editors)
+ *   - Row colors:    hex color pickers for rookie/grade3/rookie+grade3 row highlighting
+ *   - Nav items:     show/hide individual navigation buttons
+ *   - Builds:        visible set IDs (which set checklists appear in Builds page)
+ *   - Smart Fill:    toggle dictionary-based auto-fill on AddCard
+ *   - Chatbot:       toggle AI chat panel (Cy)
+ *   - Data:          export (CSV/TSV/JSON), backup (JSON), restore from backup
+ *   - Dictionary:    link to dictionary pages, count display
+ *   - Bulk revalue:  POST /cards/revalue-all → recalculate all card values
+ *
+ * Save behavior:
+ *   - Most fields: debouncedSave() — 1500ms after last change → PUT /settings/
+ *   - Toggles (dark_mode, chatbot, smart_fill): handleToggle() → immediate save
+ *   - On save: dispatches "settings-changed" CustomEvent so AppHeader and AuthContext
+ *     refresh their state without a page reload.
+ */
 import React, { useEffect, useRef, useState } from "react";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";

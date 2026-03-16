@@ -1,3 +1,24 @@
+"""
+backend/app/routes/sets.py
+---------------------------
+Set checklist and build tracking routes — all mounted under /sets.
+
+Two-tier data model:
+  SetList / SetEntry    — global reference data (shared across all users)
+  UserSetCard           — per-user overlay tracking which cards are in their build
+
+Endpoints:
+  GET  /sets/                              List all sets with entry_count + in_collection_count per user
+  GET  /sets/{set_id}/entries              Set checklist overlaid with user's build status
+  POST /sets/{set_id}/user-cards           Mark a set entry as 'in build' for current user
+  PATCH /sets/{set_id}/user-cards/{id}     Update grade/values/notes on a user set card
+  DELETE /sets/{set_id}/user-cards/{id}    Remove a card from the user's build
+  DELETE /sets/{set_id}                    Delete an entire set (admin action)
+  POST /sets/validate-csv                  Format check before import
+  POST /sets/import-csv                    Bulk import set checklists from CSV
+
+CSV format: SetName, Brand, Year, CardNumber, First, Last, Rookie
+"""
 import io, csv
 from datetime import datetime, timezone
 from typing import Optional

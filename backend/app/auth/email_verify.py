@@ -1,4 +1,15 @@
 # app/auth/email_verify.py
+"""
+Email verification helpers using itsdangerous signed tokens.
+
+Flow:
+1. On register / email change: generate_email_token(email) → signed URL-safe token
+2. Send verification email with link: /auth/verify?token=<token>
+3. On click: verify_email_token(token) → returns original email if valid
+4. Route marks user.is_verified = True
+
+Token TTL defaults to 3600 seconds (1 hour). SECRET_KEY is sourced from env.
+"""
 
 from fastapi import HTTPException, status
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired

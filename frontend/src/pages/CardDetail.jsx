@@ -1,4 +1,27 @@
 // src/pages/CardDetail.jsx
+/**
+ * pages/CardDetail.jsx
+ * ---------------------
+ * Full detail view for a single card — auth required.
+ *
+ * Data loaded on mount (parallel):
+ *   GET /cards/:id            — card fields + value + book values
+ *   GET /settings/            — market factor display context
+ *   GET /cards/:id/duplicate-count — shows how many duplicates exist
+ *
+ * Features:
+ *   - Displays all card fields, computed value, market factor, book values
+ *   - Value change indicator: if previous_value differs from current value,
+ *     shows directional arrow and percent change (value_changed_at timestamp)
+ *   - Book freshness: if book_values_updated_at is old (>90 days), shows warning
+ *     with a "Mark current" button → POST /cards/:id/refresh-book-values
+ *   - Editable notes: textarea → PUT /cards/:id on save
+ *   - Label print: handlePrintLabel → GET /cards/:id/public → LabelPreviewModal
+ *     → opens /card-label/:id in new tab for printing
+ *   - Prev / Next navigation: reads cardIds array from router location.state
+ *     (passed by ListCards), navigates to adjacent card in the sorted list
+ *   - labelId: CS-CD-XXXXXX format (zero-padded card.id)
+ */
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import api from "../api/api";

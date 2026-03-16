@@ -1,3 +1,27 @@
+"""
+backend/app/models.py
+----------------------
+SQLAlchemy ORM models — one class per database table.
+
+Models and tables:
+  User             → users              Auth accounts
+  Card             → cards              Individual card inventory entries
+  GlobalSettings   → global_settings    Per-user configuration (1:1 with User)
+  SetList          → sets               Reference set definitions (global, shared)
+  SetEntry         → set_entries        Cards within a reference set (global)
+  UserSetCard      → user_set_cards     Per-user build progress overlay on a set
+  BoxBinder        → boxes_binders      Physical set/binder containers owned by a user
+  ValuationHistory → valuation_history  Time-series collection value snapshots
+  DictionaryEntry  → dictionary_entries Global player/card reference for Smart Fill
+
+Key constraints:
+- User.cards and User.settings are cascade-deleted when User is deleted.
+- SetEntry rows must NOT be deleted if referenced by UserSetCard rows (FK constraint).
+- BoxBinder.quantity column is nullable in DB (SQLAlchemy create_all doesn't enforce NOT NULL
+  for default-only columns); Pydantic coerces NULL → 1 in BoxBinderOut.
+
+See migrations/ for schema change history (001–015).
+"""
 from sqlalchemy import Column, Integer, String, Boolean, Float, JSON, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
@@ -5,6 +29,7 @@ from .database import Base
 from app.constants import USER_ID_REF
 
 class User(Base):
+    """Auth account. Related 1:1 to GlobalSettings and 1:N to Card, BoxBinder, UserSetCard, ValuationHistory."""
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
@@ -22,6 +47,7 @@ class User(Base):
     settings = relationship("GlobalSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
 class Card(Base):
+    """Individual card in a user's collection. Grade must be one of VALID_GRADES (3.0/1.5/1.0/0.8/0.4/0.2)."""
     __tablename__ = "cards"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -68,6 +94,7 @@ class Card(Base):
     user = relationship("User", back_populates="cards")
 
 class GlobalSettings(Base):
+    """Per-user app configuration: valuation factors, UI preferences, feature flags, dark mode."""
     __tablename__ = "global_settings"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -107,6 +134,7 @@ class GlobalSettings(Base):
     nav_items = Column(JSON, nullable=True, default=None)
 
 class SetList(Base):
+    """Global reference set definition (e.g. '1952 Topps Baseball'). Not user-scoped."""
     __tablename__ = "sets"
     id         = Column(Integer, primary_key=True)
     name       = Column(String, nullable=False)
@@ -116,6 +144,7 @@ class SetList(Base):
     entries    = relationship("SetEntry", back_populates="set_list", cascade="all, delete-orphan")
 
 class SetEntry(Base):
+    """A single card slot within a global SetList. Referenced by UserSetCard — do not delete rows in use."""
     __tablename__ = "set_entries"
     id          = Column(Integer, primary_key=True)
     set_id      = Column(Integer, ForeignKey("sets.id"))
@@ -126,6 +155,7 @@ class SetEntry(Base):
     set_list    = relationship("SetList", back_populates="entries")
 
 class UserSetCard(Base):
+    """Per-user overlay on a SetEntry — tracks which set cards the user owns plus grade/value/notes."""
     __tablename__ = "user_set_cards"
     id                     = Column(Integer, primary_key=True)
     user_id                = Column(Integer, ForeignKey(USER_ID_REF))
@@ -142,6 +172,8 @@ class UserSetCard(Base):
     updated_at             = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
 class BoxBinder(Base):
+    """Physical container (factory set, collated set, or binder) owned by a user.
+    NOTE: quantity column is nullable in the DB — Pydantic coerces NULL→1 via BoxBinderOut validator."""
     __tablename__ = "boxes_binders"
     id         = Column(Integer, primary_key=True)
     user_id    = Column(Integer, ForeignKey(USER_ID_REF), nullable=False)
@@ -157,6 +189,7 @@ class BoxBinder(Base):
     user       = relationship("User")
 
 class ValuationHistory(Base):
+    """Snapshot of a user's total collection value at a point in time. Created by POST /cards/revalue-all."""
     __tablename__ = "valuation_history"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -166,6 +199,7 @@ class ValuationHistory(Base):
     card_count = Column(Integer, nullable=False)
 
 class DictionaryEntry(Base):
+    """Global player/card reference used for Smart Fill lookups. Not user-scoped. Seeded on startup."""
     __tablename__ = "dictionary_entries"
     id          = Column(Integer, primary_key=True, index=True)
     first_name  = Column(String, nullable=False)

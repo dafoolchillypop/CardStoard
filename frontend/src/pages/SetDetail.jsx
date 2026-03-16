@@ -1,4 +1,27 @@
 // src/pages/SetDetail.jsx
+/**
+ * pages/SetDetail.jsx
+ * --------------------
+ * Set checklist view with per-user build tracking.
+ *
+ * Data:
+ *   - Loads all sets, entries for this setId, and settings on mount.
+ *   - Each entry includes user overlay (in_build, grade, values, notes) from /sets/:id/entries.
+ *
+ * Features:
+ *   - Filterable by last name, card number, rookie status, and build status
+ *   - Sortable by card_number, last_name, rookie, in_build (click column header)
+ *   - Inline edit: click row → edit grade + book values + notes inline
+ *     - Save: PATCH /sets/:id/user-cards/:entryId → updates UserSetCard
+ *     - Escape: cancel edit, revert to previous state
+ *   - Pinned row: click pin icon → stores entry id in localStorage, scrolls to it on load
+ *   - Keyboard nav: Arrow Up/Down moves focus between visible rows (scroll-to-view)
+ *   - Jump rate: configurable "jump by N" for CD-player style bulk navigation
+ *   - In-build toggle: click checkbox → POST /sets/:id/user-cards (add) or
+ *     DELETE /sets/:id/user-cards/:entryId (remove)
+ *
+ * Sticky header: tableSectionRef (overflow:auto) wraps the table for scroll containment.
+ */
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/api";

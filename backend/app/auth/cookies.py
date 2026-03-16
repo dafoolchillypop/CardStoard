@@ -1,4 +1,13 @@
 # backend/app/auth/cookies.py
+"""
+Cookie helpers for JWT auth tokens.
+
+All cookies are HttpOnly to prevent JavaScript access. Production mode sets
+Secure=True and SameSite=None (required for cross-origin cookie delivery via
+the Nginx /api proxy). Dev mode uses SameSite=Lax and no Secure flag.
+
+IS_PROD is determined by the ENV environment variable ("prod" = production).
+"""
 
 import os
 from fastapi import Response
@@ -7,6 +16,10 @@ from ..config import cfg_settings
 IS_PROD = os.getenv("ENV") == "prod"
 
 def _cookie_kwargs():
+    """
+    Return environment-aware keyword args for set_cookie / delete_cookie calls.
+    Centralised so all cookie setters use consistent security attributes.
+    """
     return {
         "httponly": True,
         "samesite": "None" if IS_PROD else "Lax",
@@ -23,6 +36,7 @@ def set_auth_cookie(response: Response, key: str, value: str, max_age: int | Non
     response.set_cookie(key=key, value=value, max_age=max_age, **kwargs)
 
 def set_access_cookie(response: Response, value: str):
+    """Set the access_token HttpOnly cookie. Expires in ACCESS_MIN minutes."""
     response.set_cookie(
         key="access_token",
         value=value,
@@ -31,6 +45,7 @@ def set_access_cookie(response: Response, value: str):
     )
 
 def set_refresh_cookie(response: Response, value: str):
+    """Set the refresh_token HttpOnly cookie. Expires in REFRESH_DAYS days."""
     response.set_cookie(
         key="refresh_token",
         value=value,

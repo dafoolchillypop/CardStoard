@@ -1,4 +1,25 @@
 // src/pages/ListCards.jsx
+/**
+ * pages/ListCards.jsx
+ * --------------------
+ * Main card inventory view — the primary card management interface.
+ *
+ * Key features:
+ *   - Paginated table of all user cards with sortable columns
+ *   - Multi-column sort via SortModal (up to N levels, can be saved as default)
+ *   - Inline editing: click row or edit button → edit form in row → save PUT /cards/:id
+ *   - Row color coding: rookie (gold), grade 3.0 (lavender), rookie+grade3 (blue)
+ *     Colors sourced from GlobalSettings
+ *   - Pinned row (bookmark): persisted to localStorage per user
+ *   - CD-player pagination controls in thead action column
+ *   - Image viewer modal (CardImages) for front/back card photos
+ *   - Label print via LabelPreviewModal → /card-label/:id
+ *   - Batch label print: select multiple rows → /batch-labels with cardIds state
+ *   - Quick navigation to CardDetail passing full sorted cardIds list for prev/next nav
+ *
+ * Sticky header: card-section uses overflow:auto + maxHeight calc(100vh-180px)
+ * so thead th { position: sticky; top: 0 } works within the scroll container.
+ */
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api/api";
