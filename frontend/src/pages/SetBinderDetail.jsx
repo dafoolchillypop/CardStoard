@@ -1,6 +1,6 @@
 // src/pages/SetBinderDetail.jsx — authenticated detail page for Sets/Binders
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
 import LabelPreviewModal from "../components/LabelPreviewModal";
@@ -13,6 +13,11 @@ const fmtDollar = (n) => `$${Math.round(Number(n || 0)).toLocaleString()}`;
 export default function SetBinderDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const setIds = location.state?.setIds ?? null;
+  const currentIndex = setIds ? setIds.indexOf(Number(id)) : -1;
+  const prevId = currentIndex > 0 ? setIds[currentIndex - 1] : null;
+  const nextId = currentIndex >= 0 && currentIndex < setIds.length - 1 ? setIds[currentIndex + 1] : null;
 
   const [record, setRecord] = useState(null);
   const [notes, setNotes] = useState("");
@@ -157,6 +162,24 @@ export default function SetBinderDetail() {
           </button>
           <Link to="/boxes" className="nav-btn secondary">⬅ Back to List</Link>
         </div>
+
+        {/* Prev / Next navigation */}
+        {setIds && (
+          <div style={{ marginTop: "1rem", display: "flex", justifyContent: "center", gap: "0.75rem" }}>
+            <button
+              className="nav-btn secondary"
+              onClick={() => prevId && navigate(`/set-detail/${prevId}`, { state: { setIds } })}
+              disabled={!prevId}
+              style={{ opacity: prevId ? 1 : 0.4, cursor: prevId ? "pointer" : "not-allowed" }}
+            >← Previous Set</button>
+            <button
+              className="nav-btn secondary"
+              onClick={() => nextId && navigate(`/set-detail/${nextId}`, { state: { setIds } })}
+              disabled={!nextId}
+              style={{ opacity: nextId ? 1 : 0.4, cursor: nextId ? "pointer" : "not-allowed" }}
+            >Next Set →</button>
+          </div>
+        )}
 
       </div>
     </>

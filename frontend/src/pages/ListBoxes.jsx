@@ -608,7 +608,7 @@ export default function ListBoxes() {
                             <button onClick={() => handlePrintLabel(box)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
                               title="Print">🖨️</button>
-                            <button onClick={() => navigate(`/set-detail/${box.id}`)}
+                            <button onClick={() => navigate(`/set-detail/${box.id}`, { state: { setIds: filteredBoxes.map(b => b.id) } })}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
                               title="Details">ℹ️</button>
                             <button onClick={() => handleDelete(box)}
