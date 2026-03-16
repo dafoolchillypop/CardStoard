@@ -4,6 +4,59 @@
 
 **<->**
 
+## v1.10 — Sets/Binders Label System & UI Polish (March 2026)
+**Status:** Complete
+**Focus:** CS-ST identifier + full label/detail system for Sets/Binders, inline action controls, quantity tracking, nav bar customization, last login display
+
+### Major Deliverables
+
+- **CS-ST-XXXXXX Identifier & Label System**
+  - Every Sets/Binders record now has a unique `CS-ST-XXXXXX` label ID (computed from `id`, consistent with `CS-CD-XXXXXX` for cards).
+  - Label printing via Avery 6427 format (1.75" × 0.75") — same format as card labels.
+  - Label includes a QR code encoding the public set view URL; scanning opens a no-auth detail page.
+  - Notes appear as a 4th line on the label when present.
+  - Preview modal (`LabelPreviewModal`) updated to be generic — handles both card labels (grade line) and set labels (type · date + notes).
+
+- **Set Detail Page (SetBinderDetail)**
+  - Authenticated detail view at `/set-detail/:id` — mirrors CardDetail for sets.
+  - Shows CS-ST-XXXXXX identifier, type badge, stats table (quantity / value / total / added date).
+  - Editable notes with Save Notes button.
+  - Print Label button → LabelPreviewModal → print page.
+  - ← Previous Set / Next Set → navigation using ordered ID array passed from the list via React Router state.
+
+- **Public Set View (SetBinderView)**
+  - No-auth public page at `/set-view/:id` — QR scan destination.
+  - Shows CS-ST-XXXXXX, brand/year/name, type badge, notes, and sign-in CTA.
+
+- **Sets/Binders Inline Action Controls**
+  - Row-level action buttons added to match Cards list parity: 📋 copy, ℹ️ detail, 🖨️ print label.
+  - ℹ️ navigates to SetBinderDetail with ordered `setIds` state for prev/next navigation.
+  - 🖨️ opens LabelPreviewModal (same flow as cards).
+
+- **Quantity & Total Columns**
+  - `quantity` integer field added to `boxes_binders` table (migration 015, default 1).
+  - Quantity column in list with inline edit; Total column computed as `qty × value`.
+
+- **Nav Bar Customization**
+  - Per-user toggle in Admin to show/hide centre nav buttons (Add Card, My Cards, Analytics).
+  - Stored as `nav_items` JSON column in `global_settings` (migration 013).
+
+- **Last Login Display**
+  - `last_login` TIMESTAMP column added to `users` table (migration 014).
+  - Updated on every successful login; displayed on Account page.
+
+- **Naming Conventions**
+  - "Sets" (checklists/builds page) → renamed to **"Builds"** in nav and page headers.
+  - "Boxes/Binders" → renamed to **"Sets/Binders"** in nav and page headers.
+  - New frontend files use `SetBinder*` prefix to avoid collision with existing `SetDetail.jsx`.
+
+- **Migrations**
+  - `013_add_nav_items.sql` — `nav_items JSON DEFAULT NULL` in `global_settings`
+  - `014_add_last_login.sql` — `last_login TIMESTAMP DEFAULT NULL` in `users`
+  - `015_add_quantity_to_boxes.sql` — `quantity INTEGER NOT NULL DEFAULT 1` in `boxes_binders`
+
+---
+
 ## v1.9 — Sets, Boxes/Binders & UI Polish (March 2026)
 **Status:** Complete
 **Focus:** Two new collection item types (Sets and Boxes/Binders), set checklist data, and UI improvements across Cards, Analytics, and nav

@@ -37,7 +37,11 @@
 
 ## Shorthand Commands
 - **"go dev"** — commit staged/unstaged changes, run `./utils/deploy-local-dev.sh` (full rebuild + smoke test), then show a summary of all commits on the branch not yet in `main`
-- **"go prod"** — doc updates are required before merge; verify docs are current (README.md, MILESTONES.md, UserGuide.jsx) and prompt the user to confirm before proceeding; then merge current branch to `main`, push to GitHub, run `./utils/deploy-ec2-prod.sh` (full deploy + smoke test)
+- **"go prod"** — follow all steps below in order, pausing for user confirmation before the actual deploy:
+  1. **Verify docs** — confirm README.md, MILESTONES.md, UserGuide.jsx, and About.jsx are updated for the new version; prompt user to confirm or update if not
+  2. **DB migration audit** — diff `backend/migrations/` against `main`; for every new `.sql` file, review it and confirm: no `DROP TABLE`, no `DROP COLUMN`, no destructive `ALTER`, all `ADD COLUMN` use `IF NOT EXISTS` with safe defaults; present a summary table (migration name → change → safety verdict) and flag any concerns
+  3. **User confirmation** — show the doc status, migration audit summary, and ask user to confirm before proceeding
+  4. **Deploy** — merge current branch to `main`, push to GitHub, run `./utils/deploy-ec2-prod.sh` (full deploy: backup → rebuild → restore → smoke test)
 
 ## Commit Style
 - Use concise conventional commit messages focused on the "why"

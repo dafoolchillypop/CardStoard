@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.9
+# 🧾 CardStoard — v1.10
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -52,12 +52,17 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - Per-user set visibility — Admin chip picker lets each user choose which sets appear in their Sets page
 - Keyman Collectibles checklist scraper utility (`utils/scrape_keyman.py`) for importing new set data
 
-### Boxes & Binders
-- Track complete sets as standalone inventory items — factory-sealed boxes, hand-collated sets, or binder-organized sets
-- User-entered direct value (no grade-based calculation)
+### Sets/Binders
+- Track complete sets as standalone inventory items — factory-sealed boxes, hand-collated sets, or binder-organised sets
+- User-entered direct value and quantity (no grade-based calculation); total value = qty × value shown as a column
 - Type badge display: Factory (blue), Collated (amber), Binder (green)
 - Inline editing, CD player nav, multi-level sort with save-as-default per user
 - Pin / bookmark row — persists across sessions via localStorage
+- Row-level action controls: copy (📋), info/detail (ℹ️), print label (🖨️)
+- **CS-ST-XXXXXX identifier** — unique label ID computed from record ID; shown on detail page and printed label
+- **Set Detail page** — authenticated detail view with stats (qty/value/total/added), editable notes, label printing, and ← Previous Set / Next Set → navigation
+- **Label printing** — Avery 6427 format (1.75" × 0.75") with QR code; notes appear as a 4th line on the label when present
+- **QR scan** — scanning a set label opens the public set view (no login required)
 
 ### Valuation Engine
 - Book value inputs: Hi, Hi-Mid, Mid, Lo-Mid, Lo
@@ -67,9 +72,10 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - Backend-computed card values with market factor display
 
 ### Label Printing & QR Codes
-- Single card label with preview modal — print to Avery 6427 (1.75" × 0.75") format
-- Batch printing — select individual cards or print your entire collection at once
-- QR code generated per card *(public shareable card view via QR scan — coming soon)*
+- Single card or set/binder label with preview modal — print to Avery 6427 (1.75" × 0.75") format
+- Batch printing for cards — select individual cards or print your entire collection at once
+- QR code on every label — scan to open a public shareable view (no login required) for both cards and sets
+- Set/binder labels include notes as a 4th line when present
 - Print-optimized layout; browser print dialog triggered automatically
 
 ### Player Dictionary & Smart Fill
@@ -106,11 +112,13 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - Email verification and secure JWT session handling (httpOnly cookies, auto token refresh)
 - Optional TOTP multi-factor authentication *(coming soon)*
 - Update username, email, and password from Account page
+- Last login date/time displayed on Account page
 - Account deletion with confirmation
 
 ### Admin
-- All tools in one place: settings, valuation factors, Smart Fill toggle, chatbot toggle, dark mode toggle, dictionary tools, card import, data management, set visibility
+- All tools in one place: settings, valuation factors, Smart Fill toggle, chatbot toggle, dark mode toggle, dictionary tools, card import, data management, set visibility, nav bar customization
 - **Set visibility** — per-user chip picker to select which sets appear on the Sets page
+- **Nav bar customization** — per-user toggle to show/hide center nav buttons (Add Card, My Cards, Analytics)
 - Row color customization with color pickers and restore-defaults button
 - Card brand management via tag input
 - **Bulk book freshness reset** — mark today as the book-value update date for every card that has values entered
@@ -204,6 +212,8 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.10** | Mar 2026 | Sets/Binders rename, CS-ST-XXXXXX identifier, Set Detail page, label printing + QR for sets, notes on label, prev/next set nav, inline controls (copy/print/detail), quantity + total columns, nav bar customization, last login display |
+| **v1.9** | Mar 2026 | My Sets (checklists + build tracking, 39 sets / 17,504 cards), Sets/Binders inventory type, per-user set visibility chip picker, sort modal improvements, Analytics combined chart fix |
 | **v1.8** | Mar 2026 | Pin/bookmark rows (localStorage persistence, auto-pin on save, jump-to-pin header button), book freshness ↻ refresh per row and on Card Detail, Admin bulk freshness reset, book value propagation timer fix, clone/edit scroll preservation, test user seed scripts |
 | **v1.7** | Mar 2026 | Card Detail page (label ID, value change indicator, book freshness, notes, duplicate count, prev/next nav), default to show all cards, "Book: never updated" quick-edit link |
 | **v1.6** | Mar 2026 | Book value propagation, advanced multi-column sort, default sort persistence, batch label printing, dark mode FOUC fix, inline edit UX polish |
@@ -223,7 +233,7 @@ Production URLs:
 - eBay sold listings integration for real-time market pricing
 - Mobile-responsive layout
 - Enhanced book value auto-fill from external sources
-- Per-user navigation customization
+- Graded card mode (PSA, BGS, SGC) for professionally graded cards
 
 ---
 

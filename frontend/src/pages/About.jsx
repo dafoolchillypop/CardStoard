@@ -91,7 +91,7 @@ export default function About() {
           <ul style={{ marginTop: 0 }}>
             <li>Print a single card label with a live preview — Avery 6427 format (1.75" × 0.75")</li>
             <li>Batch printing: select individual cards or print your entire collection at once</li>
-            <li>Each label includes a QR code — public shareable card view via QR scan <em>(coming soon)</em></li>
+            <li>Each label includes a QR code — scan to open a public shareable view (cards and sets/binders)</li>
           </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>Player Dictionary</p>
@@ -135,12 +135,24 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.9</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.10</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.10 (March 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Sets/Binders renamed from Boxes/Binders; Builds renamed from Sets in nav</li>
+            <li>CS-ST-XXXXXX identifier + Avery 6427 label printing with QR code for Sets/Binders</li>
+            <li>Set Detail page with stats, editable notes, label printing, and prev/next navigation</li>
+            <li>Notes appear as a 4th line on set/binder labels; QR scan opens public set view</li>
+            <li>Inline action controls for Sets/Binders: copy, detail, print</li>
+            <li>Quantity and total columns for Sets/Binders</li>
+            <li>Nav bar customization — show/hide nav buttons per user (Admin)</li>
+            <li>Last login date/time displayed on Account page</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.9 (March 2026)</p>
           <ul style={{ marginTop: 0 }}>
