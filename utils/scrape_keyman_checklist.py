@@ -76,7 +76,10 @@ def parse_name(raw: str) -> Tuple[str, bool]:
     """
     Given a name line like "Pete Runnels RC" or "Billy Loes RC SP",
     strip trailing annotation tokens and return (clean_name, is_rookie).
+    Also strips a leading "- " that Keyman sometimes adds as a bullet/checkbox
+    placeholder (e.g. 1960 Topps: "1" / "- Early Wynn").
     """
+    raw = re.sub(r"^-\s*", "", raw.strip())
     tokens = raw.strip().split()
     is_rookie = False
     while tokens and tokens[-1].upper() in ALL_TOKENS:
