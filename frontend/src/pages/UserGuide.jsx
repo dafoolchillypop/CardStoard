@@ -339,12 +339,12 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 8. Boxes & Binders */}
+        {/* 8. Sets/Binders */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>8. Boxes &amp; Binders</h3>
+          <h3 style={h3Style}>8. Sets/Binders</h3>
 
           <p style={{ marginTop: 0 }}>
-            The <Link to="/boxes" style={{ color: "var(--link)" }}>Boxes/Binders</Link> page tracks complete
+            The <Link to="/boxes" style={{ color: "var(--link)" }}>Sets/Binders</Link> page tracks complete
             sets as standalone inventory items — factory-sealed boxes, hand-collated sets, or binder-organised sets.
           </p>
 
@@ -357,10 +357,26 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
 
           <p style={h4Style}>Adding &amp; editing</p>
           <ul style={{ marginTop: 0 }}>
-            <li>Click <strong>＋</strong> in the header to add a new item (brand, year, name, type, value, notes).</li>
-            <li>Value is entered directly — no grade-based calculation is applied.</li>
+            <li>Click <strong>＋</strong> in the header to add a new item (brand, year, name, type, quantity, value, notes).</li>
+            <li>Value is entered directly — no grade-based calculation is applied. Total = quantity × value.</li>
             <li>Click any row to edit inline. Click ✓ to save or ✕ to cancel.</li>
           </ul>
+
+          <p style={h4Style}>Row actions</p>
+          <ul style={{ marginTop: 0 }}>
+            <li><strong>📋</strong> — duplicate the row and open for editing.</li>
+            <li><strong>ℹ️</strong> — open the Set Detail page for the full view.</li>
+            <li><strong>🖨️</strong> — open the label preview modal; click Print to print an Avery 6427 label with QR code.</li>
+          </ul>
+
+          <p style={h4Style}>Set Detail page</p>
+          <p style={{ marginTop: 0 }}>
+            The Set Detail page shows the <strong>CS-ST-XXXXXX</strong> identifier, type badge, stats (qty / value / total / added),
+            and an editable notes field. Use <strong>← Previous Set</strong> / <strong>Next Set →</strong> to step
+            through items in the same sort order as the list. The <strong>🖨️ Print Label</strong> button generates
+            an Avery 6427 label with QR code; notes appear as a 4th line when present. Scanning the QR code opens
+            a public view of the set — no login required.
+          </p>
 
           <p style={h4Style}>Navigation &amp; sort</p>
           <p style={{ marginTop: 0, marginBottom: 0 }}>
@@ -445,8 +461,14 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
 
           <p style={h4Style}>Set visibility</p>
           <p style={{ marginTop: 0 }}>
-            Use the brand chip picker to select which sets appear on your Sets page.
+            Use the brand chip picker to select which sets appear on your Builds page.
             Deselect all chips in a brand to hide that brand's sets; select individual chips to show only specific sets.
+          </p>
+
+          <p style={h4Style}>Nav bar customization</p>
+          <p style={{ marginTop: 0 }}>
+            Use the Nav Items toggles to show or hide individual centre nav buttons (Add Card, My Cards, Analytics).
+            Changes take effect immediately and persist across sessions.
           </p>
 
           <p style={h4Style}>Dictionary tools</p>
@@ -475,6 +497,11 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
 
           <p style={{ marginTop: 0 }}>
             Access your account settings by clicking your username in the top-right of the navigation bar.
+          </p>
+
+          <p style={h4Style}>Last login</p>
+          <p style={{ marginTop: 0 }}>
+            Your most recent login date and time is displayed at the top of the Account page.
           </p>
 
           <p style={h4Style}>Change username or password</p>

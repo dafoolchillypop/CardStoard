@@ -15,6 +15,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    last_login = Column(DateTime, nullable=True)
 
     # Relationships
     cards = relationship("Card", back_populates="user", cascade="all, delete-orphan")
@@ -103,6 +104,7 @@ class GlobalSettings(Base):
     default_sort = Column(JSON, nullable=True, default=None)
     default_sort_boxes = Column(JSON, nullable=True, default=None)
     visible_set_ids = Column(JSON, nullable=True, default=None)
+    nav_items = Column(JSON, nullable=True, default=None)
 
 class SetList(Base):
     __tablename__ = "sets"
@@ -147,6 +149,7 @@ class BoxBinder(Base):
     year       = Column(Integer, nullable=False)
     name       = Column(String, nullable=True)
     set_type   = Column(String, nullable=False, default="factory")
+    quantity   = Column(Integer, default=1)
     value      = Column(Float, nullable=True)
     notes      = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))

@@ -34,6 +34,9 @@ import SetDetail from "./pages/SetDetail.jsx";
 import SetImport from "./pages/SetImport.jsx";
 import ListBoxes from "./pages/ListBoxes.jsx";
 import AddBox from "./pages/AddBox.jsx";
+import SetBinderDetail from "./pages/SetBinderDetail.jsx";
+import SetBinderView from "./pages/SetBinderView.jsx";
+import SetBinderLabel from "./pages/SetBinderLabel.jsx";
 import UserGuide from "./pages/UserGuide.jsx";
 
 import "./index.css";
@@ -50,6 +53,8 @@ function AppRouter() {
       {/* Always public — accessible regardless of login state */}
       <Route path="/card-view/:id" element={<CardView />} />
       <Route path="/card-label/:id" element={<CardLabel />} />
+      <Route path="/set-view/:id" element={<SetBinderView />} />
+      <Route path="/set-label/:id" element={<SetBinderLabel />} />
 
       {/* Public only if not logged in */}
       {!isLoggedIn && (
@@ -87,6 +92,7 @@ function AppRouter() {
           <Route path="/sets/:setId" element={<ProtectedRoute><SetDetail /></ProtectedRoute>} />
           <Route path="/boxes" element={<ProtectedRoute><ListBoxes /></ProtectedRoute>} />
           <Route path="/add-box" element={<ProtectedRoute><AddBox /></ProtectedRoute>} />
+          <Route path="/set-detail/:id" element={<ProtectedRoute><SetBinderDetail /></ProtectedRoute>} />
           <Route path="/batch-labels" element={<ProtectedRoute><BatchLabels /></ProtectedRoute>} />
           <Route path="/user-guide" element={<ProtectedRoute><UserGuide /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />

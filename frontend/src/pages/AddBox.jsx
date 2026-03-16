@@ -11,6 +11,7 @@ export default function AddBox() {
     year: "",
     name: "",
     set_type: "factory",
+    quantity: "1",
     value: "",
     notes: "",
   });
@@ -39,6 +40,7 @@ export default function AddBox() {
       year:     Number(form.year),
       name:     form.name || null,
       set_type: form.set_type,
+      quantity: Number(form.quantity) || 1,
       value:    form.value !== "" ? parseFloat(form.value) : null,
       notes:    form.notes || null,
     };
@@ -47,7 +49,8 @@ export default function AddBox() {
       await api.post("/boxes/", payload);
       navigate("/boxes");
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to add.");
+      const detail = err.response?.data?.detail;
+      setError(Array.isArray(detail) ? detail.map(d => d.msg).join(", ") : (detail || "Failed to add."));
     }
   };
 
@@ -59,10 +62,17 @@ export default function AddBox() {
       <AppHeader />
       <div className="list-container" style={{ maxWidth: 480, margin: "0 auto", padding: "1rem 1.5rem" }}>
         <h2 className="page-header" style={{ textAlign: "center", margin: "0.5rem 0 1.5rem" }}>
-          Add Box / Binder
+          Add Set / Binder
         </h2>
 
         <form onSubmit={handleSubmit}>
+          {error && (
+            <div style={{ background: "#fdecea", border: "1px solid #f5c6cb", borderRadius: 6,
+              padding: "0.6rem 0.85rem", marginBottom: "1rem", color: "#dc3545", fontSize: "0.9rem" }}>
+              {error}
+            </div>
+          )}
+
           <div style={{ marginBottom: "1rem" }}>
             <label style={labelStyle}>Brand *</label>
             <select name="brand" value={form.brand} onChange={handleChange} style={inputStyle} required>
@@ -93,6 +103,12 @@ export default function AddBox() {
           </div>
 
           <div style={{ marginBottom: "1rem" }}>
+            <label style={labelStyle}>Quantity</label>
+            <input name="quantity" type="number" min="1" value={form.quantity} onChange={handleChange}
+              style={inputStyle} placeholder="1" />
+          </div>
+
+          <div style={{ marginBottom: "1rem" }}>
             <label style={labelStyle}>Value <span style={{ fontWeight: 400, color: "var(--text-muted)" }}>(optional)</span></label>
             <input name="value" type="number" step="0.01" value={form.value} onChange={handleChange}
               style={inputStyle} placeholder="$0.00" />
@@ -105,11 +121,9 @@ export default function AddBox() {
               placeholder="Any additional notes…" />
           </div>
 
-          {error && <p style={{ color: "#dc3545", marginBottom: "1rem", fontSize: "0.9rem" }}>{error}</p>}
-
           <div style={{ display: "flex", gap: "0.75rem" }}>
             <button type="submit" className="nav-btn" style={{ flex: 1 }}>
-              ＋ Add Box / Binder
+              ＋ Add Set / Binder
             </button>
             <Link to="/boxes">
               <button type="button" className="nav-btn secondary">Cancel</button>

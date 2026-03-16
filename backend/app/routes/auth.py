@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 import pyotp, qrcode, os, jwt
 from io import BytesIO
 from base64 import b64encode
@@ -71,6 +72,9 @@ def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
 
     if not user.is_verified:
         raise HTTPException(403, "Email not verified. Please check your inbox.")
+
+    user.last_login = datetime.now(timezone.utc)
+    db.commit()
 
     access = create_token(user.id, "access")
     refresh = create_token(user.id, "refresh")

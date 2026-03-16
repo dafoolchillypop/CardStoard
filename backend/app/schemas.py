@@ -113,6 +113,7 @@ class GlobalSettingsBase(BaseModel):
     default_sort: Optional[list] = None
     default_sort_boxes: Optional[list] = None
     visible_set_ids: Optional[List[int]] = None
+    nav_items: Optional[List[str]] = None
 
 class GlobalSettingsCreate(GlobalSettingsBase):
     pass
@@ -146,6 +147,7 @@ class GlobalSettingsUpdate(BaseModel):
     default_sort: Optional[list] = None
     default_sort_boxes: Optional[list] = None
     visible_set_ids: Optional[List[int]] = None
+    nav_items: Optional[List[str]] = None
 
 class GlobalSettings(GlobalSettingsBase):
     id: int
@@ -222,6 +224,7 @@ class BoxBinderBase(BaseModel):
     year:     int
     name:     Optional[str] = None
     set_type: str = "factory"
+    quantity: int = 1
     value:    Optional[float] = None
     notes:    Optional[str] = None
 
@@ -233,6 +236,7 @@ class BoxBinderUpdate(BaseModel):
     year:     Optional[int] = None
     name:     Optional[str] = None
     set_type: Optional[str] = None
+    quantity: Optional[int] = None
     value:    Optional[float] = None
     notes:    Optional[str] = None
 

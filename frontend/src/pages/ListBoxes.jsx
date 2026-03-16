@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
+import LabelPreviewModal from "../components/LabelPreviewModal";
 
 const fmtDollar = (n) => {
   const val = Math.round(Number(n || 0));
@@ -25,7 +26,9 @@ const BOX_SORT_COLUMNS = [
   { key: "brand",    label: "Brand" },
   { key: "name",     label: "Name" },
   { key: "set_type", label: "Type" },
+  { key: "quantity", label: "Qty" },
   { key: "value",    label: "Value" },
+  { key: "total",    label: "Total" },
 ];
 
 function SortBoxModal({ sortConfig, defaultSort, onApply, onClose }) {
@@ -121,6 +124,8 @@ export default function ListBoxes() {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
 
+  const [labelData, setLabelData] = useState(null);
+
   const [focusId, setFocusId] = useState(null);
   const [jumpRate, setJumpRate] = useState(25);
   const [pinnedId, setPinnedId] = useState(
@@ -179,8 +184,10 @@ export default function ListBoxes() {
         if (key === "year")          { aVal = a.year;                          bVal = b.year; }
         else if (key === "brand")    { aVal = (a.brand || "").toLowerCase();   bVal = (b.brand || "").toLowerCase(); }
         else if (key === "name")     { aVal = (a.name || "").toLowerCase();    bVal = (b.name || "").toLowerCase(); }
-        else if (key === "set_type") { aVal = a.set_type;                      bVal = b.set_type; }
-        else if (key === "value")    { aVal = Number(a.value) || 0;            bVal = Number(b.value) || 0; }
+        else if (key === "set_type") { aVal = a.set_type;                                           bVal = b.set_type; }
+        else if (key === "quantity") { aVal = Number(a.quantity) || 1;                              bVal = Number(b.quantity) || 1; }
+        else if (key === "value")    { aVal = Number(a.value) || 0;                                 bVal = Number(b.value) || 0; }
+        else if (key === "total")    { aVal = (Number(a.quantity) || 1) * (Number(a.value) || 0);  bVal = (Number(b.quantity) || 1) * (Number(b.value) || 0); }
         else continue;
         if (aVal < bVal) return direction === "asc" ? -1 : 1;
         if (aVal > bVal) return direction === "asc" ? 1 : -1;
@@ -246,6 +253,7 @@ export default function ListBoxes() {
       year:     String(box.year),
       name:     box.name || "",
       set_type: box.set_type,
+      quantity: String(box.quantity ?? 1),
       value:    box.value != null ? String(box.value) : "",
       notes:    box.notes || "",
     });
@@ -261,6 +269,7 @@ export default function ListBoxes() {
       year:     Number(editForm.year),
       name:     editForm.name || null,
       set_type: editForm.set_type,
+      quantity: Number(editForm.quantity) || 1,
       value:    editForm.value !== "" ? parseFloat(editForm.value) : null,
       notes:    editForm.notes || null,
     };
@@ -291,8 +300,43 @@ export default function ListBoxes() {
     }
   };
 
+  const handleDuplicate = async (box) => {
+    const payload = {
+      brand:    box.brand,
+      year:     box.year,
+      name:     box.name || null,
+      set_type: box.set_type,
+      quantity: box.quantity ?? 1,
+      value:    box.value ?? null,
+      notes:    box.notes || null,
+    };
+    try {
+      const res = await api.post("/boxes/", payload);
+      setBoxes(prev => {
+        const idx = prev.findIndex(b => b.id === box.id);
+        const next = [...prev];
+        next.splice(idx + 1, 0, res.data);
+        return next;
+      });
+      handleEditStart(res.data);
+    } catch (err) {
+      console.error("Duplicate failed:", err);
+      alert("Failed to duplicate.");
+    }
+  };
+
+  const handlePrintLabel = async (box) => {
+    try {
+      const res = await api.get(`/boxes/${box.id}/public`);
+      setLabelData(res.data);
+    } catch (err) {
+      console.error("Label fetch error:", err);
+      alert("Failed to load label.");
+    }
+  };
+
   // --- Stats ---
-  const totalValue = filteredBoxes.reduce((sum, b) => sum + Math.round(Number(b.value) || 0), 0);
+  const totalValue = filteredBoxes.reduce((sum, b) => sum + (Number(b.quantity) || 1) * (Number(b.value) || 0), 0);
   const hasFilters = brandFilter || yearFilter || typeFilter !== "all";
 
   const inp = { fontSize: "0.8rem", padding: "2px 4px", width: "100%", boxSizing: "border-box", borderRadius: "4px", border: "1px solid #bbb" };
@@ -308,7 +352,7 @@ export default function ListBoxes() {
       <AppHeader />
       <div className="list-container">
         <h2 className="page-header" style={{ textAlign: "center", margin: "0.5rem 0 0.25rem" }}>
-          Boxes / Binders
+          Sets / Binders
         </h2>
 
         {/* Toolbar */}
@@ -344,8 +388,8 @@ export default function ListBoxes() {
           </div>
         ) : boxes.length === 0 ? (
           <div style={{ textAlign: "center", marginTop: "2rem" }}>
-            <p style={{ color: "var(--text-muted)", marginBottom: "1rem" }}>No boxes or binders yet.</p>
-            <button className="nav-btn" onClick={() => navigate("/add-box")}>＋ Add Your First Box</button>
+            <p style={{ color: "var(--text-muted)", marginBottom: "1rem" }}>No sets or binders yet.</p>
+            <button className="nav-btn" onClick={() => navigate("/add-box")}>＋ Add Your First Set/Binder</button>
           </div>
         ) : (
           <div
@@ -405,9 +449,19 @@ export default function ListBoxes() {
                     )}
                   </th>
 
+                  {/* Qty */}
+                  <th style={{ width: 55, textAlign: "center" }}>
+                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("quantity")}>Qty{getSortIndicator("quantity")}</span>
+                  </th>
+
                   {/* Value */}
                   <th style={{ width: 85, textAlign: "center" }}>
                     <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("value")}>Value{getSortIndicator("value")}</span>
+                  </th>
+
+                  {/* Total */}
+                  <th style={{ width: 85, textAlign: "center" }}>
+                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("total")}>Total{getSortIndicator("total")}</span>
                   </th>
 
                   {/* Notes */}
@@ -492,6 +546,13 @@ export default function ListBoxes() {
                           : <TypeBadge type={box.set_type} />}
                       </td>
 
+                      {/* Qty */}
+                      <td style={{ textAlign: "center", width: 55 }}>
+                        {isEditing
+                          ? <input style={{ ...inp, width: 45 }} type="number" min="1" value={editForm.quantity} onChange={e => handleEditChange("quantity", e.target.value)} />
+                          : <span>{box.quantity ?? 1}</span>}
+                      </td>
+
                       {/* Value */}
                       <td style={{ textAlign: "center", width: 85 }}>
                         {isEditing
@@ -499,6 +560,18 @@ export default function ListBoxes() {
                           : box.value != null
                             ? <span style={{ fontWeight: 600, color: "#2e7d32" }}>{fmtDollar(box.value)}</span>
                             : <span style={{ color: "var(--text-muted)" }}>—</span>}
+                      </td>
+
+                      {/* Total */}
+                      <td style={{ textAlign: "center", width: 85 }}>
+                        {(() => {
+                          const qty = isEditing ? (Number(editForm.quantity) || 1) : (box.quantity ?? 1);
+                          const val = isEditing ? (parseFloat(editForm.value) || 0) : (box.value || 0);
+                          const total = qty * val;
+                          return total > 0
+                            ? <span style={{ fontWeight: 600, color: "#1565c0" }}>{fmtDollar(total)}</span>
+                            : <span style={{ color: "var(--text-muted)" }}>—</span>;
+                        })()}
                       </td>
 
                       {/* Notes */}
@@ -518,7 +591,7 @@ export default function ListBoxes() {
                               style={{ background: "#6c757d", color: "white", border: "none", borderRadius: "4px", padding: "4px 10px", cursor: "pointer", fontSize: "0.85rem", fontWeight: "bold", width: "auto" }}>✗ Cancel</button>
                           </div>
                         ) : (
-                          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+                          <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", flexWrap: "wrap" }}>
                             <button onClick={() => handlePinRow(box.id)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", padding: "2px 4px", width: "auto",
                                 opacity: box.id === pinnedId ? 1 : 0.5,
@@ -529,6 +602,15 @@ export default function ListBoxes() {
                             <button onClick={() => handleEditStart(box)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#1976d2", width: "auto" }}
                               title="Edit">✏️</button>
+                            <button onClick={() => handleDuplicate(box)}
+                              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#28a745", width: "auto" }}
+                              title="Duplicate">📋</button>
+                            <button onClick={() => handlePrintLabel(box)}
+                              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
+                              title="Print">🖨️</button>
+                            <button onClick={() => navigate(`/set-detail/${box.id}`, { state: { setIds: filteredBoxes.map(b => b.id) } })}
+                              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
+                              title="Details">ℹ️</button>
                             <button onClick={() => handleDelete(box)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#dc3545", width: "auto" }}
                               title="Delete">✕</button>
@@ -549,6 +631,13 @@ export default function ListBoxes() {
         defaultSort={settings?.default_sort_boxes || []}
         onApply={(levels) => setSortConfig(levels.length > 0 ? levels : [{ key: "year", direction: "desc" }])}
         onClose={() => setShowSortModal(false)}
+      />
+    )}
+    {labelData && (
+      <LabelPreviewModal
+        labelData={labelData}
+        onPrint={() => { window.open(`/set-label/${labelData.id}`, "_blank"); setLabelData(null); }}
+        onClose={() => setLabelData(null)}
       />
     )}
     </>

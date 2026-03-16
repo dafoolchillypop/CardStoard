@@ -10,18 +10,24 @@ export default function AppHeader() {
   const navigate = useNavigate();
   const [chatOpen, setChatOpen] = useState(false);
   const [chatbotEnabled, setChatbotEnabled] = useState(false);
+  const [navItems, setNavItems] = useState(null); // null = show all
 
-  const fetchChatbotSetting = () => {
+  const show = (key) => navItems === null || navItems.includes(key);
+
+  const fetchSettings = () => {
     api.get("/settings/")
-      .then(res => setChatbotEnabled(res.data.chatbot_enabled ?? false))
+      .then(res => {
+        setChatbotEnabled(res.data.chatbot_enabled ?? false);
+        setNavItems(res.data.nav_items ?? null);
+      })
       .catch(() => {});
   };
 
   useEffect(() => {
     if (!isLoggedIn) return;
-    fetchChatbotSetting();
-    window.addEventListener("settings-changed", fetchChatbotSetting);
-    return () => window.removeEventListener("settings-changed", fetchChatbotSetting);
+    fetchSettings();
+    window.addEventListener("settings-changed", fetchSettings);
+    return () => window.removeEventListener("settings-changed", fetchSettings);
   }, [isLoggedIn]);
 
   const handleLogout = () => {
@@ -45,30 +51,42 @@ export default function AppHeader() {
 
       {/* --- Center: Primary navigation --- */}
       <div className="app-header-center">
-        <Link to="/list-cards">
-          <button className="header-btn" title="View your collection">
-            📋 Cards
+        {show("cards") && (
+          <Link to="/list-cards">
+            <button className="header-btn" title="View your collection">
+              📇 Cards
+            </button>
+          </Link>
+        )}
+        {show("balls") && (
+          <button className="header-btn" disabled title="Coming soon">
+            ⚾ Balls
           </button>
-        </Link>
-        <button className="header-btn" disabled title="Coming soon">
-          ⚾ Balls
-        </button>
-        <Link to="/sets">
-          <button className="header-btn" title="My Sets">
-            🗂️ Sets
+        )}
+        {show("builds") && (
+          <Link to="/sets">
+            <button className="header-btn" title="Builds">
+              🏗️ Builds
+            </button>
+          </Link>
+        )}
+        {show("sets_binders") && (
+          <Link to="/boxes">
+            <button className="header-btn" title="Sets / Binders">
+              📓 Sets/Binders
+            </button>
+          </Link>
+        )}
+        {show("wax") && (
+          <button className="header-btn" disabled title="Coming soon">
+            📦 Wax
           </button>
-        </Link>
-        <Link to="/boxes">
-          <button className="header-btn" title="Boxes / Binders">
-            📦 Boxes/Binders
+        )}
+        {show("packs") && (
+          <button className="header-btn" disabled title="Coming soon">
+            🧧 Packs
           </button>
-        </Link>
-        <button className="header-btn" disabled title="Coming soon">
-          🧱 Wax
-        </button>
-        <button className="header-btn" disabled title="Coming soon">
-          📦 Packs
-        </button>
+        )}
       </div>
 
       {/* --- Right: user info, admin, chat, about, logout --- */}
@@ -76,9 +94,11 @@ export default function AppHeader() {
         <Link to="/account" className="user-info-link" title="Account details">
           <span className="user-info">{displayName}</span>
         </Link>
-        <button className="header-icon-btn" onClick={() => navigate("/analytics")} title="Analytics">
-          📈
-        </button>
+        {show("analytics") && (
+          <button className="header-icon-btn" onClick={() => navigate("/analytics")} title="Analytics">
+            📊
+          </button>
+        )}
         <button className="header-icon-btn" onClick={() => navigate("/admin")} title="Admin Settings">
           ⚙️
         </button>
