@@ -286,8 +286,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/dictionary" style={{ color: "var(--link)" }}>Player Dictionary</Link> is a reference
-            database of player names, brands, years, and card numbers. It is seeded with 867+ entries covering
-            Topps sets from 1952–1980. Dictionary entries that match cards in your collection are highlighted in green.
+            database of player names, brands, years, and card numbers. It is seeded with 1,875+ entries covering
+            Topps 1952–1980, Bowman 1948–1955, Fleer 1960–1963, Donruss 1981–1990, and Upper Deck 1989.
+            Dictionary entries that match cards in your collection are highlighted in green.
           </p>
 
           <p style={h4Style}>Smart Fill</p>
