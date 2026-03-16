@@ -133,24 +133,48 @@ def scrape(url: str) -> Tuple[List[Dict], str]:
     lines = [l.strip() for l in raw_text.splitlines() if l.strip()]
 
     # -----------------------------------------------------------------------
-    # Detect page layout:
-    #   "split" layout — number on its own line, name on next line (1952 Topps)
-    #   "inline" layout — "42 Player Name RC" on a single line (1955 Bowman)
-    # Heuristic: count lines that are standalone card numbers vs lines that
-    # start with a number and have more text after it.
+    # Run both split and inline parsers; merge results preferring the entry
+    # with the most complete name.  This handles pages with mixed layouts,
+    # e.g. Topps 1984/1985/1988 where section 1 (cards 1-150) uses split
+    # format and section 2+ uses "N FirstName" / "LastName" across two lines.
     # -----------------------------------------------------------------------
-    standalone = sum(1 for l in lines if CARD_NUM_RE.match(l))
-    inline     = sum(1 for l in lines if CARD_LINE_RE.match(l) and not CARD_NUM_RE.match(l))
-    layout = "split" if standalone >= inline else "inline"
 
-    cards: List[Dict] = []
-    seen: set = set()
+    def parse_split(lines: List[str]) -> Dict[str, Dict]:
+        """Card number on its own line, player name on the next line."""
+        result: Dict[str, Dict] = {}
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            if is_card_number(line):
+                card_number = line.strip()
+                i += 1
+                if i >= len(lines):
+                    break
+                name_raw = lines[i]
+                if is_card_number(name_raw):
+                    continue
+                name, is_rookie = parse_name(name_raw)
+                if i + 1 < len(lines) and is_annotation(lines[i + 1]):
+                    if lines[i + 1].strip().upper() in RC_TOKENS:
+                        is_rookie = True
+                    i += 1
+                if name and card_number not in result:
+                    first, last = split_name(name)
+                    result[card_number] = {
+                        "card_number": card_number,
+                        "first":  first,
+                        "last":   last,
+                        "rookie": 1 if is_rookie else 0,
+                    }
+                i += 1
+            else:
+                i += 1
+        return result
 
-    if layout == "inline":
-        # -----------------------------------------------------------------------
-        # Inline layout: "42 Player Name [flags]" — all on one line.
-        # Standalone flag lines (e.g. "ERR", "COR") after a name line are consumed.
-        # -----------------------------------------------------------------------
+    def parse_inline(lines: List[str]) -> Dict[str, Dict]:
+        """'42 Player Name RC' on one line; also handles split-first-name pages
+        where the name wraps: '151 Bob' / 'Knepper' across two consecutive lines."""
+        result: Dict[str, Dict] = {}
         i = 0
         while i < len(lines):
             line = lines[i]
@@ -163,58 +187,52 @@ def scrape(url: str) -> Tuple[List[Dict], str]:
                     if lines[i + 1].strip().upper() in RC_TOKENS:
                         is_rookie = True
                     i += 1
-                if name and card_number not in seen:
-                    seen.add(card_number)
+                # If name has only one word, peek ahead for a continuation
+                # (last name on the next line) e.g. "151 Bob" / "Knepper"
+                name_parts = name.split() if name else []
+                if len(name_parts) <= 1 and i + 1 < len(lines):
+                    nxt = lines[i + 1]
+                    nxt_is_card = CARD_NUM_RE.match(nxt)
+                    nxt_is_inline = CARD_LINE_RE.match(nxt) and not is_annotation(nxt)
+                    if not nxt_is_card and not nxt_is_inline:
+                        cont, is_rookie2 = parse_name(nxt)
+                        if cont:
+                            name = (name + " " + cont).strip() if name else cont
+                            if is_rookie2:
+                                is_rookie = True
+                            i += 1
+                if name and card_number not in result:
                     first, last = split_name(name)
-                    cards.append({
+                    result[card_number] = {
                         "card_number": card_number,
                         "first":  first,
                         "last":   last,
                         "rookie": 1 if is_rookie else 0,
-                    })
+                    }
             i += 1
+        return result
 
-    else:
-        # -----------------------------------------------------------------------
-        # Split layout: card number on its own line, player name on next line.
-        # Two-column layout means the sequence is:
-        #   <num> <name> [optional flag line] <num> <name> [optional flag] ...
-        # -----------------------------------------------------------------------
-        i = 0
-        while i < len(lines):
-            line = lines[i]
+    def entry_score(e: Optional[Dict]) -> int:
+        """Higher score = more complete name. Entries with first='-' score 0."""
+        if e is None:
+            return -1
+        f = e.get("first", "")
+        if f == "-":
+            return 0
+        return len(f) + len(e.get("last", ""))
 
-            if is_card_number(line):
-                card_number = line.strip()
-                i += 1
-                if i >= len(lines):
-                    break
-                name_raw = lines[i]
+    split_result  = parse_split(lines)
+    inline_result = parse_inline(lines)
 
-                # If the "name" line is itself a card number, reprocess it next iteration
-                if is_card_number(name_raw):
-                    continue
+    all_keys = set(split_result) | set(inline_result)
+    merged: Dict[str, Dict] = {}
+    for k in all_keys:
+        s  = split_result.get(k)
+        il = inline_result.get(k)
+        merged[k] = s if entry_score(s) >= entry_score(il) else il
 
-                name, is_rookie = parse_name(name_raw)
-
-                # Peek ahead for standalone flag line
-                if i + 1 < len(lines) and is_annotation(lines[i + 1]):
-                    if lines[i + 1].strip().upper() in RC_TOKENS:
-                        is_rookie = True
-                    i += 1
-
-                if name and card_number not in seen:
-                    seen.add(card_number)
-                    first, last = split_name(name)
-                    cards.append({
-                        "card_number": card_number,
-                        "first":  first,
-                        "last":   last,
-                        "rookie": 1 if is_rookie else 0,
-                    })
-                i += 1
-            else:
-                i += 1
+    # Drop entries where first == "-" (checklist-card pollution: "8 - Don")
+    cards = [e for e in merged.values() if e.get("first") != "-"]
 
     # Sort by numeric card number
     def sort_key(c: Dict):
