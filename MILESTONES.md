@@ -4,6 +4,35 @@
 
 **<->**
 
+## v1.11 — Dictionary Expansion & Set Checklist Completion (March 2026)
+**Status:** Complete
+**Focus:** Expand player dictionary to cover all major brands 1948–1990; complete all set checklists; fix Keyman scraper for mixed/legacy page layouts
+
+### Major Deliverables
+
+- **Player Dictionary Expansion (65 → 97 players, 867 → 1,875+ entries)**
+  - Added Bowman 1948–1955 card numbers to existing players (Mantle, Mays, etc.)
+  - Extended 15 existing players with Donruss/Fleer 1981–1990 entries (Ryan, Brett, Schmidt, Rose, Ripken, etc.)
+  - Added 32 new modern players: Griffey Jr., Bonds, Clemens, Gooden, Mattingly, Puckett, Strawberry, Caminiti, Biggio, and more — with full multi-brand entries (Donruss, Fleer, Bowman, Upper Deck 1981–1990)
+  - Smart Fill now covers rookie cards across all major brands for the modern era
+
+- **Additive seed_dictionary.py**
+  - Changed from all-or-nothing guard (`count() > 0 → skip`) to per-row dedup using a lookup set of `(first, last, brand, year, card_number)` tuples
+  - New `player_dictionary.py` entries auto-seed on next deploy without wiping existing rows
+
+- **Vintage Set Checklists (Sets/Builds)**
+  - Scraped and imported full Bowman 1948–1955 checklists: 8 sets, 1,849 entries
+  - Scraped and imported full Fleer 1959–1963 checklists: 4 sets, 382 entries
+  - Added `checklist_to_dict_csv.py` converter utility (set checklist CSV → dictionary import CSV format)
+  - All Topps 1952–1990 set checklists audited and corrected: 39 sets, 24,674 entries (100% complete)
+
+- **Keyman Scraper Fixes (`scrape_keyman_checklist.py`)**
+  - *Mixed-layout bug*: Keyman pages use split format (card# on own line) for cards 1–150 and a "N FirstName"/"LastName" two-line format for cards 151+. Fixed by running both split and inline parsers and merging results (best name wins).
+  - *Leading-dash format bug*: 1960 Topps and some other pages prefix every card name with "- " as a bullet marker, causing all entries to be dropped. Fixed by stripping `^-\s*` at the start of every name in `parse_name()`.
+  - Both fixes combined corrected 22 sets that were 40–64% incomplete.
+
+---
+
 ## v1.10 — Sets/Binders Label System & UI Polish (March 2026)
 **Status:** Complete
 **Focus:** CS-ST identifier + full label/detail system for Sets/Binders, inline action controls, quantity tracking, nav bar customization, last login display

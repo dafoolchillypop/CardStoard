@@ -96,7 +96,7 @@ export default function About() {
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>Player Dictionary</p>
           <ul style={{ marginTop: 0 }}>
-            <li>Searchable database of players, brands, years, and card numbers — seeded with 867+ entries</li>
+            <li>Searchable database of players, brands, years, and card numbers — 1,875+ entries covering Topps 1952–1980, Bowman 1948–1955, Fleer 1960–1963, Donruss 1981–1990, Upper Deck 1989</li>
             <li>Smart Fill: auto-populates card number and rookie flag when adding or editing cards</li>
             <li>Player name autocomplete with Tab / Enter key completion</li>
             <li>Import dictionary entries via CSV; add and edit individual entries</li>
@@ -135,12 +135,21 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.10</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.11</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.11 (March 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Dictionary expanded to 97 players / 1,875+ entries — added Bowman 1948–1955, Fleer 1960–1963, Donruss/Fleer/Upper Deck 1981–1990</li>
+            <li>Smart Fill now covers major brands for the modern era (Griffey Jr., Bonds, Clemens, Mattingly, Puckett, Ripken, and more)</li>
+            <li>Full vintage set checklists in Sets/Builds: Bowman 1948–1955 (8 sets) and Fleer 1959–1963 (4 sets)</li>
+            <li>All Topps 1952–1990 set checklists corrected to 100% complete (39 sets, 24,674 entries)</li>
+            <li>seed_dictionary.py changed to additive — new player entries auto-seed on deploy without wiping existing data</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.10 (March 2026)</p>
           <ul style={{ marginTop: 0 }}>

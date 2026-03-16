@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.10
+# 🧾 CardStoard — v1.11
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -79,7 +79,7 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - Print-optimized layout; browser print dialog triggered automatically
 
 ### Player Dictionary & Smart Fill
-- Searchable database of players, brands, years, and card numbers — seeded with 867+ entries (Topps 1952–1980)
+- Searchable database of players, brands, years, and card numbers — seeded with 1,875+ entries covering Topps 1952–1980, Bowman 1948–1955, Fleer 1960–1963, Donruss 1981–1990, and Upper Deck 1989
 - **Smart Fill** — auto-populates card number and rookie flag when adding or editing cards
 - Player name autocomplete with Tab/Enter key completion
 - Import dictionary entries via CSV; full CRUD for individual entries
@@ -212,6 +212,7 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.11** | Mar 2026 | Dictionary expansion: Bowman 1948–1955, Fleer 1959–1963, Donruss/Fleer/Upper Deck 1981–1990 (97 players / 1,875+ entries); full vintage set checklists for Bowman + Fleer; scraper fix for mixed-layout + leading-dash Keyman pages; additive seed |
 | **v1.10** | Mar 2026 | Sets/Binders rename, CS-ST-XXXXXX identifier, Set Detail page, label printing + QR for sets, notes on label, prev/next set nav, inline controls (copy/print/detail), quantity + total columns, nav bar customization, last login display |
 | **v1.9** | Mar 2026 | My Sets (checklists + build tracking, 39 sets / 17,504 cards), Sets/Binders inventory type, per-user set visibility chip picker, sort modal improvements, Analytics combined chart fix |
 | **v1.8** | Mar 2026 | Pin/bookmark rows (localStorage persistence, auto-pin on save, jump-to-pin header button), book freshness ↻ refresh per row and on Card Detail, Admin bulk freshness reset, book value propagation timer fix, clone/edit scroll preservation, test user seed scripts |
