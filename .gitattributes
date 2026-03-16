@@ -1,3 +1,14 @@
-# Enforce LF line endings for shell scripts
-*.sh text eol=lf
-*.py text eol=lf
+# Enforce LF line endings for all text files
+* text=auto eol=lf
+
+# Explicitly binary — never touch line endings
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
