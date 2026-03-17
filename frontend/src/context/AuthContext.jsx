@@ -1,4 +1,24 @@
 // src/context/AuthContext.jsx
+/**
+ * AuthContext — global authentication state for the app.
+ *
+ * Exposes via useAuth():
+ *   isLoggedIn  null | boolean  — null = still checking, false = logged out, true = logged in
+ *   user        object | null   — { id, email, username, is_verified, is_active }
+ *   logout()                    — POST /auth/logout, clear cookies, reset state
+ *   setUser()                   — update user object (used by Account page after profile changes)
+ *   setIsLoggedIn()             — update login state directly
+ *   applyTheme(dark)            — set data-theme on <html> element for CSS dark/light mode
+ *
+ * Lifecycle:
+ *   On mount:  GET /auth/me → if 200, set user + fetch settings + apply theme → isLoggedIn=true
+ *              Skips the /auth/me call on public routes to avoid unnecessary 401s.
+ *   settings-changed event: re-fetch /settings/ and re-apply theme (Admin page broadcasts this)
+ *   On logout: POST /auth/logout, reset state, clear any non-HttpOnly cookies.
+ *
+ * Registers logout handler in logoutHandler.js so api.js can trigger logout on
+ * refresh failure without a circular import.
+ */
 import React, { createContext, useState, useEffect, useContext } from "react";
 import api from "../api/api";
 import { setAuthContext } from "../utils/logoutHandler";

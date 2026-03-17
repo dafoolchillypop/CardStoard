@@ -1,3 +1,25 @@
+"""
+backend/app/schemas.py
+-----------------------
+Pydantic schemas for request validation and response serialization.
+
+Schema hierarchy:
+  CardBase / CardCreate / CardUpdate / Card (response)
+  GlobalSettingsBase / GlobalSettingsCreate / GlobalSettingsUpdate / GlobalSettings (response)
+  UserBase / UserCreate / UserRead
+  SetListOut / SetEntryOut / UserSetCardCreate / UserSetCardUpdate
+  BoxBinderBase / BoxBinderCreate / BoxBinderUpdate / BoxBinderOut
+  DictionaryEntryBase / DictionaryEntryCreate / DictionaryEntryRead
+
+VALID_GRADES — the set of accepted numeric grade values: {3.0, 1.5, 1.0, 0.8, 0.4, 0.2}
+  Maps to: MT (3.0), EX (1.5), VG (1.0), GD (0.8), FR (0.4), PR (0.2)
+  Used by field_validator in CardBase and CardUpdate, and also in CSV import validation.
+
+Notable validators:
+- CardBase.grade_must_be_valid — rejects grades not in VALID_GRADES
+- GlobalSettingsBase.coerce_null_bool — converts DB NULL booleans to False
+- BoxBinderOut.coerce_null_quantity — converts NULL quantity to 1 (DB nullable gotcha)
+"""
 from pydantic import BaseModel, EmailStr, field_validator
 from typing import List, Optional
 from datetime import datetime

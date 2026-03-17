@@ -135,12 +135,19 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.11</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.12</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.12 (March 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Inline code documentation added to 21 key backend and frontend files</li>
+            <li>File-level headers, function docstrings, and component descriptions throughout</li>
+            <li>No feature or logic changes — documentation only</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.11 (March 2026)</p>
           <ul style={{ marginTop: 0 }}>

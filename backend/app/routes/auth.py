@@ -1,3 +1,20 @@
+"""
+backend/app/routes/auth.py
+---------------------------
+Authentication routes — all mounted under /auth.
+
+Endpoints:
+  POST /auth/register          Create account + GlobalSettings, send verification email
+  POST /auth/login             Validate credentials + optional TOTP, set JWT cookies, record last_login
+  GET  /auth/verify            Confirm email token and redirect to frontend success/error page
+  POST /auth/resend-verify     Re-send verification email (idempotent, doesn't leak email existence)
+  POST /auth/refresh           Exchange refresh_token cookie for a new access_token cookie
+  POST /auth/logout            Clear both auth cookies
+  POST /auth/mfa/setup         Generate TOTP secret and QR code PNG (base64)
+  POST /auth/mfa/enable        Verify TOTP code and activate MFA
+  POST /auth/mfa/disable       Verify TOTP code and deactivate MFA
+  GET  /auth/me                Return current user info (requires valid auth)
+"""
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
@@ -27,6 +44,13 @@ class LoginIn(BaseModel):
 
 @router.post("/register")
 async def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    """
+    Create a new user account.
+    - Rejects if email or username already exists.
+    - Hashes password with bcrypt.
+    - Creates a default GlobalSettings row for the user.
+    - Sends a verification email via SES. Returns 500 if email delivery fails.
+    """
     # Prevent duplicates
     if db.query(User).filter((User.email == user.email) | (User.username == user.username)).first():
         raise HTTPException(status_code=400, detail="Email or username already taken")
@@ -58,6 +82,13 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login")
 def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
+    """
+    Authenticate a user and issue JWT cookies.
+    - If MFA is enabled, TOTP code is required.
+    - Blocks unverified accounts with 403.
+    - Sets access_token (15 min) and refresh_token (14 day) HttpOnly cookies.
+    - Updates user.last_login timestamp on success.
+    """
     user = db.query(User).filter(User.email == payload.email).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(401, "Invalid credentials")
@@ -140,6 +171,11 @@ def resend_verify(payload: ResendVerifyIn, db: Session = Depends(get_db)):
 
 @router.post("/refresh")
 def refresh(request: Request, response: Response):
+    """
+    Exchange a valid refresh_token cookie for a new access_token cookie.
+    Called automatically by the frontend api.js interceptor on 401 responses.
+    Returns 401 if the refresh token is missing, invalid, or expired.
+    """
     JWT_SECRET = os.getenv("JWT_SECRET", "dev-secret-change-me")
     JWT_ALG = "HS256"
     token = request.cookies.get("refresh_token")

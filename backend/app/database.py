@@ -1,3 +1,17 @@
+"""
+backend/app/database.py
+-----------------------
+SQLAlchemy database setup.
+
+Provides:
+- engine          — PostgreSQL connection with pooling (pool_size=10, max_overflow=20)
+- SessionLocal    — session factory (autocommit=False, autoflush=False)
+- Base            — declarative base class for all ORM models
+- get_db()        — FastAPI dependency that yields a DB session and closes it after use
+
+DATABASE_URL defaults to the Docker Compose service name (stoardb).
+Override via DATABASE_URL environment variable for other environments.
+"""
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -33,6 +47,11 @@ Base = declarative_base()
 
 # --- Dependency for FastAPI routes ---
 def get_db():
+    """
+    FastAPI dependency for database session management.
+    Yields a session and guarantees close() on exit (even if an exception occurs).
+    Usage: db: Session = Depends(get_db)
+    """
     db = SessionLocal()
     try:
         yield db

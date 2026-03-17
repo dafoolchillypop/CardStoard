@@ -1,3 +1,26 @@
+/**
+ * src/api/api.js
+ * ---------------
+ * Configured Axios instance used by all frontend API calls.
+ *
+ * Base URL:
+ *   - Reads REACT_APP_API_BASE env var if set.
+ *   - Otherwise: localhost → http://localhost:8000 (dev)
+ *                production → https://cardstoard.com/api
+ *
+ * withCredentials: true  — sends HttpOnly JWT cookies on every request.
+ *
+ * Response interceptor — automatic token refresh on 401:
+ *   1. Auth routes (/auth/login, /auth/register, /auth/verify, /auth/refresh) → reject immediately
+ *      to avoid refresh loops.
+ *   2. First non-auth 401 → mark isRefreshing=true, POST /auth/refresh, replay original request.
+ *   3. Concurrent 401s during refresh → queued in refreshSubscribers[], replayed after refresh.
+ *   4. Refresh failure → logoutHandler() (clears AuthContext state without circular import).
+ *
+ * Named exports:
+ *   api (default)     — the Axios instance
+ *   smartFill()       — GET /cards/smart-fill with player + brand + year params
+ */
 import axios from "axios";
 import { logoutHandler } from "../utils/logoutHandler";
 

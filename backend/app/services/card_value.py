@@ -1,4 +1,24 @@
 # backend/app/services/card_value.py
+"""
+Card valuation service.
+
+Valuation formula:   value = avg_book × grade × market_factor
+
+- avg_book      — mean of all non-null book_* fields (book_high through book_low)
+- grade         — the card's numeric condition value (3.0, 1.5, 1.0, 0.8, 0.4, 0.2)
+- market_factor — selected from GlobalSettings based on grade + rookie flag:
+                    Rookie + MT(3.0) → auto_factor
+                    MT only          → mtgrade_factor
+                    Rookie only      → rookie_factor
+                    EX(1.5)          → exgrade_factor
+                    VG(1.0)          → vggrade_factor
+                    GD(0.8)          → gdgrade_factor
+                    FR(0.4)          → frgrade_factor
+                    PR(0.2)          → prgrade_factor
+
+All three functions are called from create_card, update_card, import_csv,
+revalue_all, and the sets overlay (with a duck-typed proxy object).
+"""
 
 from typing import Optional
 from .. import models

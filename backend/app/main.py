@@ -1,3 +1,20 @@
+"""
+backend/app/main.py
+-------------------
+FastAPI application entry point.
+
+Responsibilities:
+- Creates the FastAPI app instance and registers all routers
+- Configures CORS for local dev and production origins
+- Mounts /static for uploaded card images
+- Registers an HTTP middleware that attaches refreshed access tokens to responses
+- Runs startup tasks: create DB tables, seed dictionary, schema drift check
+
+Startup sequence:
+1. Base.metadata.create_all() — creates any missing tables (idempotent)
+2. seed_dictionary(db)         — inserts new dictionary entries (per-row dedup)
+3. Schema drift check          — logs WARNING if model columns are absent from live DB
+"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -36,6 +53,11 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.middleware("http")
 async def refresh_access_token(request, call_next):
+    """
+    HTTP middleware: after every request, check if get_current_user issued a
+    refreshed access token (stored on request.state). If so, attach it as a
+    new Set-Cookie header on the response so the browser updates its cookie.
+    """
     response = await call_next(request)
     new_token = getattr(request.state, "new_access_token", None)
     if new_token:
@@ -44,6 +66,10 @@ async def refresh_access_token(request, call_next):
 
 @app.on_event("startup")
 def on_startup():
+    """
+    Application startup hook — runs once before accepting requests.
+    Ensures DB schema is current and reference data is seeded.
+    """
     # Create tables once the app is starting and DB is available
     Base.metadata.create_all(bind=engine)
 
@@ -100,4 +126,5 @@ app.include_router(boxes.router)
 # ---------------------------
 @app.get("/health", tags=["health"])
 def health_check():
+    """Simple liveness probe used by smoke tests and load balancers."""
     return {"status": "ok"}

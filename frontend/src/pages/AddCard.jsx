@@ -1,3 +1,21 @@
+/**
+ * pages/AddCard.jsx
+ * ------------------
+ * Form for adding a new card to the user's collection.
+ *
+ * Features:
+ *   - Loads card_makes and card_grades from /settings/ to populate dropdowns
+ *   - Loads player names from /cards/players for first_name / last_name autocomplete
+ *     (Tab or Enter completes partial first-letter matches via handleNameKeyDown)
+ *   - Smart Fill: if enable_smart_fill is true in settings, automatically queries
+ *     GET /cards/smart-fill when first_name, last_name, brand, or year changes.
+ *     Fills card_number and rookie flag from the DictionaryEntry match.
+ *   - On submit: POST /cards/ → redirect to /list-cards on success
+ *
+ * Smart Fill trigger:
+ *   Debounced effect watches [first_name, last_name, brand, year] — fires when
+ *   both names are non-empty and Smart Fill is enabled.
+ */
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
