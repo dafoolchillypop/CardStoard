@@ -4,6 +4,24 @@
 
 **<->**
 
+## v1.12 — Code Documentation (March 2026)
+**Status:** Complete
+**Focus:** Inline code documentation across all primary backend and frontend files
+
+### Deliverables
+- **File-level headers** added to 21 key files — purpose, endpoint tables, design patterns, gotchas
+- **Function/class docstrings** added throughout: auth utilities, ORM models, Pydantic schemas, route handlers, React components, and page components
+- **No logic or schema changes** — documentation only
+
+### Files documented
+- **Backend core:** `main.py`, `database.py`, `models.py`, `schemas.py`
+- **Auth:** `security.py`, `cookies.py`, `email_verify.py`
+- **Services/Data:** `card_value.py`, `seed_dictionary.py`
+- **Routes:** `auth.py`, `cards.py`, `sets.py`
+- **Frontend:** `AuthContext.jsx`, `api.js`, `AppHeader.jsx`, `ChatPanel.jsx`, `ListCards.jsx`, `Admin.jsx`, `AddCard.jsx`, `Analytics.jsx`, `SetDetail.jsx`, `CardDetail.jsx`
+
+---
+
 ## v1.11 — Dictionary Expansion & Set Checklist Completion (March 2026)
 **Status:** Complete
 **Focus:** Expand player dictionary to cover all major brands 1948–1990; complete all set checklists; fix Keyman scraper for mixed/legacy page layouts
