@@ -419,7 +419,9 @@ async def validate_values_csv(
 
         for col in ("BookHigh", "BookHighMid", "BookMid", "BookLowMid", "BookLow"):
             val = (row.get(col) or "").strip()
-            if val:
+            if not val:
+                errors.append(f"Row {rownum}: missing {col} — all 5 value tiers are required")
+            else:
                 try:
                     float(val)
                 except (ValueError, TypeError):
@@ -503,6 +505,11 @@ async def import_values_csv(
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Row {rownum} invalid: {e}")
 
+        # Skip rows missing any of the 5 value tiers
+        if not all([book_high, book_high_mid, book_mid, book_low_mid, book_low]):
+            not_found += 1
+            continue
+
         entry = db.query(DictionaryEntry).filter(
             func.lower(DictionaryEntry.brand) == brand.lower(),
             DictionaryEntry.year == year,
@@ -539,11 +546,14 @@ def seed_values_from_cards(
 ):
     now = datetime.now(timezone.utc)
 
-    # Fetch all cards with book_high set belonging to this user
+    # Fetch all cards with all 5 book values set belonging to this user
     cards_with_values = db.query(Card).filter(
         Card.user_id == current.id,
-        Card.book_high.isnot(None),
-        Card.book_high > 0,
+        Card.book_high.isnot(None),    Card.book_high > 0,
+        Card.book_high_mid.isnot(None), Card.book_high_mid > 0,
+        Card.book_mid.isnot(None),      Card.book_mid > 0,
+        Card.book_low_mid.isnot(None),  Card.book_low_mid > 0,
+        Card.book_low.isnot(None),      Card.book_low > 0,
     ).all()
 
     seeded = 0
