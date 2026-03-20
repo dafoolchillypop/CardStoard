@@ -474,48 +474,32 @@ export default function ListCards() {
     if (editForm.brand) params.brand = editForm.brand;
     if (editForm.year && !isNaN(Number(editForm.year))) params.year = Number(editForm.year);
 
-    const cardNum = (editForm.card_number || "").trim();
-
     const timeout = setTimeout(async () => {
       try {
-        if (cardNum) {
-          // Card number present — look up book values for this exact card
-          const res = await api.get("/cards/smart-fill", { params: { ...params, card_number: cardNum } });
-          if (res.data.status === "ok") {
-            const f = res.data.fields;
-            setEditForm(prev => ({
-              ...prev,
-              book_high:     f.book_high     ?? prev.book_high,
-              book_high_mid: f.book_high_mid ?? prev.book_high_mid,
-              book_mid:      f.book_mid      ?? prev.book_mid,
-              book_low_mid:  f.book_low_mid  ?? prev.book_low_mid,
-              book_low:      f.book_low      ?? prev.book_low,
-            }));
-          }
-        } else {
-          // No card number — fill card_number + rookie, then immediately look up book values
-          const res = await api.get("/cards/smart-fill", { params });
-          if (res.data.status === "ok") {
-            const f = res.data.fields;
-            const filledCardNum = f.card_number || "";
-            setEditForm(prev => ({
-              ...prev,
-              rookie: f.rookie !== undefined ? (f.rookie ? 1 : 0) : prev.rookie,
-              card_number: filledCardNum || prev.card_number,
-            }));
-            if (filledCardNum) {
-              const res2 = await api.get("/cards/smart-fill", { params: { ...params, card_number: filledCardNum } });
-              if (res2.data.status === "ok") {
-                const f2 = res2.data.fields;
-                setEditForm(prev => ({
-                  ...prev,
-                  book_high:     f2.book_high     ?? prev.book_high,
-                  book_high_mid: f2.book_high_mid ?? prev.book_high_mid,
-                  book_mid:      f2.book_mid      ?? prev.book_mid,
-                  book_low_mid:  f2.book_low_mid  ?? prev.book_low_mid,
-                  book_low:      f2.book_low      ?? prev.book_low,
-                }));
-              }
+        // Always start with first call (no card_number) to get the canonical card_number
+        // for the current name/brand/year. This avoids using a stale card_number from
+        // a previous Smart Fill run with a different brand/year.
+        const res = await api.get("/cards/smart-fill", { params });
+        if (res.data.status === "ok") {
+          const f = res.data.fields;
+          const filledCardNum = f.card_number || "";
+          setEditForm(prev => ({
+            ...prev,
+            rookie: f.rookie !== undefined ? (f.rookie ? 1 : 0) : prev.rookie,
+            card_number: filledCardNum || prev.card_number,
+          }));
+          if (filledCardNum) {
+            const res2 = await api.get("/cards/smart-fill", { params: { ...params, card_number: filledCardNum } });
+            if (res2.data.status === "ok") {
+              const f2 = res2.data.fields;
+              setEditForm(prev => ({
+                ...prev,
+                book_high:     f2.book_high     ?? prev.book_high,
+                book_high_mid: f2.book_high_mid ?? prev.book_high_mid,
+                book_mid:      f2.book_mid      ?? prev.book_mid,
+                book_low_mid:  f2.book_low_mid  ?? prev.book_low_mid,
+                book_low:      f2.book_low      ?? prev.book_low,
+              }));
             }
           }
         }
@@ -525,7 +509,7 @@ export default function ListCards() {
     }, 400);
 
     return () => clearTimeout(timeout);
-  }, [editForm.first_name, editForm.last_name, editForm.brand, editForm.year, editForm.card_number, editingCardId, settings?.enable_smart_fill]);
+  }, [editForm.first_name, editForm.last_name, editForm.brand, editForm.year, editingCardId, settings?.enable_smart_fill]);
 
   // Load all cards whenever total or refreshTick changes
   useEffect(() => {
