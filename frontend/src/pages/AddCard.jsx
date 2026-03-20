@@ -87,6 +87,8 @@ export default function AddCard() {
       if (!card.first_name || !card.last_name) return;
 
       try {
+        const hasCardNumber = Boolean(card.card_number.trim());
+
         const params = {
           first_name: card.first_name.trim().toLowerCase(),
           last_name: card.last_name.trim().toLowerCase(),
@@ -94,21 +96,30 @@ export default function AddCard() {
 
         if (card.brand) params.brand = card.brand;
         if (card.year && !isNaN(Number(card.year))) params.year = Number(card.year);
+        if (hasCardNumber) params.card_number = card.card_number.trim();
 
         const res = await api.get("/cards/smart-fill", { params });
 
         if (res.data.status === "ok") {
           const f = res.data.fields;
-          setCard((prev) => ({
-            ...prev,
-            rookie: f.rookie !== undefined ? (f.rookie ? 1 : 0) : prev.rookie,
-            card_number: f.card_number || prev.card_number,
-            book_high:     f.book_high     ?? prev.book_high,
-            book_high_mid: f.book_high_mid ?? prev.book_high_mid,
-            book_mid:      f.book_mid      ?? prev.book_mid,
-            book_low_mid:  f.book_low_mid  ?? prev.book_low_mid,
-            book_low:      f.book_low      ?? prev.book_low,
-          }));
+          if (hasCardNumber) {
+            // Card number already entered — only fill book values
+            setCard((prev) => ({
+              ...prev,
+              book_high:     f.book_high     ?? prev.book_high,
+              book_high_mid: f.book_high_mid ?? prev.book_high_mid,
+              book_mid:      f.book_mid      ?? prev.book_mid,
+              book_low_mid:  f.book_low_mid  ?? prev.book_low_mid,
+              book_low:      f.book_low      ?? prev.book_low,
+            }));
+          } else {
+            // No card number yet — fill card_number + rookie only
+            setCard((prev) => ({
+              ...prev,
+              rookie: f.rookie !== undefined ? (f.rookie ? 1 : 0) : prev.rookie,
+              card_number: f.card_number || prev.card_number,
+            }));
+          }
         }
       } catch (err) {
         console.error("Smart Fill error:", err);
@@ -117,7 +128,7 @@ export default function AddCard() {
 
     const timeout = setTimeout(runSmartFill, 400); // debounce
     return () => clearTimeout(timeout);
-  }, [card.first_name, card.last_name, card.brand, card.year, enableSmartFill]);
+  }, [card.first_name, card.last_name, card.brand, card.year, card.card_number, enableSmartFill]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

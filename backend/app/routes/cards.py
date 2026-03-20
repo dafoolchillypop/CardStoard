@@ -432,6 +432,7 @@ async def smart_fill(
     last_name: str,
     brand: Optional[str] = None,
     year: Optional[int] = None,
+    card_number: Optional[str] = None,
     db: Session = Depends(get_db),
     current: models.User = Depends(get_current_user),
 ):
@@ -451,20 +452,27 @@ async def smart_fill(
             q = q.filter(func.lower(DictionaryEntry.brand) == brand.strip().lower())
         if year is not None:
             q = q.filter(DictionaryEntry.year == year)
+        if card_number:
+            q = q.filter(func.lower(DictionaryEntry.card_number) == card_number.strip().lower())
 
         entry = q.first()
         if not entry:
             return {"status": "not_found", "fields": {}}
 
-        fields = {"card_number": entry.card_number}
-        if year is not None:
-            fields["rookie"] = (year == entry.rookie_year)
+        fields = {}
 
-        # Include book values when present in the dictionary entry
-        for bv_field in ("book_high", "book_high_mid", "book_mid", "book_low_mid", "book_low"):
-            val = getattr(entry, bv_field, None)
-            if val is not None:
-                fields[bv_field] = val
+        # Only suggest card_number and rookie when the user hasn't entered a card number yet
+        if not card_number:
+            fields["card_number"] = entry.card_number
+            if year is not None:
+                fields["rookie"] = (year == entry.rookie_year)
+
+        # Include book values only when card_number is pinned to an exact entry
+        if card_number:
+            for bv_field in ("book_high", "book_high_mid", "book_mid", "book_low_mid", "book_low"):
+                val = getattr(entry, bv_field, None)
+                if val is not None:
+                    fields[bv_field] = val
 
         return {"status": "ok", "fields": fields}
 
