@@ -20,7 +20,7 @@ Key constraints:
 - BoxBinder.quantity column is nullable in DB (SQLAlchemy create_all doesn't enforce NOT NULL
   for default-only columns); Pydantic coerces NULL → 1 in BoxBinderOut.
 
-See migrations/ for schema change history (001–015).
+See migrations/ for schema change history (001–016).
 """
 from sqlalchemy import Column, Integer, String, Boolean, Float, JSON, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
@@ -199,7 +199,9 @@ class ValuationHistory(Base):
     card_count = Column(Integer, nullable=False)
 
 class DictionaryEntry(Base):
-    """Global player/card reference used for Smart Fill lookups. Not user-scoped. Seeded on startup."""
+    """Global player/card reference used for Smart Fill lookups. Not user-scoped. Seeded on startup.
+    Book value columns (book_high through book_low) are admin-maintained via CSV import and
+    auto-filled by Smart Fill when adding cards. book_values_imported_at tracks the last import."""
     __tablename__ = "dictionary_entries"
     id          = Column(Integer, primary_key=True, index=True)
     first_name  = Column(String, nullable=False)
@@ -208,3 +210,11 @@ class DictionaryEntry(Base):
     brand       = Column(String, nullable=False)
     year        = Column(Integer, nullable=False)
     card_number = Column(String, nullable=False)
+
+    # Book values — nullable; populated via CSV import or seed-from-cards
+    book_high               = Column(Float, nullable=True)
+    book_high_mid           = Column(Float, nullable=True)
+    book_mid                = Column(Float, nullable=True)
+    book_low_mid            = Column(Float, nullable=True)
+    book_low                = Column(Float, nullable=True)
+    book_values_imported_at = Column(DateTime, nullable=True)

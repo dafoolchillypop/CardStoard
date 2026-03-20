@@ -460,6 +460,12 @@ async def smart_fill(
         if year is not None:
             fields["rookie"] = (year == entry.rookie_year)
 
+        # Include book values when present in the dictionary entry
+        for bv_field in ("book_high", "book_high_mid", "book_mid", "book_low_mid", "book_low"):
+            val = getattr(entry, bv_field, None)
+            if val is not None:
+                fields[bv_field] = val
+
         return {"status": "ok", "fields": fields}
 
     except Exception as e:

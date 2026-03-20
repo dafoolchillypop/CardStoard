@@ -98,12 +98,16 @@ export default function AddCard() {
         const res = await api.get("/cards/smart-fill", { params });
 
         if (res.data.status === "ok") {
+          const f = res.data.fields;
           setCard((prev) => ({
             ...prev,
-            rookie: res.data.fields.rookie !== undefined
-              ? (res.data.fields.rookie ? 1 : 0)
-              : prev.rookie,
-            card_number: res.data.fields.card_number || prev.card_number,
+            rookie: f.rookie !== undefined ? (f.rookie ? 1 : 0) : prev.rookie,
+            card_number: f.card_number || prev.card_number,
+            book_high:     f.book_high     ?? prev.book_high,
+            book_high_mid: f.book_high_mid ?? prev.book_high_mid,
+            book_mid:      f.book_mid      ?? prev.book_mid,
+            book_low_mid:  f.book_low_mid  ?? prev.book_low_mid,
+            book_low:      f.book_low      ?? prev.book_low,
           }));
         }
       } catch (err) {

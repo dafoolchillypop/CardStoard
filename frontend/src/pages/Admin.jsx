@@ -46,6 +46,15 @@ export default function Admin() {
   const debounceRef = useRef(null);
   const [allSets, setAllSets] = useState([]);
   const [activeBrand, setActiveBrand] = useState(null);
+  const [valuesStats, setValuesStats] = useState(null);
+  const [seedMsg, setSeedMsg] = useState("");
+  const [seedLoading, setSeedLoading] = useState(false);
+
+  const fetchValuesStats = () => {
+    api.get("/dictionary/values-stats")
+      .then(res => setValuesStats(res.data))
+      .catch(err => console.error("Error fetching values stats:", err));
+  };
 
   useEffect(() => {
     api.get("/settings/")
@@ -65,7 +74,23 @@ export default function Admin() {
     api.get("/sets/")
       .then(res => setAllSets(res.data))
       .catch(err => console.error("Error fetching sets:", err));
+
+    fetchValuesStats();
   }, []);
+
+  const handleSeedFromCards = async () => {
+    setSeedLoading(true);
+    setSeedMsg("");
+    try {
+      const res = await api.post("/dictionary/seed-values-from-cards");
+      setSeedMsg(res.data.message);
+      fetchValuesStats();
+    } catch (err) {
+      setSeedMsg("Seed failed: " + (err.response?.data?.detail || err.message));
+    } finally {
+      setSeedLoading(false);
+    }
+  };
   
   const debouncedSave = (updatedSettings) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -543,7 +568,30 @@ export default function Admin() {
             <button className="nav-btn" onClick={() => navigate("/dictionary/add")}>➕ Add Entry</button>
           </div>
         </div>
-        
+
+        {/* Value Dictionary */}
+        <div className="card-section" style={{ marginTop: "1rem", textAlign: "center" }}>
+          <h3>Value Dictionary <InfoIcon id="valuedictionary" text="Admin-maintained book values (High → Low) keyed on brand + year + card number. Smart Fill auto-populates these when adding cards." /></h3>
+          <p>
+            Entries with values: <strong>{valuesStats ? valuesStats.values_count : "Loading..."}</strong>
+            {valuesStats?.last_imported_at && (
+              <span style={{ marginLeft: "1rem", fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                Last import: {new Date(valuesStats.last_imported_at).toLocaleDateString()}
+              </span>
+            )}
+          </p>
+          <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+            <button className="nav-btn" onClick={() => navigate("/dictionary/import-values")}>📥 Import Values CSV</button>
+            <button className="nav-btn" onClick={handleSeedFromCards} disabled={seedLoading}>
+              {seedLoading ? "Seeding..." : "🌱 Seed from My Cards"}
+            </button>
+          </div>
+          {seedMsg && (
+            <p style={{ marginTop: "0.5rem", fontSize: "0.9rem", color: seedMsg.startsWith("Seed failed") ? "#dc3545" : "#1a7a1a" }}>
+              {seedMsg}
+            </p>
+          )}
+        </div>
 
         {/* Card Sets */}
         <div className="card-section" style={{ marginTop: "1rem" }}>

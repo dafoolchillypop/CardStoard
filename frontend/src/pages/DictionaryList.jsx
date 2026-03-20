@@ -91,7 +91,14 @@ export default function DictionaryList() {
 
   const handleEditStart = (entry) => {
     setEditingEntryId(entry.id);
-    setEditForm({ ...entry });
+    setEditForm({
+      ...entry,
+      book_high:     entry.book_high     ?? "",
+      book_high_mid: entry.book_high_mid ?? "",
+      book_mid:      entry.book_mid      ?? "",
+      book_low_mid:  entry.book_low_mid  ?? "",
+      book_low:      entry.book_low      ?? "",
+    });
     setOriginalRookieYear(entry.rookie_year ?? null);
   };
 
@@ -314,13 +321,16 @@ export default function DictionaryList() {
 
                   <th style={{ textAlign: "center" }}>Card #</th>
 
+                  <th style={{ textAlign: "center" }}>Values</th>
+
                   {/* Actions header — ＋ to add */}
                   <th style={{ textAlign: "center", width: 100 }}>
                     <button
                       onClick={() => {
                         if (editingEntryId === "new") return;
                         setEditingEntryId("new");
-                        setEditForm({ first_name: "", last_name: "", rookie_year: "", brand: "", year: "", card_number: "" });
+                        setEditForm({ first_name: "", last_name: "", rookie_year: "", brand: "", year: "", card_number: "",
+                          book_high: "", book_high_mid: "", book_mid: "", book_low_mid: "", book_low: "" });
                       }}
                       style={{ background: "none", border: "none", cursor: editingEntryId === "new" ? "not-allowed" : "pointer", fontSize: "1.5rem", color: editingEntryId === "new" ? "#aaa" : "#28a745", padding: 0 }}
                       title="Add"
@@ -338,6 +348,14 @@ export default function DictionaryList() {
                     <td><input style={inp} placeholder="Brand" value={editForm.brand || ""} onChange={e => handleEditChange("brand", e.target.value)} /></td>
                     <td><input style={inp} type="number" placeholder="Year" value={editForm.year || ""} onChange={e => handleEditChange("year", e.target.value)} /></td>
                     <td><input style={inp} placeholder="Card #" value={editForm.card_number || ""} onChange={e => handleEditChange("card_number", e.target.value)} /></td>
+                    <td>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                        {[["book_high","Hi"],["book_high_mid","HiM"],["book_mid","Mid"],["book_low_mid","LoM"],["book_low","Lo"]].map(([f, lbl]) => (
+                          <input key={f} style={{ ...inp, width: "4.5rem" }} type="number" step="0.01" placeholder={lbl}
+                            value={editForm[f] || ""} onChange={e => handleEditChange(f, e.target.value)} />
+                        ))}
+                      </div>
+                    </td>
                     <td style={{ textAlign: "center" }}>
                       <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center" }}>
                         <button onClick={() => handleEditSave("new")} style={{ background: "#28a745", color: "white", border: "none", borderRadius: "4px", padding: "4px 10px", cursor: "pointer", fontSize: "0.85rem", fontWeight: "bold" }}>✓ Save</button>
@@ -348,7 +366,7 @@ export default function DictionaryList() {
                 )}
 
                 {sortedEntries.length === 0 ? (
-                  <tr><td colSpan={7} style={{ textAlign: "center", padding: "1rem" }}>No entries found.</td></tr>
+                  <tr><td colSpan={8} style={{ textAlign: "center", padding: "1rem" }}>No entries found.</td></tr>
                 ) : sortedEntries.map(entry => {
                   const isEditing = editingEntryId === entry.id;
                   return (
@@ -392,6 +410,20 @@ export default function DictionaryList() {
                         {isEditing
                           ? <input style={inp} value={editForm.card_number || ""} onChange={e => handleEditChange("card_number", e.target.value)} />
                           : entry.card_number}
+                      </td>
+                      <td style={{ textAlign: "center", padding: "0.35rem 0.5rem" }}>
+                        {isEditing ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                            {[["book_high","Hi"],["book_high_mid","HiM"],["book_mid","Mid"],["book_low_mid","LoM"],["book_low","Lo"]].map(([f, lbl]) => (
+                              <input key={f} style={{ ...inp, width: "4.5rem" }} type="number" step="0.01" placeholder={lbl}
+                                value={editForm[f] ?? ""} onChange={e => handleEditChange(f, e.target.value)} />
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ color: entry.book_high != null ? "#1a7a1a" : "#bbb", fontWeight: entry.book_high != null ? "bold" : "normal" }}>
+                            {entry.book_high != null ? "✓" : "—"}
+                          </span>
+                        )}
                       </td>
                       <td style={{ textAlign: "center", padding: "0.35rem 0.5rem" }}>
                         {isEditing ? (
