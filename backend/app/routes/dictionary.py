@@ -1,4 +1,5 @@
 import io, csv
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
@@ -49,7 +50,10 @@ def list_entries(
         result.append(schemas.DictionaryEntryRead(
             id=e.id, first_name=e.first_name, last_name=e.last_name,
             rookie_year=e.rookie_year, brand=e.brand, year=e.year,
-            card_number=e.card_number, in_collection=(key in owned)
+            card_number=e.card_number, in_collection=(key in owned),
+            book_high=e.book_high, book_high_mid=e.book_high_mid,
+            book_mid=e.book_mid, book_low_mid=e.book_low_mid,
+            book_low=e.book_low, book_values_imported_at=e.book_values_imported_at,
         ))
     return result
 
@@ -358,3 +362,218 @@ def set_player_rookie_year(
     )
     db.commit()
     return {"updated": updated}
+
+
+# ---------------------------------------------------------------------------
+# GET /dictionary/values-stats  — count of entries with book values + last import date
+# ---------------------------------------------------------------------------
+@router.get("/values-stats")
+def get_values_stats(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    values_count = db.query(DictionaryEntry).filter(DictionaryEntry.book_high.isnot(None)).count()
+    # Latest import timestamp across all entries
+    latest = db.query(func.max(DictionaryEntry.book_values_imported_at)).scalar()
+    return {"values_count": values_count, "last_imported_at": latest}
+
+
+# ---------------------------------------------------------------------------
+# POST /dictionary/validate-values-csv  — validate a book-value CSV before import
+# CSV format: Brand,Year,CardNumber,BookHigh,BookHighMid,BookMid,BookLowMid,BookLow
+# ---------------------------------------------------------------------------
+@router.post("/validate-values-csv")
+async def validate_values_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    errors = []
+
+    if not file.filename.lower().endswith(".csv"):
+        return {"valid": False, "row_count": 0, "match_count": 0, "not_found_count": 0,
+                "errors": ["File must be a .csv"], "not_found": []}
+
+    content = (await file.read()).decode("utf-8", errors="ignore")
+    reader = csv.DictReader(io.StringIO(content))
+
+    expected = {"Brand", "Year", "CardNumber", "BookHigh", "BookHighMid", "BookMid", "BookLowMid", "BookLow"}
+    if not reader.fieldnames or not expected.issubset(set(reader.fieldnames)):
+        missing = expected.difference(set(reader.fieldnames or []))
+        return {"valid": False, "row_count": 0, "match_count": 0, "not_found_count": 0,
+                "errors": [f"Missing required columns: {', '.join(sorted(missing))}"], "not_found": []}
+
+    parsed = []
+    rownum = 0
+    for row in reader:
+        rownum += 1
+        brand      = (row.get("Brand") or "").strip()
+        year_raw   = (row.get("Year") or "").strip()
+        card_number = (row.get("CardNumber") or "").strip()
+
+        try:
+            year = int(year_raw)
+        except (ValueError, TypeError):
+            errors.append(f"Row {rownum}: could not parse Year '{year_raw}'")
+            continue
+
+        for col in ("BookHigh", "BookHighMid", "BookMid", "BookLowMid", "BookLow"):
+            val = (row.get(col) or "").strip()
+            if not val:
+                errors.append(f"Row {rownum}: missing {col} — all 5 value tiers are required")
+            else:
+                try:
+                    float(val)
+                except (ValueError, TypeError):
+                    errors.append(f"Row {rownum}: non-numeric {col} '{val}'")
+
+        parsed.append((brand.lower(), year, card_number.lower()))
+
+    # Check which rows match existing dictionary entries
+    not_found = []
+    match_count = 0
+    if parsed and not errors:
+        existing = db.query(
+            func.lower(DictionaryEntry.brand),
+            DictionaryEntry.year,
+            func.lower(DictionaryEntry.card_number),
+        ).all()
+        existing_set = {(r[0], r[1], r[2]) for r in existing}
+
+        for idx, (br, yr, cn) in enumerate(parsed):
+            if (br, yr, cn) in existing_set:
+                match_count += 1
+            else:
+                not_found.append({"brand": br, "year": yr, "card_number": cn})
+
+    return {
+        "valid": len(errors) == 0,
+        "row_count": rownum,
+        "match_count": match_count,
+        "not_found_count": len(not_found),
+        "errors": errors,
+        "not_found": not_found[:20],  # cap preview at 20
+    }
+
+
+# ---------------------------------------------------------------------------
+# POST /dictionary/import-values-csv  — bulk update book values from CSV
+# CSV format: Brand,Year,CardNumber,BookHigh,BookHighMid,BookMid,BookLowMid,BookLow
+# ---------------------------------------------------------------------------
+@router.post("/import-values-csv")
+async def import_values_csv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    if not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Please upload a .csv file")
+
+    content = (await file.read()).decode("utf-8", errors="ignore")
+    reader = csv.DictReader(io.StringIO(content))
+
+    expected = {"Brand", "Year", "CardNumber", "BookHigh", "BookHighMid", "BookMid", "BookLowMid", "BookLow"}
+    if not reader.fieldnames or not expected.issubset(set(reader.fieldnames)):
+        missing = expected.difference(set(reader.fieldnames or []))
+        raise HTTPException(
+            status_code=400,
+            detail=f"CSV is missing required headers: {', '.join(sorted(missing))}"
+        )
+
+    now = datetime.now(timezone.utc)
+    updated = 0
+    not_found = 0
+    rownum = 0
+
+    for row in reader:
+        rownum += 1
+        try:
+            brand       = (row["Brand"] or "").strip()
+            year        = int((row["Year"] or "").strip())
+            card_number = (row["CardNumber"] or "").strip()
+
+            def _f(col):
+                v = (row.get(col) or "").strip()
+                return float(v) if v else None
+
+            book_high     = _f("BookHigh")
+            book_high_mid = _f("BookHighMid")
+            book_mid      = _f("BookMid")
+            book_low_mid  = _f("BookLowMid")
+            book_low      = _f("BookLow")
+
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Row {rownum} invalid: {e}")
+
+        # Skip rows missing any of the 5 value tiers
+        if not all([book_high, book_high_mid, book_mid, book_low_mid, book_low]):
+            not_found += 1
+            continue
+
+        entry = db.query(DictionaryEntry).filter(
+            func.lower(DictionaryEntry.brand) == brand.lower(),
+            DictionaryEntry.year == year,
+            func.lower(DictionaryEntry.card_number) == card_number.lower(),
+        ).first()
+
+        if entry:
+            entry.book_high     = book_high
+            entry.book_high_mid = book_high_mid
+            entry.book_mid      = book_mid
+            entry.book_low_mid  = book_low_mid
+            entry.book_low      = book_low
+            entry.book_values_imported_at = now
+            updated += 1
+        else:
+            not_found += 1
+
+    db.commit()
+    msg = f"Updated {updated} entries."
+    if not_found:
+        msg += f" {not_found} rows had no matching dictionary entry (skipped)."
+    return {"updated": updated, "not_found": not_found, "message": msg}
+
+
+# ---------------------------------------------------------------------------
+# POST /dictionary/seed-values-from-cards  — one-time seed from user's cards table
+# Copies book values from cards to dictionary_entries where brand+year+card_number match
+# and book_high > 0. Admin-only convenience endpoint for initial population.
+# ---------------------------------------------------------------------------
+@router.post("/seed-values-from-cards")
+def seed_values_from_cards(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    now = datetime.now(timezone.utc)
+
+    # Fetch all cards with all 5 book values set belonging to this user
+    cards_with_values = db.query(Card).filter(
+        Card.user_id == current.id,
+        Card.book_high.isnot(None),    Card.book_high > 0,
+        Card.book_high_mid.isnot(None), Card.book_high_mid > 0,
+        Card.book_mid.isnot(None),      Card.book_mid > 0,
+        Card.book_low_mid.isnot(None),  Card.book_low_mid > 0,
+        Card.book_low.isnot(None),      Card.book_low > 0,
+    ).all()
+
+    seeded = 0
+    for card in cards_with_values:
+        if not card.brand or not card.year or not card.card_number:
+            continue
+        entry = db.query(DictionaryEntry).filter(
+            func.lower(DictionaryEntry.brand) == card.brand.lower(),
+            DictionaryEntry.year == card.year,
+            func.lower(DictionaryEntry.card_number) == card.card_number.lower(),
+        ).first()
+
+        if entry:
+            entry.book_high     = card.book_high
+            entry.book_high_mid = card.book_high_mid
+            entry.book_mid      = card.book_mid
+            entry.book_low_mid  = card.book_low_mid
+            entry.book_low      = card.book_low
+            entry.book_values_imported_at = now
+            seeded += 1
+
+    db.commit()
+    return {"seeded": seeded, "message": f"Seeded {seeded} dictionary entries from your cards."}

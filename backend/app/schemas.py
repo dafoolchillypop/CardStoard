@@ -283,6 +283,13 @@ class DictionaryEntryBase(BaseModel):
     brand: str
     year: int
     card_number: str
+    # Book values — nullable; populated via CSV import or seed-from-cards
+    book_high: Optional[float] = None
+    book_high_mid: Optional[float] = None
+    book_mid: Optional[float] = None
+    book_low_mid: Optional[float] = None
+    book_low: Optional[float] = None
+    book_values_imported_at: Optional[datetime] = None
 
 class DictionaryEntryCreate(DictionaryEntryBase):
     pass

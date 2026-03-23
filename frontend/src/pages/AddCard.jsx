@@ -91,20 +91,53 @@ export default function AddCard() {
           first_name: card.first_name.trim().toLowerCase(),
           last_name: card.last_name.trim().toLowerCase(),
         };
-
         if (card.brand) params.brand = card.brand;
         if (card.year && !isNaN(Number(card.year))) params.year = Number(card.year);
 
-        const res = await api.get("/cards/smart-fill", { params });
+        const cardNum = card.card_number.trim();
 
-        if (res.data.status === "ok") {
-          setCard((prev) => ({
-            ...prev,
-            rookie: res.data.fields.rookie !== undefined
-              ? (res.data.fields.rookie ? 1 : 0)
-              : prev.rookie,
-            card_number: res.data.fields.card_number || prev.card_number,
-          }));
+        if (cardNum) {
+          // Card number already present — look up book values for this exact card
+          const res = await api.get("/cards/smart-fill", { params: { ...params, card_number: cardNum } });
+          if (res.data.status === "ok") {
+            const f = res.data.fields;
+            setCard((prev) => ({
+              ...prev,
+              book_high:     f.book_high     ?? prev.book_high,
+              book_high_mid: f.book_high_mid ?? prev.book_high_mid,
+              book_mid:      f.book_mid      ?? prev.book_mid,
+              book_low_mid:  f.book_low_mid  ?? prev.book_low_mid,
+              book_low:      f.book_low      ?? prev.book_low,
+            }));
+          }
+        } else {
+          // No card number yet — fill card_number + rookie, then immediately look up book values
+          const res = await api.get("/cards/smart-fill", { params });
+          if (res.data.status === "ok") {
+            const f = res.data.fields;
+            const filledCardNum = f.card_number || "";
+            setCard((prev) => ({
+              ...prev,
+              rookie: f.rookie !== undefined ? (f.rookie ? 1 : 0) : prev.rookie,
+              card_number: filledCardNum || prev.card_number,
+            }));
+
+            // Immediately fetch book values using the resolved card number
+            if (filledCardNum) {
+              const res2 = await api.get("/cards/smart-fill", { params: { ...params, card_number: filledCardNum } });
+              if (res2.data.status === "ok") {
+                const f2 = res2.data.fields;
+                setCard((prev) => ({
+                  ...prev,
+                  book_high:     f2.book_high     ?? prev.book_high,
+                  book_high_mid: f2.book_high_mid ?? prev.book_high_mid,
+                  book_mid:      f2.book_mid      ?? prev.book_mid,
+                  book_low_mid:  f2.book_low_mid  ?? prev.book_low_mid,
+                  book_low:      f2.book_low      ?? prev.book_low,
+                }));
+              }
+            }
+          }
         }
       } catch (err) {
         console.error("Smart Fill error:", err);
@@ -113,7 +146,7 @@ export default function AddCard() {
 
     const timeout = setTimeout(runSmartFill, 400); // debounce
     return () => clearTimeout(timeout);
-  }, [card.first_name, card.last_name, card.brand, card.year, enableSmartFill]);
+  }, [card.first_name, card.last_name, card.brand, card.year, card.card_number, enableSmartFill]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

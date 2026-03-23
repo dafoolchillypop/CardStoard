@@ -294,10 +294,21 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           <p style={h4Style}>Smart Fill</p>
           <ol style={{ marginTop: 0 }}>
             <li>Enable Smart Fill in <Link to="/admin" style={{ color: "var(--link)" }}>Admin → Features</Link>.</li>
-            <li>When adding or editing a card, type the player's first and last name.</li>
-            <li>Smart Fill automatically fills in the card number and rookie flag from the dictionary.</li>
+            <li>When adding a card, type the player's first and last name, then select brand and year.</li>
+            <li>Smart Fill automatically fills in the card number, rookie flag, and all 5 book value tiers from the dictionary.</li>
             <li>On name fields, press <strong>Tab</strong> or <strong>Enter</strong> to accept a suggested name completion.</li>
           </ol>
+
+          <p style={h4Style}>Value Dictionary</p>
+          <p style={{ marginTop: 0 }}>
+            The Value Dictionary stores book values (High → Low) for dictionary entries keyed on brand + year + card number.
+            When Smart Fill fires, it first resolves the card number, then immediately looks up book values and populates all 5 tiers automatically.
+          </p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Admin can seed book values from existing cards via <Link to="/admin" style={{ color: "var(--link)" }}>Admin → Value Dictionary → Seed from My Cards</Link>.</li>
+            <li>Bulk import book values via CSV from Admin → Value Dictionary → Import Values CSV. Format: Brand, Year, CardNumber, BookHigh, BookHighMid, BookMid, BookLowMid, BookLow. All 5 tiers required per row.</li>
+            <li>The Dictionary list shows a <strong>✓</strong> in the Values column for entries that have book values on file.</li>
+          </ul>
 
           <p style={h4Style}>Managing dictionary entries</p>
           <ul style={{ marginTop: 0, marginBottom: 0 }}>

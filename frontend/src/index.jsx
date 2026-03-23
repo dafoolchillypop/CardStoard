@@ -29,6 +29,7 @@ import DictionaryList from "./pages/DictionaryList.jsx";
 import DictionaryAdd from "./pages/DictionaryAdd.jsx";
 import DictionaryEdit from "./pages/DictionaryEdit.jsx";
 import DictionaryImport from "./pages/DictionaryImport.jsx";
+import DictionaryValueImport from "./pages/DictionaryValueImport.jsx";
 import SetsPage from "./pages/SetsPage.jsx";
 import SetDetail from "./pages/SetDetail.jsx";
 import SetImport from "./pages/SetImport.jsx";
@@ -87,6 +88,7 @@ function AppRouter() {
           <Route path="/dictionary/add" element={<ProtectedRoute><DictionaryAdd /></ProtectedRoute>} />
           <Route path="/dictionary/edit/:id" element={<ProtectedRoute><DictionaryEdit /></ProtectedRoute>} />
           <Route path="/dictionary/import" element={<ProtectedRoute><DictionaryImport /></ProtectedRoute>} />
+          <Route path="/dictionary/import-values" element={<ProtectedRoute><DictionaryValueImport /></ProtectedRoute>} />
           <Route path="/sets" element={<ProtectedRoute><SetsPage /></ProtectedRoute>} />
           <Route path="/sets/import" element={<ProtectedRoute><SetImport /></ProtectedRoute>} />
           <Route path="/sets/:setId" element={<ProtectedRoute><SetDetail /></ProtectedRoute>} />
