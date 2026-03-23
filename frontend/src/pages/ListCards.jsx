@@ -10,7 +10,7 @@
  *   - Inline editing: click row or edit button → edit form in row → save PUT /cards/:id
  *   - Row color coding: rookie (gold), grade 3.0 (lavender), rookie+grade3 (blue)
  *     Colors sourced from GlobalSettings
- *   - Pinned row (bookmark): persisted to localStorage per user
+ *   - Pinned row (bookmark): persisted to GlobalSettings (DB) — survives logout/device switch
  *   - CD-player pagination controls in thead action column
  *   - Image viewer modal (CardImages) for front/back card photos
  *   - Label print via LabelPreviewModal → /card-label/:id
