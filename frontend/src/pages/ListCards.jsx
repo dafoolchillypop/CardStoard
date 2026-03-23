@@ -145,7 +145,8 @@ export default function ListCards() {
   const [cloningCardId, setCloningCardId] = useState(null);
   const [cloningParentId, setCloningParentId] = useState(null);
   const [displaySnapshot, setDisplaySnapshot] = useState(null); // frozen ordered id list during clone session
-  const [focusCardId, setFocusCardId] = useState(null);
+  const [focusCardId, setFocusCardId] = useState(returnState.scrollToCardId ?? null);
+  const mountScrollCardIdRef = useRef(returnState.scrollToCardId ?? null);
   const [pinnedRowId, setPinnedRowId] = useState(null);
   const rowRefsMap = useRef({});
   const [variantOpenId, setVariantOpenId] = useState(null);
@@ -602,7 +603,10 @@ export default function ListCards() {
     if (!focusCardId) return;
     const el = rowRefsMap.current[focusCardId];
     if (el) {
-      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      // Use instant jump when scrolling to the navigation target on mount (avoids sweep from top)
+      const behavior = mountScrollCardIdRef.current === focusCardId ? "instant" : "smooth";
+      mountScrollCardIdRef.current = null;
+      el.scrollIntoView({ block: "center", behavior });
       setFocusCardId(null);
     }
   }, [focusCardId, displayedCards]);
