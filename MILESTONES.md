@@ -4,6 +4,22 @@
 
 **<->**
 
+## v1.13 — Value Dictionary & Smart Fill Book Values (March 2026)
+**Status:** Complete
+**Focus:** Admin-maintained book value dictionary keyed on brand + year + card number; Smart Fill auto-populates all 5 book value tiers when adding cards
+
+### Deliverables
+- **Value Dictionary** — 6 new columns on `dictionary_entries`: `book_high`, `book_high_mid`, `book_mid`, `book_low_mid`, `book_low` (Float nullable), `book_values_imported_at` (Timestamp); migration 016
+- **Smart Fill extension** — two-call pattern: first call resolves card_number + rookie, second call (card_number pinned) returns book values; fixed stale card_number bug (always re-derives from name/brand/year)
+- **Seed from cards** — `POST /dictionary/seed-values-from-cards` populates dictionary from user's own cards where all 5 tiers are present; seeded 270 entries from prod
+- **CSV import** — `POST /dictionary/validate-values-csv` + `POST /dictionary/import-values-csv`; requires all 5 tiers; format: Brand, Year, CardNumber, BookHigh, BookHighMid, BookMid, BookLowMid, BookLow
+- **Value Dictionary stats** — `GET /dictionary/values-stats` returns entry count with values + last import timestamp
+- **Admin UI** — Value Dictionary section: entry count, last import date, Import Values CSV button, Seed from My Cards button
+- **Dictionary List** — Values column (✓ / —); inline edit shows all 5 book value fields
+- **DictionaryValueImport page** — `/dictionary/import-values` CSV upload page (validate → summary → import)
+
+---
+
 ## v1.12 — Code Documentation (March 2026)
 **Status:** Complete
 **Focus:** Inline code documentation across all primary backend and frontend files

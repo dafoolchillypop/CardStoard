@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.12
+# 🧾 CardStoard — v1.13
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -212,6 +212,7 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.13** | Mar 2026 | Value Dictionary: admin-maintained book values on dictionary entries, Smart Fill auto-populates all 5 book value tiers, seed from existing cards, CSV import, Values column in Dictionary list |
 | **v1.12** | Mar 2026 | Inline code documentation: file-level headers and function docstrings across 21 key backend and frontend files; no logic changes |
 | **v1.11** | Mar 2026 | Dictionary expansion: Bowman 1948–1955, Fleer 1959–1963, Donruss/Fleer/Upper Deck 1981–1990 (97 players / 1,875+ entries); full vintage set checklists for Bowman + Fleer; scraper fix for mixed-layout + leading-dash Keyman pages; additive seed |
 | **v1.10** | Mar 2026 | Sets/Binders rename, CS-ST-XXXXXX identifier, Set Detail page, label printing + QR for sets, notes on label, prev/next set nav, inline controls (copy/print/detail), quantity + total columns, nav bar customization, last login display |

@@ -135,12 +135,20 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.12</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.13</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.13 (March 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Value Dictionary: book values stored on dictionary entries (brand + year + card number)</li>
+            <li>Smart Fill now auto-populates all 5 book value tiers when adding a card</li>
+            <li>Admin: seed book values from existing cards; bulk import via CSV</li>
+            <li>Dictionary list: Values column shows which entries have book values on file</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.12 (March 2026)</p>
           <ul style={{ marginTop: 0 }}>
