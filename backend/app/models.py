@@ -132,6 +132,7 @@ class GlobalSettings(Base):
     default_sort_boxes = Column(JSON, nullable=True, default=None)
     visible_set_ids = Column(JSON, nullable=True, default=None)
     nav_items = Column(JSON, nullable=True, default=None)
+    pinned_card_id = Column(Integer, nullable=True)
 
 class SetList(Base):
     """Global reference set definition (e.g. '1952 Topps Baseball'). Not user-scoped."""

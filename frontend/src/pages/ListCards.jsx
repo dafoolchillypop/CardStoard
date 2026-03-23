@@ -146,10 +146,7 @@ export default function ListCards() {
   const [cloningParentId, setCloningParentId] = useState(null);
   const [displaySnapshot, setDisplaySnapshot] = useState(null); // frozen ordered id list during clone session
   const [focusCardId, setFocusCardId] = useState(null);
-  const [pinnedRowId, setPinnedRowId] = useState(() => {
-    const stored = localStorage.getItem("cs-pinned-row");
-    return stored ? Number(stored) : null;
-  });
+  const [pinnedRowId, setPinnedRowId] = useState(null);
   const rowRefsMap = useRef({});
   const [variantOpenId, setVariantOpenId] = useState(null);
   const [variantForm, setVariantForm] = useState({});
@@ -186,8 +183,7 @@ export default function ListCards() {
   const handlePinRow = (cardId) => {
     setPinnedRowId(prev => {
       const next = prev === cardId ? null : cardId;
-      if (next) localStorage.setItem("cs-pinned-row", String(next));
-      else localStorage.removeItem("cs-pinned-row");
+      api.put("/settings/", { pinned_card_id: next }).catch(() => {});
       return next;
     });
   };
@@ -271,7 +267,7 @@ export default function ListCards() {
         if (pinnedCard?.id === cardId) setPinnedCard(res.data);
         setEditingCardId(null);
         setPinnedRowId(cardId);
-        localStorage.setItem("cs-pinned-row", String(cardId));
+        api.put("/settings/", { pinned_card_id: cardId }).catch(() => {});
         // For clone saves the snapshot already keeps the row in place; only
         // trigger a scroll for regular edits where the row may have moved.
         if (cardId !== cloningCardId) setFocusCardId(cardId);
@@ -434,7 +430,10 @@ export default function ListCards() {
   useEffect(() => {
     api
       .get("/settings/")
-      .then((res) => setSettings(res.data))
+      .then((res) => {
+        setSettings(res.data);
+        if (res.data.pinned_card_id) setPinnedRowId(res.data.pinned_card_id);
+      })
       .catch((err) => console.error("Error fetching settings:", err));
   }, []);
 
