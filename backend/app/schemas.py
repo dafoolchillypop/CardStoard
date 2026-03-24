@@ -134,9 +134,11 @@ class GlobalSettingsBase(BaseModel):
     dark_mode: bool = False
     default_sort: Optional[list] = None
     default_sort_boxes: Optional[list] = None
+    default_sort_balls: Optional[list] = None
     visible_set_ids: Optional[List[int]] = None
     nav_items: Optional[List[str]] = None
     pinned_card_id: Optional[int] = None
+    pinned_ball_id: Optional[int] = None
 
 class GlobalSettingsCreate(GlobalSettingsBase):
     pass
@@ -169,9 +171,11 @@ class GlobalSettingsUpdate(BaseModel):
     dark_mode: Optional[bool] = None
     default_sort: Optional[list] = None
     default_sort_boxes: Optional[list] = None
+    default_sort_balls: Optional[list] = None
     visible_set_ids: Optional[List[int]] = None
     nav_items: Optional[List[str]] = None
     pinned_card_id: Optional[int] = None
+    pinned_ball_id: Optional[int] = None
 
 class GlobalSettings(GlobalSettingsBase):
     id: int
@@ -299,6 +303,39 @@ class DictionaryEntryCreate(DictionaryEntryBase):
 class DictionaryEntryRead(DictionaryEntryBase):
     id: int
     in_collection: bool = False
+
+    class Config:
+        from_attributes = True
+
+class AutoBallBase(BaseModel):
+    first_name: str
+    last_name: str
+    brand: Optional[str] = None
+    commissioner: Optional[str] = None
+    auth: Optional[bool] = False
+    inscription: Optional[str] = None
+    value: Optional[float] = None
+    notes: Optional[str] = None
+
+class AutoBallCreate(AutoBallBase):
+    pass
+
+class AutoBallUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    brand: Optional[str] = None
+    commissioner: Optional[str] = None
+    auth: Optional[bool] = None
+    inscription: Optional[str] = None
+    value: Optional[float] = None
+    notes: Optional[str] = None
+
+class AutoBallOut(AutoBallBase):
+    id: int
+    user_id: int
+    value_updated_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
