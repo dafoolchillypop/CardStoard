@@ -368,6 +368,15 @@ export default function ListBalls() {
     setEditForm({});
   };
 
+  const handleRefreshValue = async (ball) => {
+    try {
+      const res = await api.post(`/balls/${ball.id}/refresh-value`);
+      setBalls(prev => prev.map(b => b.id === ball.id ? res.data : b));
+    } catch (err) {
+      console.error("Refresh failed:", err);
+    }
+  };
+
   const handlePrintLabel = async (ball) => {
     try {
       const res = await api.get(`/balls/${ball.id}/public`);
@@ -624,7 +633,14 @@ export default function ListBalls() {
                         {isEditing
                           ? <input style={inp} type="number" step="0.01" value={editForm.value} onChange={e => handleEditChange("value", e.target.value)} placeholder="$" />
                           : ball.value != null
-                            ? <span style={{ fontWeight: 600, color: "#2e7d32" }}>{fmtDollar(ball.value)}</span>
+                            ? <span>
+                                <span style={{ fontWeight: 600, color: "#2e7d32" }}>{fmtDollar(ball.value)}</span>
+                                <button onClick={(e) => { e.stopPropagation(); handleRefreshValue(ball); }}
+                                  title="Confirm value is current (resets freshness timer)"
+                                  style={{ background: "none", border: "none", cursor: "pointer",
+                                           fontSize: "0.9rem", padding: "0 3px", color: "#0891b2",
+                                           verticalAlign: "middle", lineHeight: 1 }}>↻</button>
+                              </span>
                             : <span style={{ color: "var(--text-muted)" }}>—</span>}
                       </td>
 
@@ -662,6 +678,9 @@ export default function ListBalls() {
                             <button onClick={() => handlePrintLabel(ball)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
                               title="Print label">🖨️</button>
+                            <button onClick={() => window.open(`/ball-view/${ball.id}`, "_blank")}
+                              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#6c757d", width: "auto" }}
+                              title="View public page">ℹ️</button>
                             <button onClick={() => handleDelete(ball)}
                               style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.3rem", padding: "2px 4px", color: "#dc3545", width: "auto" }}
                               title="Delete">✕</button>

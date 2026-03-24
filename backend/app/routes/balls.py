@@ -132,6 +132,29 @@ def update_ball(
 
 
 # ---------------------------------------------------------------------------
+# POST /balls/{ball_id}/refresh-value  — stamp value_updated_at = now()
+# ---------------------------------------------------------------------------
+@router.post("/{ball_id}/refresh-value", response_model=schemas.AutoBallOut)
+def refresh_ball_value(
+    ball_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    ball = (
+        db.query(models.AutoBall)
+        .filter(models.AutoBall.id == ball_id, models.AutoBall.user_id == current.id)
+        .first()
+    )
+    if not ball:
+        raise HTTPException(status_code=404, detail="Not found")
+    ball.value_updated_at = datetime.now(timezone.utc)
+    ball.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(ball)
+    return ball
+
+
+# ---------------------------------------------------------------------------
 # DELETE /balls/{ball_id}
 # ---------------------------------------------------------------------------
 @router.delete("/{ball_id}", status_code=204)
