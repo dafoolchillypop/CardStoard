@@ -73,6 +73,8 @@ def create_ball(
     current: User = Depends(get_current_user),
 ):
     ball = models.AutoBall(user_id=current.id, **body.dict())
+    if ball.value is not None:
+        ball.value_updated_at = datetime.now(timezone.utc)
     db.add(ball)
     db.commit()
     db.refresh(ball)
