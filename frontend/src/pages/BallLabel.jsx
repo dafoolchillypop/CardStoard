@@ -47,6 +47,9 @@ export default function BallLabel() {
         <div className="set-label-text">
           <span className="set-label-id">{data.label_id}</span>
           <span className="set-label-desc">{data.name}</span>
+          {data.inscription && (
+            <span className="set-label-notes">{data.inscription}</span>
+          )}
         </div>
       </div>
     </>
