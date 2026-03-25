@@ -97,12 +97,12 @@ export default function AppHeader() {
           </Link>
         )}
         {show("wax") && (
-          <button className="header-btn" disabled title="Coming soon">
+          <button className="header-btn" onClick={() => navigate("/wax")} title="Wax Boxes">
             📦 Wax
           </button>
         )}
         {show("packs") && (
-          <button className="header-btn" disabled title="Coming soon">
+          <button className="header-btn" onClick={() => navigate("/packs")} title="Wax Packs">
             🧧 Packs
           </button>
         )}

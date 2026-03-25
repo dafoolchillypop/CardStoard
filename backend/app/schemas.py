@@ -135,10 +135,14 @@ class GlobalSettingsBase(BaseModel):
     default_sort: Optional[list] = None
     default_sort_boxes: Optional[list] = None
     default_sort_balls: Optional[list] = None
+    default_sort_wax: Optional[list] = None
+    default_sort_packs: Optional[list] = None
     visible_set_ids: Optional[List[int]] = None
     nav_items: Optional[List[str]] = None
     pinned_card_id: Optional[int] = None
     pinned_ball_id: Optional[int] = None
+    pinned_wax_id: Optional[int] = None
+    pinned_pack_id: Optional[int] = None
 
 class GlobalSettingsCreate(GlobalSettingsBase):
     pass
@@ -172,10 +176,14 @@ class GlobalSettingsUpdate(BaseModel):
     default_sort: Optional[list] = None
     default_sort_boxes: Optional[list] = None
     default_sort_balls: Optional[list] = None
+    default_sort_wax: Optional[list] = None
+    default_sort_packs: Optional[list] = None
     visible_set_ids: Optional[List[int]] = None
     nav_items: Optional[List[str]] = None
     pinned_card_id: Optional[int] = None
     pinned_ball_id: Optional[int] = None
+    pinned_wax_id: Optional[int] = None
+    pinned_pack_id: Optional[int] = None
 
 class GlobalSettings(GlobalSettingsBase):
     id: int
@@ -331,6 +339,72 @@ class AutoBallUpdate(BaseModel):
     notes: Optional[str] = None
 
 class AutoBallOut(AutoBallBase):
+    id: int
+    user_id: int
+    value_updated_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+# ---------------------------------------------------------------------------
+# Wax Boxes
+# ---------------------------------------------------------------------------
+class WaxBoxBase(BaseModel):
+    year: int
+    brand: str
+    set_name: Optional[str] = None
+    quantity: Optional[int] = 1
+    value: Optional[float] = None
+    notes: Optional[str] = None
+
+class WaxBoxCreate(WaxBoxBase):
+    pass
+
+class WaxBoxUpdate(BaseModel):
+    year: Optional[int] = None
+    brand: Optional[str] = None
+    set_name: Optional[str] = None
+    quantity: Optional[int] = None
+    value: Optional[float] = None
+    notes: Optional[str] = None
+
+class WaxBoxOut(WaxBoxBase):
+    id: int
+    user_id: int
+    value_updated_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+# ---------------------------------------------------------------------------
+# Wax Packs
+# ---------------------------------------------------------------------------
+class WaxPackBase(BaseModel):
+    year: int
+    brand: str
+    set_name: Optional[str] = None
+    pack_type: Optional[str] = None
+    quantity: Optional[int] = 1
+    value: Optional[float] = None
+    notes: Optional[str] = None
+
+class WaxPackCreate(WaxPackBase):
+    pass
+
+class WaxPackUpdate(BaseModel):
+    year: Optional[int] = None
+    brand: Optional[str] = None
+    set_name: Optional[str] = None
+    pack_type: Optional[str] = None
+    quantity: Optional[int] = None
+    value: Optional[float] = None
+    notes: Optional[str] = None
+
+class WaxPackOut(WaxPackBase):
     id: int
     user_id: int
     value_updated_at: Optional[datetime] = None
