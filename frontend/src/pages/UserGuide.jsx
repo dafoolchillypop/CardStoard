@@ -114,7 +114,7 @@ export default function UserGuide() {
           <p style={h4Style}>Pin / bookmark</p>
           <p style={{ marginTop: 0 }}>
             Click the <strong>📌</strong> icon in any row's action column to pin that row. The pinned row is highlighted
-            and your selection is remembered across sessions (stored locally in your browser). Saving any card
+            and your selection is stored in your account profile — it follows you across devices and sessions. Saving any card
             automatically pins that row so you don't lose your place. To jump back to your pinned row from anywhere
             in the list, click the <strong>📌</strong> button in the table header — the pinned row scrolls to the
             centre of the view. Click the pin icon again on the same row to unpin.
@@ -398,9 +398,49 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 9. Analytics */}
+        {/* 9. Auto Balls */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>9. Analytics</h3>
+          <h3 style={h3Style}>9. Auto Balls</h3>
+
+          <p style={{ marginTop: 0 }}>
+            The <Link to="/balls" style={{ color: "var(--link)" }}>Auto Balls</Link> page tracks autographed
+            baseballs as a first-class collection type. Each ball records the signer's name, brand, commissioner
+            stamp, Certificate of Authenticity (COA) status, inscription, value, and notes.
+          </p>
+
+          <p style={h4Style}>Adding &amp; editing</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Click <strong>＋</strong> in the header to add a new ball inline (first name, last name required).</li>
+            <li>Click <strong>✏️</strong> or any row to edit inline. Click ✓ to save or ✕ to cancel.</li>
+            <li>The <strong>COA</strong> checkbox sets the auth flag — the row badge updates to <span style={{ background: "#16a34a", color: "#fff", borderRadius: 3, padding: "1px 6px", fontSize: "0.8rem" }}>AUTH</span> or <span style={{ background: "#9ca3af", color: "#fff", borderRadius: 3, padding: "1px 6px", fontSize: "0.8rem" }}>UNAUTH</span>.</li>
+          </ul>
+
+          <p style={h4Style}>Value freshness</p>
+          <p style={{ marginTop: 0 }}>
+            The Value cell has a left-border freshness indicator — green (&lt; 30 days), amber (30–90 days), or red (&gt; 90 days / never set).
+            Click the <strong>↻</strong> button next to any value to confirm it is current and reset the freshness timer to today.
+          </p>
+
+          <p style={h4Style}>Row actions</p>
+          <ul style={{ marginTop: 0 }}>
+            <li><strong>📌</strong> — pin the row; pin persists across sessions in your account profile.</li>
+            <li><strong>📋</strong> — duplicate the row and open for editing.</li>
+            <li><strong>🖨️</strong> — open the label preview and print an Avery 6427 label (CS-BL-XXXXXX + name + inscription + QR code).</li>
+            <li><strong>ℹ️</strong> — open the public ball view in a new tab (no login required).</li>
+            <li><strong>✕</strong> — delete with confirmation.</li>
+          </ul>
+
+          <p style={h4Style}>Navigation &amp; sort</p>
+          <p style={{ marginTop: 0, marginBottom: 0 }}>
+            Use the CD player controls (|◄ ▲ ▼ ►|) to jump through the list. Click <strong>⇅ Sort</strong>
+            in the toolbar to configure a multi-level sort order and optionally save it as your default.
+            Filter by last name, brand, or auth status using the <strong>🔍</strong> column icons.
+          </p>
+        </div>
+
+        {/* 10. Analytics */}
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>10. Analytics</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/analytics" style={{ color: "var(--link)" }}>Analytics</Link> dashboard gives you a high-level
@@ -432,7 +472,7 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
 
         {/* 10. Admin */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>10. Admin Settings</h3>
+          <h3 style={h3Style}>11. Admin Settings</h3>
 
           <p style={{ marginTop: 0 }}>
             All administrative tools are consolidated on the <Link to="/admin" style={{ color: "var(--link)" }}>Admin</Link> page.
@@ -505,7 +545,7 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
 
         {/* 11. Account & Security */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>11. Account &amp; Security</h3>
+          <h3 style={h3Style}>12. Account &amp; Security</h3>
 
           <p style={{ marginTop: 0 }}>
             Access your account settings by clicking your username in the top-right of the navigation bar.
