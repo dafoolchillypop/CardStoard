@@ -41,7 +41,6 @@ function PackTypeBadge({ type }) {
 const PACK_SORT_COLUMNS = [
   { key: "year",      label: "Year" },
   { key: "brand",     label: "Brand" },
-  { key: "set_name",  label: "Set" },
   { key: "pack_type", label: "Type" },
   { key: "quantity",  label: "Qty" },
   { key: "value",     label: "Value" },
@@ -132,7 +131,6 @@ export default function ListPacks() {
 
   const [yearFilter, setYearFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
-  const [setFilter, setSetFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState([{ key: "year", direction: "desc" }]);
   const [showSortModal, setShowSortModal] = useState(false);
@@ -189,7 +187,6 @@ export default function ListPacks() {
     let result = items.filter(b => {
       if (yearFilter && !String(b.year).includes(yearFilter)) return false;
       if (brandFilter && !(b.brand || "").toLowerCase().includes(brandFilter.toLowerCase())) return false;
-      if (setFilter && !(b.set_name || "").toLowerCase().includes(setFilter.toLowerCase())) return false;
       if (typeFilter !== "all" && (b.pack_type || "").toLowerCase() !== typeFilter) return false;
       return true;
     });
@@ -199,7 +196,6 @@ export default function ListPacks() {
         let aVal, bVal;
         if (key === "year")      { aVal = Number(a.year) || 0;               bVal = Number(b.year) || 0; }
         else if (key === "brand")     { aVal = (a.brand || "").toLowerCase();     bVal = (b.brand || "").toLowerCase(); }
-        else if (key === "set_name")  { aVal = (a.set_name || "").toLowerCase();  bVal = (b.set_name || "").toLowerCase(); }
         else if (key === "pack_type") { aVal = (a.pack_type || "").toLowerCase(); bVal = (b.pack_type || "").toLowerCase(); }
         else if (key === "quantity")  { aVal = Number(a.quantity) || 0;           bVal = Number(b.quantity) || 0; }
         else if (key === "value")     { aVal = Number(a.value) || 0;              bVal = Number(b.value) || 0; }
@@ -271,7 +267,6 @@ export default function ListPacks() {
     setEditForm({
       year:      item.year != null ? String(item.year) : "",
       brand:     item.brand || "",
-      set_name:  item.set_name || "",
       pack_type: item.pack_type || "",
       quantity:  item.quantity != null ? String(item.quantity) : "1",
       value:     item.value != null ? String(item.value) : "",
@@ -287,7 +282,6 @@ export default function ListPacks() {
     const payload = {
       year:      editForm.year !== "" ? parseInt(editForm.year, 10) : null,
       brand:     editForm.brand || null,
-      set_name:  editForm.set_name || null,
       pack_type: editForm.pack_type || null,
       quantity:  editForm.quantity !== "" ? parseInt(editForm.quantity, 10) : 1,
       value:     editForm.value !== "" ? parseFloat(editForm.value) : null,
@@ -308,7 +302,7 @@ export default function ListPacks() {
   const handleEditCancel = () => { setEditingId(null); setEditForm({}); };
 
   const handleDelete = async (item) => {
-    const label = `${item.year} ${item.brand}${item.set_name ? " " + item.set_name : ""}${item.pack_type ? " (" + item.pack_type + ")" : ""}`;
+    const label = `${item.year} ${item.brand}${item.pack_type ? " (" + item.pack_type + ")" : ""}`;
     if (!window.confirm(`Delete "${label}"?`)) return;
     try {
       await api.delete(`/packs/${item.id}`);
@@ -327,7 +321,6 @@ export default function ListPacks() {
     const payload = {
       year:      item.year,
       brand:     item.brand,
-      set_name:  item.set_name || null,
       pack_type: item.pack_type || null,
       quantity:  item.quantity ?? 1,
       value:     item.value ?? null,
@@ -349,7 +342,7 @@ export default function ListPacks() {
   };
 
   const handleAddNew = () => {
-    const blank = { id: "new", year: "", brand: "", set_name: "", pack_type: "", quantity: "1", value: "", notes: "" };
+    const blank = { id: "new", year: "", brand: "", pack_type: "", quantity: "1", value: "", notes: "" };
     setEditingId("new");
     setEditForm({ ...blank });
     setItems(prev => [blank, ...prev]);
@@ -359,7 +352,6 @@ export default function ListPacks() {
     const payload = {
       year:      editForm.year !== "" ? parseInt(editForm.year, 10) : null,
       brand:     editForm.brand || null,
-      set_name:  editForm.set_name || null,
       pack_type: editForm.pack_type || null,
       quantity:  editForm.quantity !== "" ? parseInt(editForm.quantity, 10) : 1,
       value:     editForm.value !== "" ? parseFloat(editForm.value) : null,
@@ -409,9 +401,10 @@ export default function ListPacks() {
   // --- Stats ---
   const realItems = filtered.filter(b => b.id !== "new");
   const totalValue = realItems.reduce((sum, b) => sum + (Number(b.quantity) || 1) * (Number(b.value) || 0), 0);
-  const hasFilters = yearFilter || brandFilter || setFilter || typeFilter !== "all";
+  const hasFilters = yearFilter || brandFilter || typeFilter !== "all";
 
   const inp = { fontSize: "0.8rem", padding: "2px 4px", width: "100%", boxSizing: "border-box", borderRadius: "4px", border: "1px solid #bbb" };
+  const cardMakes = settings?.card_makes || [];
 
   const cdBtn = (disabled) => ({
     background: "none", border: "none", padding: "2px 3px", fontSize: "0.85rem", width: "auto",
@@ -423,7 +416,7 @@ export default function ListPacks() {
       <AppHeader />
       <div className="list-container">
         <h2 className="page-header" style={{ textAlign: "center", margin: "0.5rem 0 0.25rem" }}>
-          Wax Packs
+          Packs
         </h2>
 
         {/* Toolbar */}
@@ -437,7 +430,7 @@ export default function ListPacks() {
             )}
             {hasFilters && (
               <><span>&middot;</span>
-                <span onClick={() => { setYearFilter(""); setBrandFilter(""); setSetFilter(""); setTypeFilter("all"); setOpenFilterCols(new Set()); }}
+                <span onClick={() => { setYearFilter(""); setBrandFilter(""); setTypeFilter("all"); setOpenFilterCols(new Set()); }}
                   style={{ color: "#dc3545", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}>✕ Clear</span>
               </>
             )}
@@ -489,19 +482,6 @@ export default function ListPacks() {
                     {openFilterCols.has("brand") && (
                       <input type="text" value={brandFilter} onChange={e => setBrandFilter(e.target.value)}
                         placeholder="Brand…" autoFocus
-                        style={{ width: "100%", fontSize: "0.75rem", padding: "1px 2px", boxSizing: "border-box", marginTop: "2px" }} />
-                    )}
-                  </th>
-
-                  {/* Set */}
-                  <th style={{ width: 130, textAlign: "center", padding: "4px 6px" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("set_name")}>Set{getSortIndicator("set_name")}</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("set_name")} title="Filter by set">🔍</span>
-                    </div>
-                    {openFilterCols.has("set_name") && (
-                      <input type="text" value={setFilter} onChange={e => setSetFilter(e.target.value)}
-                        placeholder="Set…" autoFocus
                         style={{ width: "100%", fontSize: "0.75rem", padding: "1px 2px", boxSizing: "border-box", marginTop: "2px" }} />
                     )}
                   </th>
@@ -572,7 +552,7 @@ export default function ListPacks() {
               <tbody>
                 {items.length === 0 && editingId === null && (
                   <tr>
-                    <td colSpan={9} style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
+                    <td colSpan={8} style={{ textAlign: "center", padding: "2rem", color: "var(--text-muted)" }}>
                       No packs yet. Click ＋ to add one.
                     </td>
                   </tr>
@@ -615,17 +595,13 @@ export default function ListPacks() {
                       {/* Brand */}
                       <td style={{ padding: "4px 6px", width: 110, textAlign: "center" }}>
                         {isEditing
-                          ? <input style={inp} type="text" value={editForm.brand} onChange={e => handleEditChange("brand", e.target.value)} placeholder="Brand" />
+                          ? <select style={inp} value={editForm.brand} onChange={e => handleEditChange("brand", e.target.value)}>
+                              <option value="">— select —</option>
+                              {cardMakes.map(m => <option key={m} value={m}>{m}</option>)}
+                            </select>
                           : item.brand
                             ? <span className="badge badge-brand" style={{ marginRight: 0 }}>{item.brand}</span>
                             : <span style={{ color: "var(--text-muted)" }}>—</span>}
-                      </td>
-
-                      {/* Set */}
-                      <td style={{ padding: "4px 6px", width: 130, textAlign: "center" }}>
-                        {isEditing
-                          ? <input style={inp} type="text" value={editForm.set_name} onChange={e => handleEditChange("set_name", e.target.value)} placeholder="Set name" />
-                          : item.set_name || <span style={{ color: "var(--text-muted)" }}>—</span>}
                       </td>
 
                       {/* Type */}

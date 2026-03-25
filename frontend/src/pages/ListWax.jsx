@@ -10,10 +10,37 @@ const fmtDollar = (n) => {
   return `$${val.toLocaleString()}`;
 };
 
+const WAX_BOX_TYPES = ["cello", "rack", "std"];
+
+const WAX_TYPE_COLORS = {
+  cello: { bg: "#1d4ed8", text: "#fff" },
+  rack:  { bg: "#d97706", text: "#fff" },
+  std:   { bg: "#16a34a", text: "#fff" },
+};
+
+function WaxTypeBadge({ type }) {
+  if (!type) return <span style={{ color: "var(--text-muted)" }}>—</span>;
+  const colors = WAX_TYPE_COLORS[type.toLowerCase()] || { bg: "#6b7280", text: "#fff" };
+  return (
+    <span style={{
+      display: "inline-block",
+      background: colors.bg,
+      color: colors.text,
+      borderRadius: 4,
+      padding: "2px 7px",
+      fontSize: "0.75rem",
+      fontWeight: 600,
+      textTransform: "capitalize",
+    }}>
+      {type}
+    </span>
+  );
+}
+
 const WAX_SORT_COLUMNS = [
   { key: "year",     label: "Year" },
   { key: "brand",    label: "Brand" },
-  { key: "set_name", label: "Set" },
+  { key: "set_name", label: "Type" },
   { key: "quantity", label: "Qty" },
   { key: "value",    label: "Value" },
 ];
@@ -103,7 +130,7 @@ export default function ListWax() {
 
   const [yearFilter, setYearFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
-  const [setFilter, setSetFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState([{ key: "year", direction: "desc" }]);
   const [showSortModal, setShowSortModal] = useState(false);
   const [openFilterCols, setOpenFilterCols] = useState(new Set());
@@ -159,7 +186,7 @@ export default function ListWax() {
     let result = items.filter(b => {
       if (yearFilter && !String(b.year).includes(yearFilter)) return false;
       if (brandFilter && !(b.brand || "").toLowerCase().includes(brandFilter.toLowerCase())) return false;
-      if (setFilter && !(b.set_name || "").toLowerCase().includes(setFilter.toLowerCase())) return false;
+      if (typeFilter !== "all" && (b.set_name || "").toLowerCase() !== typeFilter) return false;
       return true;
     });
 
@@ -373,9 +400,10 @@ export default function ListWax() {
   // --- Stats ---
   const realItems = filtered.filter(b => b.id !== "new");
   const totalValue = realItems.reduce((sum, b) => sum + (Number(b.quantity) || 1) * (Number(b.value) || 0), 0);
-  const hasFilters = yearFilter || brandFilter || setFilter;
+  const hasFilters = yearFilter || brandFilter || typeFilter !== "all";
 
   const inp = { fontSize: "0.8rem", padding: "2px 4px", width: "100%", boxSizing: "border-box", borderRadius: "4px", border: "1px solid #bbb" };
+  const cardMakes = settings?.card_makes || [];
 
   const cdBtn = (disabled) => ({
     background: "none", border: "none", padding: "2px 3px", fontSize: "0.85rem", width: "auto",
@@ -387,7 +415,7 @@ export default function ListWax() {
       <AppHeader />
       <div className="list-container">
         <h2 className="page-header" style={{ textAlign: "center", margin: "0.5rem 0 0.25rem" }}>
-          Wax Boxes
+          Wax
         </h2>
 
         {/* Toolbar */}
@@ -401,7 +429,7 @@ export default function ListWax() {
             )}
             {hasFilters && (
               <><span>&middot;</span>
-                <span onClick={() => { setYearFilter(""); setBrandFilter(""); setSetFilter(""); setOpenFilterCols(new Set()); }}
+                <span onClick={() => { setYearFilter(""); setBrandFilter(""); setTypeFilter("all"); setOpenFilterCols(new Set()); }}
                   style={{ color: "#dc3545", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}>✕ Clear</span>
               </>
             )}
@@ -457,16 +485,18 @@ export default function ListWax() {
                     )}
                   </th>
 
-                  {/* Set */}
-                  <th style={{ width: 140, textAlign: "center", padding: "4px 6px" }}>
+                  {/* Type */}
+                  <th style={{ width: 100, textAlign: "center", padding: "4px 6px" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("set_name")}>Set{getSortIndicator("set_name")}</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("set_name")} title="Filter by set">🔍</span>
+                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("set_name")}>Type{getSortIndicator("set_name")}</span>
+                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("set_name")} title="Filter by type">🔍</span>
                     </div>
                     {openFilterCols.has("set_name") && (
-                      <input type="text" value={setFilter} onChange={e => setSetFilter(e.target.value)}
-                        placeholder="Set…" autoFocus
-                        style={{ width: "100%", fontSize: "0.75rem", padding: "1px 2px", boxSizing: "border-box", marginTop: "2px" }} />
+                      <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} autoFocus
+                        style={{ width: "100%", fontSize: "0.75rem", padding: "1px 2px", boxSizing: "border-box", marginTop: "2px" }}>
+                        <option value="all">All</option>
+                        {WAX_BOX_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                      </select>
                     )}
                   </th>
 
@@ -564,17 +594,23 @@ export default function ListWax() {
                       {/* Brand */}
                       <td style={{ padding: "4px 6px", width: 110, textAlign: "center" }}>
                         {isEditing
-                          ? <input style={inp} type="text" value={editForm.brand} onChange={e => handleEditChange("brand", e.target.value)} placeholder="Brand" />
+                          ? <select style={inp} value={editForm.brand} onChange={e => handleEditChange("brand", e.target.value)}>
+                              <option value="">— select —</option>
+                              {cardMakes.map(m => <option key={m} value={m}>{m}</option>)}
+                            </select>
                           : item.brand
                             ? <span className="badge badge-brand" style={{ marginRight: 0 }}>{item.brand}</span>
                             : <span style={{ color: "var(--text-muted)" }}>—</span>}
                       </td>
 
-                      {/* Set */}
-                      <td style={{ padding: "4px 6px", width: 140, textAlign: "center" }}>
+                      {/* Type */}
+                      <td style={{ padding: "4px 6px", width: 100, textAlign: "center" }}>
                         {isEditing
-                          ? <input style={inp} type="text" value={editForm.set_name} onChange={e => handleEditChange("set_name", e.target.value)} placeholder="Set name" />
-                          : item.set_name || <span style={{ color: "var(--text-muted)" }}>—</span>}
+                          ? <select style={inp} value={editForm.set_name} onChange={e => handleEditChange("set_name", e.target.value)}>
+                              <option value="">— none —</option>
+                              {WAX_BOX_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                            </select>
+                          : <WaxTypeBadge type={item.set_name} />}
                       </td>
 
                       {/* Qty */}
