@@ -135,12 +135,19 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.13</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.14</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.14 (March 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Auto Balls: new inventory type for autographed baseballs (signer, brand, commissioner, COA auth badge, inscription, value, label print + QR)</li>
+            <li>⚾ Balls nav button activated — full list page with inline editing, freshness tracking, and label printing</li>
+            <li>Pin / bookmark now persisted to your account profile (follows you across devices)</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.13 (March 2026)</p>
           <ul style={{ marginTop: 0 }}>

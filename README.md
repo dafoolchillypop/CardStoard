@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.13
+# 🧾 CardStoard — v1.14
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -10,9 +10,9 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 | Layer | Directory | Purpose / Key Contents |
 |--------|------------|-------------------------|
 | **Backend** | `backend/app/` | FastAPI core (auth, routes, models, services) |
-| | `backend/app/routes/` | REST endpoints: auth, cards, analytics, account, dictionary, chat, settings, boxes, sets |
+| | `backend/app/routes/` | REST endpoints: auth, cards, analytics, account, dictionary, chat, settings, boxes, sets, balls |
 | | `backend/app/services/` | Business logic: valuations, fuzzy match, image pipeline |
-| | `backend/app/models.py` | SQLAlchemy entities (Card, User, GlobalSettings, SetList, SetEntry, UserSetCard, BoxBinder, DictionaryEntry, ValuationHistory) |
+| | `backend/app/models.py` | SQLAlchemy entities (Card, User, GlobalSettings, SetList, SetEntry, UserSetCard, BoxBinder, AutoBall, DictionaryEntry, ValuationHistory) |
 | | `backend/app/schemas.py` | Pydantic models for validation & API I/O |
 | | `backend/app/data/` | Player dictionary seed data (867+ entries, Topps 1952–1980) |
 | **Frontend** | `frontend/src/` | React client app root |
@@ -42,7 +42,7 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - Row color coding: Mint (lavender), Rookie (gold), Rookie + Mint (rose) — colors customizable in Admin
 - **Book value propagation** — updating book values on one card automatically updates all matching cards (same player/brand/year/card#); propagation now also resets the freshness timer on all updated duplicates
 - **Book freshness refresh** — ↻ button per row (and on Card Detail) resets the freshness timer without opening edit mode; Admin has a bulk "Reset Book Value Timers" action to baseline your entire collection at once
-- **Pin / bookmark** — pin any row with the 📌 icon; the pin persists across sessions (localStorage); auto-pins after every save; jump to your pinned row from the 📌 button in the table header; clone/edit operations preserve table scroll position
+- **Pin / bookmark** — pin any row with the 📌 icon; the pin persists across sessions (stored in your account profile in the database); auto-pins after every save; jump to your pinned row from the 📌 button in the table header; clone/edit operations preserve table scroll position
 
 ### Sets (Checklists & Collection Tracking)
 - **My Sets** — browse global set checklists (39 Topps sets, 1952–1990, 17,504 cards); track which cards you own per set
@@ -57,12 +57,23 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - User-entered direct value and quantity (no grade-based calculation); total value = qty × value shown as a column
 - Type badge display: Factory (blue), Collated (amber), Binder (green)
 - Inline editing, CD player nav, multi-level sort with save-as-default per user
-- Pin / bookmark row — persists across sessions via localStorage
+- Pin / bookmark row — persists across sessions (stored in account profile)
 - Row-level action controls: copy (📋), info/detail (ℹ️), print label (🖨️)
 - **CS-ST-XXXXXX identifier** — unique label ID computed from record ID; shown on detail page and printed label
 - **Set Detail page** — authenticated detail view with stats (qty/value/total/added), editable notes, label printing, and ← Previous Set / Next Set → navigation
 - **Label printing** — Avery 6427 format (1.75" × 0.75") with QR code; notes appear as a 4th line on the label when present
 - **QR scan** — scanning a set label opens the public set view (no login required)
+
+### Auto Balls
+- Track autographed baseballs as a first-class collection item type
+- Fields: signer (first/last name), brand, commissioner stamp, COA authentication flag, inscription, value, notes
+- **AUTH / UNAUTH badge** — green or gray badge indicating Certificate of Authenticity presence
+- **Value freshness** — left-border color coding (green < 30 days, amber 30–90 days, red > 90 days or unset); ↻ button resets freshness timer without editing
+- Inline editing, CD player nav, multi-level sort with save-as-default per user
+- Pin / bookmark row — persists in account profile
+- **CS-BL-XXXXXX identifier** — unique label ID on every ball record
+- **Label printing** — Avery 6427 format with QR code; inscription shown as a 3rd line on the label
+- **QR scan** — opens public ball view (no login required) showing signer name, auth badge, inscription, and label ID
 
 ### Valuation Engine
 - Book value inputs: Hi, Hi-Mid, Mid, Lo-Mid, Lo
@@ -212,6 +223,7 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.14** | Mar 2026 | Auto Balls: autographed baseball inventory type (signer, brand, commissioner, COA auth badge, inscription, value freshness, label print + QR); pin/bookmark persisted to DB; scroll fix for Book: never updated nav |
 | **v1.13** | Mar 2026 | Value Dictionary: admin-maintained book values on dictionary entries, Smart Fill auto-populates all 5 book value tiers, seed from existing cards, CSV import, Values column in Dictionary list |
 | **v1.12** | Mar 2026 | Inline code documentation: file-level headers and function docstrings across 21 key backend and frontend files; no logic changes |
 | **v1.11** | Mar 2026 | Dictionary expansion: Bowman 1948–1955, Fleer 1959–1963, Donruss/Fleer/Upper Deck 1981–1990 (97 players / 1,875+ entries); full vintage set checklists for Bowman + Fleer; scraper fix for mixed-layout + leading-dash Keyman pages; additive seed |

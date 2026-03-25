@@ -10,7 +10,7 @@
  *   - Inline editing: click row or edit button → edit form in row → save PUT /cards/:id
  *   - Row color coding: rookie (gold), grade 3.0 (lavender), rookie+grade3 (blue)
  *     Colors sourced from GlobalSettings
- *   - Pinned row (bookmark): persisted to localStorage per user
+ *   - Pinned row (bookmark): persisted to GlobalSettings (DB) — survives logout/device switch
  *   - CD-player pagination controls in thead action column
  *   - Image viewer modal (CardImages) for front/back card photos
  *   - Label print via LabelPreviewModal → /card-label/:id
@@ -145,11 +145,9 @@ export default function ListCards() {
   const [cloningCardId, setCloningCardId] = useState(null);
   const [cloningParentId, setCloningParentId] = useState(null);
   const [displaySnapshot, setDisplaySnapshot] = useState(null); // frozen ordered id list during clone session
-  const [focusCardId, setFocusCardId] = useState(null);
-  const [pinnedRowId, setPinnedRowId] = useState(() => {
-    const stored = localStorage.getItem("cs-pinned-row");
-    return stored ? Number(stored) : null;
-  });
+  const [focusCardId, setFocusCardId] = useState(returnState.scrollToCardId ?? null);
+  const mountScrollCardIdRef = useRef(returnState.scrollToCardId ?? null);
+  const [pinnedRowId, setPinnedRowId] = useState(null);
   const rowRefsMap = useRef({});
   const [variantOpenId, setVariantOpenId] = useState(null);
   const [variantForm, setVariantForm] = useState({});
@@ -186,8 +184,7 @@ export default function ListCards() {
   const handlePinRow = (cardId) => {
     setPinnedRowId(prev => {
       const next = prev === cardId ? null : cardId;
-      if (next) localStorage.setItem("cs-pinned-row", String(next));
-      else localStorage.removeItem("cs-pinned-row");
+      api.put("/settings/", { pinned_card_id: next }).catch(() => {});
       return next;
     });
   };
@@ -271,7 +268,7 @@ export default function ListCards() {
         if (pinnedCard?.id === cardId) setPinnedCard(res.data);
         setEditingCardId(null);
         setPinnedRowId(cardId);
-        localStorage.setItem("cs-pinned-row", String(cardId));
+        api.put("/settings/", { pinned_card_id: cardId }).catch(() => {});
         // For clone saves the snapshot already keeps the row in place; only
         // trigger a scroll for regular edits where the row may have moved.
         if (cardId !== cloningCardId) setFocusCardId(cardId);
@@ -434,7 +431,10 @@ export default function ListCards() {
   useEffect(() => {
     api
       .get("/settings/")
-      .then((res) => setSettings(res.data))
+      .then((res) => {
+        setSettings(res.data);
+        if (res.data.pinned_card_id) setPinnedRowId(res.data.pinned_card_id);
+      })
       .catch((err) => console.error("Error fetching settings:", err));
   }, []);
 
@@ -603,7 +603,10 @@ export default function ListCards() {
     if (!focusCardId) return;
     const el = rowRefsMap.current[focusCardId];
     if (el) {
-      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      // Use instant jump when scrolling to the navigation target on mount (avoids sweep from top)
+      const behavior = mountScrollCardIdRef.current === focusCardId ? "instant" : "smooth";
+      mountScrollCardIdRef.current = null;
+      el.scrollIntoView({ block: "center", behavior });
       setFocusCardId(null);
     }
   }, [focusCardId, displayedCards]);

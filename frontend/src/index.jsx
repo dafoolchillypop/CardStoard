@@ -38,6 +38,9 @@ import AddBox from "./pages/AddBox.jsx";
 import SetBinderDetail from "./pages/SetBinderDetail.jsx";
 import SetBinderView from "./pages/SetBinderView.jsx";
 import SetBinderLabel from "./pages/SetBinderLabel.jsx";
+import ListBalls from "./pages/ListBalls.jsx";
+import BallLabel from "./pages/BallLabel.jsx";
+import BallView from "./pages/BallView.jsx";
 import UserGuide from "./pages/UserGuide.jsx";
 
 import "./index.css";
@@ -56,6 +59,8 @@ function AppRouter() {
       <Route path="/card-label/:id" element={<CardLabel />} />
       <Route path="/set-view/:id" element={<SetBinderView />} />
       <Route path="/set-label/:id" element={<SetBinderLabel />} />
+      <Route path="/ball-view/:id" element={<BallView />} />
+      <Route path="/ball-label/:id" element={<BallLabel />} />
 
       {/* Public only if not logged in */}
       {!isLoggedIn && (
@@ -94,6 +99,7 @@ function AppRouter() {
           <Route path="/sets/:setId" element={<ProtectedRoute><SetDetail /></ProtectedRoute>} />
           <Route path="/boxes" element={<ProtectedRoute><ListBoxes /></ProtectedRoute>} />
           <Route path="/add-box" element={<ProtectedRoute><AddBox /></ProtectedRoute>} />
+          <Route path="/balls" element={<ProtectedRoute><ListBalls /></ProtectedRoute>} />
           <Route path="/set-detail/:id" element={<ProtectedRoute><SetBinderDetail /></ProtectedRoute>} />
           <Route path="/batch-labels" element={<ProtectedRoute><BatchLabels /></ProtectedRoute>} />
           <Route path="/user-guide" element={<ProtectedRoute><UserGuide /></ProtectedRoute>} />

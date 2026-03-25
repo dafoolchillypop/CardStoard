@@ -4,6 +4,22 @@
 
 **<->**
 
+## v1.14 — Auto Balls & DB-Persisted Pin (March 2026)
+**Status:** Complete
+**Focus:** First-class autographed baseball inventory type; pin/bookmark moved from localStorage to database
+
+### Deliverables
+- **Auto Balls** — new `auto_balls` table (migration 018): signer first/last name, brand, commissioner, auth (COA) boolean, inscription, value, value_updated_at, notes
+- **ListBalls page** — full inline add/edit/duplicate/delete, AUTH/UNAUTH badge, value freshness left-border color coding, ↻ refresh value button, ℹ️ public view, 🖨️ label print, 📌 pin, CD-player nav, multi-level sort with save-as-default
+- **BallLabel page** — Avery 6427 print label (CS-BL-XXXXXX + name + inscription); reuses SetLabel.css
+- **BallView page** — public QR deep-link page (no login required)
+- **AppHeader** — ⚾ Balls button activated (was disabled "Coming soon")
+- **DB-persisted pin** — `pinned_card_id` and `pinned_ball_id` stored in `global_settings`; pin follows user across devices; migration 017
+- **LabelPreviewModal** — updated to handle `name` + `inscription` fields for balls (cards and boxes unaffected)
+- **Bug fix** — "Book: never updated" nav in CardDetail scrolls in-place instead of floating to top
+
+---
+
 ## v1.13 — Value Dictionary & Smart Fill Book Values (March 2026)
 **Status:** Complete
 **Focus:** Admin-maintained book value dictionary keyed on brand + year + card number; Smart Fill auto-populates all 5 book value tiers when adding cards

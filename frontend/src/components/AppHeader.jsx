@@ -78,7 +78,7 @@ export default function AppHeader() {
           </Link>
         )}
         {show("balls") && (
-          <button className="header-btn" disabled title="Coming soon">
+          <button className="header-btn" onClick={() => navigate("/balls")} title="Auto Balls">
             ⚾ Balls
           </button>
         )}

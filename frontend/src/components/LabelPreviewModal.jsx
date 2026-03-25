@@ -26,12 +26,16 @@ export default function LabelPreviewModal({ labelData, onPrint, onClose }) {
           />
           <div className="label-preview-text">
             <span className="label-preview-id">{labelData.label_id}</span>
-            <span className="label-preview-desc">{labelData.descriptor}</span>
+            <span className="label-preview-desc">{labelData.descriptor || labelData.name}</span>
             {labelData.grade != null
               ? <span className="label-preview-line3">{labelData.grade}</span>
-              : <span className="label-preview-line3">
-                  {[labelData.set_type, labelData.created_at].filter(Boolean).join(" · ")}
-                </span>
+              : labelData.inscription
+                ? <span className="label-preview-line3">{labelData.inscription}</span>
+                : (labelData.set_type || labelData.created_at)
+                  ? <span className="label-preview-line3">
+                      {[labelData.set_type, labelData.created_at].filter(Boolean).join(" · ")}
+                    </span>
+                  : null
             }
             {labelData.notes && (
               <span className="label-preview-notes">{labelData.notes}</span>

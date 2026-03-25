@@ -11,6 +11,7 @@ Models and tables:
   SetEntry         → set_entries        Cards within a reference set (global)
   UserSetCard      → user_set_cards     Per-user build progress overlay on a set
   BoxBinder        → boxes_binders      Physical set/binder containers owned by a user
+  AutoBall         → auto_balls         Autographed baseballs owned by a user
   ValuationHistory → valuation_history  Time-series collection value snapshots
   DictionaryEntry  → dictionary_entries Global player/card reference for Smart Fill
 
@@ -20,7 +21,7 @@ Key constraints:
 - BoxBinder.quantity column is nullable in DB (SQLAlchemy create_all doesn't enforce NOT NULL
   for default-only columns); Pydantic coerces NULL → 1 in BoxBinderOut.
 
-See migrations/ for schema change history (001–016).
+See migrations/ for schema change history (001–018).
 """
 from sqlalchemy import Column, Integer, String, Boolean, Float, JSON, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
@@ -130,8 +131,11 @@ class GlobalSettings(Base):
     dark_mode = Column(Boolean, default=False)
     default_sort = Column(JSON, nullable=True, default=None)
     default_sort_boxes = Column(JSON, nullable=True, default=None)
+    default_sort_balls = Column(JSON, nullable=True, default=None)
     visible_set_ids = Column(JSON, nullable=True, default=None)
     nav_items = Column(JSON, nullable=True, default=None)
+    pinned_card_id = Column(Integer, nullable=True)
+    pinned_ball_id = Column(Integer, nullable=True)
 
 class SetList(Base):
     """Global reference set definition (e.g. '1952 Topps Baseball'). Not user-scoped."""
@@ -187,6 +191,24 @@ class BoxBinder(Base):
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
     user       = relationship("User")
+
+class AutoBall(Base):
+    """Autographed baseball owned by a user. Tracks signer, brand, commissioner, COA, inscription, and value."""
+    __tablename__ = "auto_balls"
+    id               = Column(Integer, primary_key=True)
+    user_id          = Column(Integer, ForeignKey(USER_ID_REF), nullable=False)
+    first_name       = Column(String, nullable=False)
+    last_name        = Column(String, nullable=False)
+    brand            = Column(String, nullable=True)
+    commissioner     = Column(String, nullable=True)
+    auth             = Column(Boolean, default=False)
+    inscription      = Column(Text, nullable=True)
+    value            = Column(Float, nullable=True)
+    value_updated_at = Column(DateTime, nullable=True)
+    notes            = Column(Text, nullable=True)
+    created_at       = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at       = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    user             = relationship("User")
 
 class ValuationHistory(Base):
     """Snapshot of a user's total collection value at a point in time. Created by POST /cards/revalue-all."""
