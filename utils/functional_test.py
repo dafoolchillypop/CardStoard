@@ -31,6 +31,7 @@ Exit code: 0 = all pass, 1 = any failure.
 import argparse
 import json
 import os
+import shutil
 import sys
 import urllib.error
 import urllib.parse
@@ -51,10 +52,14 @@ CYN = "\033[1;36m"
 BLD = "\033[1m"
 NC  = "\033[0m"
 
-# ─── Table layout (module-level so record() can stream rows in real-time) ────
-W_TEST   = 46
-W_RESULT = 8
-W_DETAIL = 32
+# ─── Table layout — adaptive to terminal width ────────────────────────────────
+# Overhead per row: "| " + " | " + " | " + " |" = 10 chars of borders/spaces
+_TERM_COLS = shutil.get_terminal_size(fallback=(80, 24)).columns
+W_RESULT   = 7          # fixed: "✓ PASS " or "✗ FAIL "
+_REMAINING = _TERM_COLS - 10 - W_RESULT
+W_TEST     = max(28, min(46, _REMAINING - 22))   # test name column
+W_DETAIL   = max(16, min(32, _REMAINING - W_TEST))  # detail column
+
 _SEP = (
     "+" + "-" * (W_TEST + 2)
     + "+" + "-" * (W_RESULT + 2)
