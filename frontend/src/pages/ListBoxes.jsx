@@ -336,6 +336,7 @@ export default function ListBoxes() {
   };
 
   // --- Stats ---
+  const totalQty = filteredBoxes.reduce((sum, b) => sum + (Number(b.quantity) || 1), 0);
   const totalValue = filteredBoxes.reduce((sum, b) => sum + (Number(b.quantity) || 1) * (Number(b.value) || 0), 0);
   const hasFilters = brandFilter || yearFilter || typeFilter !== "all";
 
@@ -360,7 +361,7 @@ export default function ListBoxes() {
           <div style={{ flex: 1 }} />
 
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.9rem", color: "var(--text-secondary)" }}>
-            <span style={{ color: "var(--accent-blue)" }}>{filteredBoxes.length} item{filteredBoxes.length !== 1 ? "s" : ""}</span>
+            <span style={{ color: "var(--accent-blue)" }}>{totalQty} item{totalQty !== 1 ? "s" : ""}</span>
             {totalValue > 0 && (
               <><span>&middot;</span><span style={{ color: "#2e7d32" }}>Value: {fmtDollar(totalValue)}</span></>
             )}
