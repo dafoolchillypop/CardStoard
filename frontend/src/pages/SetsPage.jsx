@@ -58,7 +58,9 @@ export default function SetsPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem", padding: "0 1rem" }}>
             {visibleSets.map(s => (
               <div key={s.id} className="card-section" style={{ padding: "1rem 1.25rem", cursor: "pointer" }}
-                onClick={() => navigate(`/sets/${s.id}`)}>
+                role="button" tabIndex={0}
+                onClick={() => navigate(`/sets/${s.id}`)}
+                onKeyDown={(e) => { if (e.key === "Enter") navigate(`/sets/${s.id}`); }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: "0.2rem" }}>{s.name}</div>

@@ -1,16 +1,18 @@
 import React from "react";
 
 const CardImages = ({ card, onClose }) => {
-  if (!card) return null;
-
   const [showBack, setShowBack] = React.useState(false);
   const [zoomed, setZoomed] = React.useState(false);
+
+  if (!card) return null;
 
   const toggleImage = () => setShowBack((prev) => !prev);
   const toggleZoom = () => setZoomed((prev) => !prev);
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       style={{
         position: "fixed",
         top: 0,
@@ -26,6 +28,7 @@ const CardImages = ({ card, onClose }) => {
         overflow: "auto", // allow scrolling when zoomed
       }}
       onClick={onClose}
+      onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
     >
       {/* Image */}
       <img
@@ -45,6 +48,7 @@ const CardImages = ({ card, onClose }) => {
           e.stopPropagation();
           toggleZoom(); // click toggles zoom
         }}
+        onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); toggleZoom(); } }}
       />
 
       {/* Links */}
@@ -56,6 +60,7 @@ const CardImages = ({ card, onClose }) => {
           gap: "30px",
         }}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <a
           href="#"

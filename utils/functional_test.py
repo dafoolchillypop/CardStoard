@@ -41,7 +41,7 @@ from http.cookiejar import CookieJar
 
 # ─── Defaults ────────────────────────────────────────────────────────────────
 DEFAULT_EMAIL    = "smoketest@cardstoard.dev"
-DEFAULT_PASSWORD = os.getenv("CARDSTOARD_PASSWORD", "SmokeTest999")
+SMOKE_AUTH       = os.getenv("CARDSTOARD_PASSWORD", "SmokeTest999")
 DEFAULT_LOCAL    = "http://localhost:8000"
 LOG_DIR          = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
 
@@ -745,7 +745,7 @@ def main():
         base_url = DEFAULT_LOCAL
 
     email    = os.environ.get("CARDSTOARD_EMAIL",    DEFAULT_EMAIL)
-    password = os.environ.get("CARDSTOARD_PASSWORD", DEFAULT_PASSWORD)
+    password = os.environ.get("CARDSTOARD_PASSWORD", SMOKE_AUTH)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_path  = args.log or os.path.join(LOG_DIR, f"functional_test_{timestamp}.log")
