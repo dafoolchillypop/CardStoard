@@ -137,22 +137,60 @@ def upload_back(
 
     return {"message": "Back image uploaded", "back_image": card.back_image}
 
+# --- CSV import helpers (module-level to reduce cognitive complexity) ---
+def _to_int(v):
+    v = (v or "").strip()
+    return int(v) if v != "" else None
+
+def _to_float(v):
+    v = (v or "").strip()
+    return float(v) if v != "" else None
+
+def _to_rookie(v):
+    v = (v or "").strip().lower()
+    return 1 if v in {"1", "yes", "true", "y", "t", "*"} else 0
+
+_IMPORT_GRADE_MAP = {0.6: 0.8, 1.0: 1.0}  # normalize legacy grade values
+
+def _build_card_from_row(row, rownum, user_id):
+    """Parse one CSV row into a Card model. Raises ValueError on invalid data."""
+    grade = _to_float(row["Grade"]) or 1.0
+    grade = _IMPORT_GRADE_MAP.get(grade, grade)
+    if grade not in VALID_GRADES:
+        raise ValueError(
+            f"Row {rownum} ({row['First']} {row['Last']}): invalid grade '{row['Grade']}'"
+            f" — must be one of {sorted(VALID_GRADES)}"
+        )
+    return models.Card(
+        first_name=(row["First"] or "").strip(),
+        last_name=(row["Last"] or "").strip(),
+        year=_to_int(row["Year"]) or 0,
+        brand=(row["Brand"] or "").strip(),
+        rookie=_to_rookie(row["Rookie"]),
+        card_number=(row["Card Number"] or "").strip(),
+        book_high=_to_float(row["BookHi"]),
+        book_high_mid=_to_float(row["BookHiMid"]),
+        book_mid=_to_float(row["BookMid"]),
+        book_low_mid=_to_float(row["BookLowMid"]),
+        book_low=_to_float(row["BookLow"]),
+        grade=grade,
+        user_id=user_id,
+        book_values_updated_at=datetime.now(timezone.utc),
+    )
+
 # Import cards
 @router.post("/import-csv")
 async def import_cards(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),   # ✅ inject current user
+    current: User = Depends(get_current_user),
 ):
-    # Basic validation
     if not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="Please upload a .csv file")
 
-    # Read file (async) and decode
     content = (await file.read()).decode("utf-8", errors="ignore")
     reader = csv.DictReader(io.StringIO(content))
 
-    # Expected headers
     expected = {
         "First", "Last", "Year", "Brand", "Rookie", "Card Number",
         "BookHi", "BookHiMid", "BookMid", "BookLowMid", "BookLow", "Grade",
@@ -164,51 +202,12 @@ async def import_cards(
             detail=f"CSV is missing required headers: {', '.join(sorted(missing))}"
         )
 
-    def to_int(v):
-        v = (v or "").strip()
-        return int(v) if v != "" else None
-
-    def to_float(v):
-        v = (v or "").strip()
-        return float(v) if v != "" else None
-
-    def to_rookie(v):
-        v = (v or "").strip().lower()
-        return 1 if v in {"1", "yes", "true", "y", "t", "*"} else 0
-
-    GRADE_MAP = {0.6: 0.8, 1.0: 1.0}  # normalize legacy grade values
-
     new_cards = []
-    rownum = 0
-    for row in reader:
-        rownum += 1
+    for rownum, row in enumerate(reader, start=1):
         try:
-            grade = to_float(row["Grade"]) or 1.0
-            grade = GRADE_MAP.get(grade, grade)
-            if grade is None or grade not in VALID_GRADES:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Row {rownum} ({row['First']} {row['Last']}): invalid grade '{row['Grade']}' — must be one of {sorted(VALID_GRADES)}"
-                )
-            card = models.Card(
-                first_name=(row["First"] or "").strip(),
-                last_name=(row["Last"] or "").strip(),
-                year=to_int(row["Year"]) or 0,
-                brand=(row["Brand"] or "").strip(),
-                rookie=to_rookie(row["Rookie"]),
-                card_number=(row["Card Number"] or "").strip(),
-                book_high=to_float(row["BookHi"]),
-                book_high_mid=to_float(row["BookHiMid"]),
-                book_mid=to_float(row["BookMid"]),
-                book_low_mid=to_float(row["BookLowMid"]),
-                book_low=to_float(row["BookLow"]),
-                grade=grade,
-                user_id=current.id,
-                book_values_updated_at=datetime.now(timezone.utc),
-            )
-            new_cards.append(card)
-        except HTTPException:
-            raise
+            new_cards.append(_build_card_from_row(row, rownum, current.id))
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Row {rownum} invalid: {e}")
 
@@ -218,7 +217,6 @@ async def import_cards(
     db.add_all(new_cards)
     db.commit()
 
-    # Apply valuation
     settings = db.query(models.GlobalSettings).filter(
         models.GlobalSettings.user_id == current.id
     ).first()
@@ -228,24 +226,20 @@ async def import_cards(
             avg_book = pick_avg_book(card)
             g = float(card.grade) if card.grade else None
             factor = calculate_market_factor(card, settings)
-            value = calculate_card_value(avg_book, g, factor)
-
-            card.value = value
+            card.value = calculate_card_value(avg_book, g, factor)
             card.market_factor = factor
 
         db.commit()
 
-        # Merge any new brands into card_makes
         imported_brands = {c.brand for c in new_cards if c.brand}
         existing_brands = set(settings.card_makes or [])
-        new_brands = imported_brands - existing_brands
-        if new_brands:
+        if imported_brands - existing_brands:
             settings.card_makes = sorted(existing_brands | imported_brands)
             db.commit()
 
     return {
-    "imported": len(new_cards),
-    "message": f"Successfully imported {len(new_cards)} cards."
+        "imported": len(new_cards),
+        "message": f"Successfully imported {len(new_cards)} cards."
     }
 
 # Validate CSV without importing

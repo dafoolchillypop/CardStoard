@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import AppHeader from "../components/AppHeader";
 import api from "../api/api";
 import { useAuth } from "../context/AuthContext";
 import "./Account.css";
 
 export default function Account() {
+  const navigate = useNavigate();
   const { user, setUser } = useAuth();
   const [account, setAccount] = useState(null);
   const [form, setForm] = useState({ username: "", current_password: "", new_password: "", confirm_password: "" });
@@ -78,7 +80,7 @@ export default function Account() {
       try {
         await api.delete("/account/delete");
         alert("Account deleted successfully. Logging out...");
-        window.location.href = "/login";
+        navigate("/login");
       } catch {
         showMessage("Account deletion failed", true);
       }
@@ -108,8 +110,9 @@ export default function Account() {
 
         {/* --- USERNAME FORM --- */}
         <form onSubmit={handleUpdateUsername} className="account-form">
-          <label>Username</label>
+          <label htmlFor="username">Username</label>
           <input
+            id="username"
             type="text"
             value={form.username}
             onChange={(e) => setForm({ ...form, username: e.target.value })}
@@ -120,22 +123,25 @@ export default function Account() {
 
         {/* --- PASSWORD FORM --- */}
         <form onSubmit={handleChangePassword} className="account-form">
-          <label>Current Password</label>
+          <label htmlFor="current_password">Current Password</label>
           <input
+            id="current_password"
             type="password"
             value={form.current_password}
             onChange={(e) => setForm({ ...form, current_password: e.target.value })}
             required
           />
-          <label>New Password</label>
+          <label htmlFor="new_password">New Password</label>
           <input
+            id="new_password"
             type="password"
             value={form.new_password}
             onChange={(e) => setForm({ ...form, new_password: e.target.value })}
             required
           />
-          <label>Confirm New Password</label>
+          <label htmlFor="confirm_password">Confirm New Password</label>
           <input
+            id="confirm_password"
             type="password"
             value={form.confirm_password}
             onChange={(e) => setForm({ ...form, confirm_password: e.target.value })}

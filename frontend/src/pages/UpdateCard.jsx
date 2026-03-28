@@ -89,34 +89,33 @@ export default function UpdateCard() {
   };
 
   const handleSmartFill = async () => {
-    if (!card.first_name || !card.last_name) {
-      setSmartMessage("⚠️ First and Last name are required for Smart Fill.");
-      return;
-    }
+    if (card.first_name && card.last_name) {
+      try {
+        const res = await api.get("/cards/smart-fill", {
+          params: {
+            first_name: card.first_name,
+            last_name: card.last_name,
+            brand: card.brand || undefined,
+            year: card.year || undefined,
+          },
+        });
 
-    try {
-      const res = await api.get("/cards/smart-fill", {
-        params: {
-          first_name: card.first_name,
-          last_name: card.last_name,
-          brand: card.brand || undefined,
-          year: card.year || undefined,
-        },
-      });
-
-      if (res.data.status === "ok") {
-        setCard((prev) => ({
-          ...prev,
-          rookie: res.data.fields.rookie !== undefined ? (res.data.fields.rookie ? 1 : 0) : prev.rookie,
-          card_number: res.data.fields.card_number || prev.card_number,
-        }));
-        setSmartMessage("✅ Smart Fill applied.");
-      } else {
-        setSmartMessage("ℹ️ No dictionary entry found.");
+        if (res.data.status === "ok") {
+          setCard((prev) => ({
+            ...prev,
+            rookie: res.data.fields.rookie !== undefined ? (res.data.fields.rookie ? 1 : 0) : prev.rookie,
+            card_number: res.data.fields.card_number || prev.card_number,
+          }));
+          setSmartMessage("✅ Smart Fill applied.");
+        } else {
+          setSmartMessage("ℹ️ No dictionary entry found.");
+        }
+      } catch (err) {
+        console.error(err);
+        setSmartMessage("❌ Error running Smart Fill.");
       }
-    } catch (err) {
-      console.error(err);
-      setSmartMessage("❌ Error running Smart Fill.");
+    } else {
+      setSmartMessage("⚠️ First and Last name are required for Smart Fill.");
     }
   };
 

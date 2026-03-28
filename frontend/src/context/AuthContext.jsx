@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }) => {
         try {
           const sr = await api.get("/settings/");
           applyTheme(sr.data.dark_mode);
-        } catch (_) {}
+        } catch (_) { console.warn("Settings fetch failed on init"); }
         setIsLoggedIn(true);
       })
       .catch(() => {
@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }) => {
     const handler = () => {
       api.get("/settings/")
         .then((sr) => applyTheme(sr.data.dark_mode))
-        .catch(() => {});
+        .catch(() => console.warn("Settings reload failed"));
     };
     window.addEventListener("settings-changed", handler);
     return () => window.removeEventListener("settings-changed", handler);

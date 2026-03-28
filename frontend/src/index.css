@@ -439,6 +439,7 @@ button:active {
   background: var(--accent-blue-nav-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  opacity: 0.9;
 }
 
 .logo-slot {
@@ -473,11 +474,13 @@ button:active {
 }
 
 .checkbox-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin: 8px 0;
   font-weight: 500;
+  line-height: 1;
+  vertical-align: middle;
 }
 
 .badge-grade {
@@ -601,14 +604,6 @@ td.card-value-col, th.card-value-col {
   margin-left: 0.5rem;
 }
 
-.checkbox-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  line-height: 1;
-  vertical-align: middle;
-}
-
 .checkbox-label input[type="checkbox"] {
   margin: 0;
   position: relative;
@@ -648,9 +643,6 @@ td.card-value-col, th.card-value-col {
   font-weight: bold;
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
   transition: background 0.2s ease-in-out;
-}
-.nav-btn:hover {
-  opacity: 0.9;
 }
 
 /* Set detail table column widths */

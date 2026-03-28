@@ -8,10 +8,10 @@ WORKDIR /code
 
 # Install system dependencies: build tools, wget/curl, and OCR
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget \
-    curl \
     build-essential \
+    curl \
     tesseract-ocr \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
 # --- REMOVED dockerize (amd64-only, breaks on ARM) ---
