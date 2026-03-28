@@ -4,6 +4,26 @@
 
 **<->**
 
+## v1.15 — Wax Boxes & Wax Packs (March 2026)
+**Status:** Complete
+**Focus:** Two new first-class inventory types for sealed wax boxes and individual wax packs; Admin nav bar fix
+
+### Deliverables
+- **Wax Boxes** — new `wax_boxes` table (migration 019): year, brand, set_name (wax type: cello/rack/std), quantity, value, value_updated_at, notes
+- **ListWax page** — full inline add/edit/duplicate/delete, WaxTypeBadge (Cello/blue, Rack/amber, Std/green), value freshness left-border color coding, ↻ refresh value button, ℹ️ public view, 🖨️ label print, 📌 pin, CD-player nav, multi-level sort with save-as-default
+- **WaxLabel page** — Avery 6427 print label (CS-WX-XXXXXX + year/brand/type); reuses BallLabel pattern
+- **WaxView page** — public QR deep-link page (no login required)
+- **Wax Packs** — new `wax_packs` table (migration 020): year, brand, pack_type (cello/rack/wax/blister), quantity, value, value_updated_at, notes
+- **ListPacks page** — full inline add/edit/duplicate/delete, PackTypeBadge (Cello/blue, Rack/amber, Wax/green, Blister/purple), value freshness left-border color coding, ↻ refresh value button, ℹ️ public view, 🖨️ label print, 📌 pin, CD-player nav, multi-level sort with save-as-default
+- **PackLabel page** — Avery 6427 print label (CS-PK-XXXXXX + year/brand/type)
+- **PackView page** — public QR deep-link page (no login required)
+- **AppHeader** — 📦 Wax and 🎴 Packs nav buttons activated (were disabled "Coming soon")
+- **Admin** — added Wax and Packs sort/pin settings sections; fixed double-stack layout in bottom nav row
+- **GlobalSettings** — `pinned_wax_id`, `default_sort_wax`, `pinned_pack_id`, `default_sort_packs` columns (migrations 019 + 020)
+- **Seeder** — `provision-testusers.py` extended to seed balls/wax/packs for all 5 test user profiles
+
+---
+
 ## v1.14 — Auto Balls & DB-Persisted Pin (March 2026)
 **Status:** Complete
 **Focus:** First-class autographed baseball inventory type; pin/bookmark moved from localStorage to database

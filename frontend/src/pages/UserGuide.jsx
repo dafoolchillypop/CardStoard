@@ -438,9 +438,87 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 10. Analytics */}
+        {/* 10. Wax Boxes */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>10. Analytics</h3>
+          <h3 style={h3Style}>10. Wax Boxes</h3>
+
+          <p style={{ marginTop: 0 }}>
+            The <Link to="/wax" style={{ color: "var(--link)" }}>Wax Boxes</Link> page tracks sealed wax boxes
+            as a first-class inventory type. Each item records the year, brand, box type, quantity, value, and notes.
+          </p>
+
+          <p style={h4Style}>Adding &amp; editing</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Click <strong>＋</strong> in the header to add a new wax box inline (year and brand required).</li>
+            <li>Click <strong>✏️</strong> or any row to edit inline. Click ✓ to save or ✕ to cancel.</li>
+            <li>The <strong>Type</strong> dropdown sets the box type — <span style={{ background: "#1d4ed8", color: "#fff", borderRadius: 3, padding: "1px 6px", fontSize: "0.8rem" }}>Cello</span>, <span style={{ background: "#d97706", color: "#fff", borderRadius: 3, padding: "1px 6px", fontSize: "0.8rem" }}>Rack</span>, or <span style={{ background: "#16a34a", color: "#fff", borderRadius: 3, padding: "1px 6px", fontSize: "0.8rem" }}>Std</span>.</li>
+          </ul>
+
+          <p style={h4Style}>Value freshness</p>
+          <p style={{ marginTop: 0 }}>
+            The Value cell has a left-border freshness indicator — green (&lt; 30 days), amber (30–90 days), or red (&gt; 90 days / never set).
+            Click the <strong>↻</strong> button to confirm the value is current and reset the freshness timer to today.
+          </p>
+
+          <p style={h4Style}>Row actions</p>
+          <ul style={{ marginTop: 0 }}>
+            <li><strong>📌</strong> — pin the row; pin persists across sessions in your account profile.</li>
+            <li><strong>📋</strong> — duplicate the row and open for editing.</li>
+            <li><strong>🖨️</strong> — open the label preview and print an Avery 6427 label (CS-WX-XXXXXX + year/brand/type + QR code).</li>
+            <li><strong>ℹ️</strong> — open the public wax view in a new tab (no login required).</li>
+            <li><strong>✕</strong> — delete with confirmation.</li>
+          </ul>
+
+          <p style={h4Style}>Navigation &amp; sort</p>
+          <p style={{ marginTop: 0, marginBottom: 0 }}>
+            Use the CD player controls (|◄ ▲ ▼ ►|) to jump through the list. Click <strong>⇅ Sort</strong>
+            in the toolbar to configure a multi-level sort order and optionally save it as your default.
+            Filter by year, brand, or type using the <strong>🔍</strong> column icons.
+          </p>
+        </div>
+
+        {/* 11. Wax Packs */}
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>11. Wax Packs</h3>
+
+          <p style={{ marginTop: 0 }}>
+            The <Link to="/packs" style={{ color: "var(--link)" }}>Wax Packs</Link> page tracks individual wax packs
+            as a first-class inventory type. Each item records the year, brand, pack type, quantity, value, and notes.
+          </p>
+
+          <p style={h4Style}>Adding &amp; editing</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Click <strong>＋</strong> in the header to add a new pack inline (year and brand required).</li>
+            <li>Click <strong>✏️</strong> or any row to edit inline. Click ✓ to save or ✕ to cancel.</li>
+            <li>The <strong>Type</strong> dropdown sets the pack type — <span style={{ background: "#1d4ed8", color: "#fff", borderRadius: 3, padding: "1px 6px", fontSize: "0.8rem" }}>Cello</span>, <span style={{ background: "#d97706", color: "#fff", borderRadius: 3, padding: "1px 6px", fontSize: "0.8rem" }}>Rack</span>, <span style={{ background: "#16a34a", color: "#fff", borderRadius: 3, padding: "1px 6px", fontSize: "0.8rem" }}>Wax</span>, or <span style={{ background: "#7c3aed", color: "#fff", borderRadius: 3, padding: "1px 6px", fontSize: "0.8rem" }}>Blister</span>.</li>
+          </ul>
+
+          <p style={h4Style}>Value freshness</p>
+          <p style={{ marginTop: 0 }}>
+            The Value cell has a left-border freshness indicator — green (&lt; 30 days), amber (30–90 days), or red (&gt; 90 days / never set).
+            Click the <strong>↻</strong> button to confirm the value is current and reset the freshness timer to today.
+          </p>
+
+          <p style={h4Style}>Row actions</p>
+          <ul style={{ marginTop: 0 }}>
+            <li><strong>📌</strong> — pin the row; pin persists across sessions in your account profile.</li>
+            <li><strong>📋</strong> — duplicate the row and open for editing.</li>
+            <li><strong>🖨️</strong> — open the label preview and print an Avery 6427 label (CS-PK-XXXXXX + year/brand/type + QR code).</li>
+            <li><strong>ℹ️</strong> — open the public pack view in a new tab (no login required).</li>
+            <li><strong>✕</strong> — delete with confirmation.</li>
+          </ul>
+
+          <p style={h4Style}>Navigation &amp; sort</p>
+          <p style={{ marginTop: 0, marginBottom: 0 }}>
+            Use the CD player controls (|◄ ▲ ▼ ►|) to jump through the list. Click <strong>⇅ Sort</strong>
+            in the toolbar to configure a multi-level sort order and optionally save it as your default.
+            Filter by year, brand, or type using the <strong>🔍</strong> column icons.
+          </p>
+        </div>
+
+        {/* 12. Analytics */}
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>12. Analytics</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/analytics" style={{ color: "var(--link)" }}>Analytics</Link> dashboard gives you a high-level
@@ -470,9 +548,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 10. Admin */}
+        {/* 13. Admin */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>11. Admin Settings</h3>
+          <h3 style={h3Style}>13. Admin Settings</h3>
 
           <p style={{ marginTop: 0 }}>
             All administrative tools are consolidated on the <Link to="/admin" style={{ color: "var(--link)" }}>Admin</Link> page.
@@ -543,9 +621,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </ul>
         </div>
 
-        {/* 11. Account & Security */}
+        {/* 14. Account & Security */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>12. Account &amp; Security</h3>
+          <h3 style={h3Style}>14. Account &amp; Security</h3>
 
           <p style={{ marginTop: 0 }}>
             Access your account settings by clicking your username in the top-right of the navigation bar.

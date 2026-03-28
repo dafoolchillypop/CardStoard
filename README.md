@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.14
+# 🧾 CardStoard — v1.15
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -10,9 +10,9 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 | Layer | Directory | Purpose / Key Contents |
 |--------|------------|-------------------------|
 | **Backend** | `backend/app/` | FastAPI core (auth, routes, models, services) |
-| | `backend/app/routes/` | REST endpoints: auth, cards, analytics, account, dictionary, chat, settings, boxes, sets, balls |
+| | `backend/app/routes/` | REST endpoints: auth, cards, analytics, account, dictionary, chat, settings, boxes, sets, balls, wax, packs |
 | | `backend/app/services/` | Business logic: valuations, fuzzy match, image pipeline |
-| | `backend/app/models.py` | SQLAlchemy entities (Card, User, GlobalSettings, SetList, SetEntry, UserSetCard, BoxBinder, AutoBall, DictionaryEntry, ValuationHistory) |
+| | `backend/app/models.py` | SQLAlchemy entities (Card, User, GlobalSettings, SetList, SetEntry, UserSetCard, BoxBinder, AutoBall, WaxBox, WaxPack, DictionaryEntry, ValuationHistory) |
 | | `backend/app/schemas.py` | Pydantic models for validation & API I/O |
 | | `backend/app/data/` | Player dictionary seed data (867+ entries, Topps 1952–1980) |
 | **Frontend** | `frontend/src/` | React client app root |
@@ -74,6 +74,26 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - **CS-BL-XXXXXX identifier** — unique label ID on every ball record
 - **Label printing** — Avery 6427 format with QR code; inscription shown as a 3rd line on the label
 - **QR scan** — opens public ball view (no login required) showing signer name, auth badge, inscription, and label ID
+
+### Wax Boxes
+- Track sealed wax boxes as a first-class inventory type
+- Fields: year, brand, type badge (Cello / Rack / Std), quantity, value, notes
+- **Value freshness** — left-border color coding (green < 30 days, amber 30–90 days, red > 90 days or unset); ↻ button resets freshness timer
+- Inline editing, CD player nav, multi-level sort with save-as-default per user
+- Pin / bookmark row — persists in account profile
+- **CS-WX-XXXXXX identifier** — unique label ID on every wax box record
+- **Label printing** — Avery 6427 format with QR code
+- **QR scan** — opens public wax view (no login required)
+
+### Wax Packs
+- Track individual wax packs as a first-class inventory type
+- Fields: year, brand, pack type badge (Cello / Rack / Wax / Blister), quantity, value, notes
+- **Value freshness** — same left-border color system as Wax Boxes; ↻ freshness reset button
+- Inline editing, CD player nav, multi-level sort with save-as-default per user
+- Pin / bookmark row — persists in account profile
+- **CS-PK-XXXXXX identifier** — unique label ID on every pack record
+- **Label printing** — Avery 6427 format with QR code
+- **QR scan** — opens public pack view (no login required)
 
 ### Valuation Engine
 - Book value inputs: Hi, Hi-Mid, Mid, Lo-Mid, Lo
@@ -223,6 +243,7 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.15** | Mar 2026 | Wax Boxes (CS-WX, cello/rack/std type badges, value freshness, label + QR) and Wax Packs (CS-PK, cello/rack/wax/blister type badges, value freshness, label + QR) inventory types; Admin nav bar layout fix |
 | **v1.14** | Mar 2026 | Auto Balls: autographed baseball inventory type (signer, brand, commissioner, COA auth badge, inscription, value freshness, label print + QR); pin/bookmark persisted to DB; scroll fix for Book: never updated nav |
 | **v1.13** | Mar 2026 | Value Dictionary: admin-maintained book values on dictionary entries, Smart Fill auto-populates all 5 book value tiers, seed from existing cards, CSV import, Values column in Dictionary list |
 | **v1.12** | Mar 2026 | Inline code documentation: file-level headers and function docstrings across 21 key backend and frontend files; no logic changes |
