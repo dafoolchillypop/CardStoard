@@ -42,7 +42,7 @@ class User(Base):
     mfa_secret = Column(String(32), nullable=True)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     last_login = Column(DateTime, nullable=True)
 
     # Relationships
@@ -90,8 +90,8 @@ class Card(Base):
     back_image = Column(String, nullable=True)
 
     # Action timestamps
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relationships
     user = relationship("User", back_populates="cards")
@@ -150,7 +150,7 @@ class SetList(Base):
     name       = Column(String, nullable=False)
     brand      = Column(String, nullable=False)
     year       = Column(Integer, nullable=False)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     entries    = relationship("SetEntry", back_populates="set_list", cascade="all, delete-orphan")
 
 class SetEntry(Base):
@@ -179,7 +179,7 @@ class UserSetCard(Base):
     value                  = Column(Float, nullable=True)
     notes                  = Column(Text, nullable=True)
     book_values_updated_at = Column(DateTime, nullable=True)
-    updated_at             = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    updated_at             = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
 class BoxBinder(Base):
     """Physical container (factory set, collated set, or binder) owned by a user.
@@ -194,8 +194,8 @@ class BoxBinder(Base):
     quantity   = Column(Integer, default=1)
     value      = Column(Float, nullable=True)
     notes      = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     user       = relationship("User")
 
 class AutoBall(Base):
@@ -212,8 +212,8 @@ class AutoBall(Base):
     value            = Column(Float, nullable=True)
     value_updated_at = Column(DateTime, nullable=True)
     notes            = Column(Text, nullable=True)
-    created_at       = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at       = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at       = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at       = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     user             = relationship("User")
 
 class WaxBox(Base):
@@ -228,8 +228,8 @@ class WaxBox(Base):
     value            = Column(Float, nullable=True)
     value_updated_at = Column(DateTime, nullable=True)
     notes            = Column(Text, nullable=True)
-    created_at       = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at       = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at       = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at       = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     user             = relationship("User")
 
 class WaxPack(Base):
@@ -245,8 +245,8 @@ class WaxPack(Base):
     value            = Column(Float, nullable=True)
     value_updated_at = Column(DateTime, nullable=True)
     notes            = Column(Text, nullable=True)
-    created_at       = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at       = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at       = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at       = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     user             = relationship("User")
 
 class ValuationHistory(Base):
@@ -255,7 +255,7 @@ class ValuationHistory(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey(USER_ID_REF), nullable=False)
-    timestamp = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     total_value = Column(Float, nullable=False)
     card_count = Column(Integer, nullable=False)
 

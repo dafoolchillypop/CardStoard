@@ -41,7 +41,7 @@ from http.cookiejar import CookieJar
 
 # ─── Defaults ────────────────────────────────────────────────────────────────
 DEFAULT_EMAIL    = "smoketest@cardstoard.dev"
-DEFAULT_PASSWORD = "SmokeTest999"
+DEFAULT_PASSWORD = os.getenv("CARDSTOARD_PASSWORD", "SmokeTest999")
 DEFAULT_LOCAL    = "http://localhost:8000"
 LOG_DIR          = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
 
@@ -371,7 +371,7 @@ class TestRunner:
             # Update
             status, body = self.api("PUT", f"/cards/{card_id}",
                                     json_body={"grade": 1.5})
-            ok = status == 200 and isinstance(body, dict) and body.get("grade") == 1.5
+            ok = status == 200 and isinstance(body, dict) and abs((body.get("grade") or 0) - 1.5) < 0.01
             self.record(
                 "CARDS", "Update card", ok,
                 f"grade → {body.get('grade')}" if ok else f"HTTP {status}",
@@ -531,7 +531,7 @@ class TestRunner:
 
         # Update
         status, body = self.api("PATCH", f"/wax/{wax_id}", json_body={"value": 4800.0})
-        ok = status == 200 and isinstance(body, dict) and body.get("value") == 4800.0
+        ok = status == 200 and isinstance(body, dict) and abs((body.get("value") or 0) - 4800.0) < 0.01
         self.record(
             "WAX", "Update wax box", ok,
             f"value → {body.get('value')}" if ok else f"HTTP {status}",
@@ -641,7 +641,7 @@ class TestRunner:
 
         # Update
         status, body = self.api("PATCH", f"/boxes/{box_id}", json_body={"value": 1100.0})
-        ok = status == 200 and isinstance(body, dict) and body.get("value") == 1100.0
+        ok = status == 200 and isinstance(body, dict) and abs((body.get("value") or 0) - 1100.0) < 0.01
         self.record(
             "BOXES", "Update box/binder", ok,
             f"value → {body.get('value')}" if ok else f"HTTP {status}",

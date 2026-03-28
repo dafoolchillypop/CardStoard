@@ -69,8 +69,8 @@ function SortModal({ sortConfig, defaultSort, onApply, onClose }) {
   const selStyle = { padding: "0.4rem", borderRadius: 4, border: "1px solid var(--border)", background: "var(--bg-input)", color: "var(--text-primary)" };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" style={{ width: 640, maxWidth: "95vw" }} onClick={e => e.stopPropagation()}>
+    <div className="modal-overlay" role="button" tabIndex={0} onClick={onClose} onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
+      <div className="modal-box" style={{ width: 640, maxWidth: "95vw" }} onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
         <h3 style={{ marginTop: 0 }}>Advanced Sort</h3>
 
         {levels.length === 0 && (
@@ -1110,7 +1110,7 @@ export default function ListCards() {
                         {isEditing
                           ? <input style={inp} value={editForm.card_number || ""} onChange={e => handleEditChange("card_number", e.target.value)} />
                           : card.front_image || card.back_image
-                            ? <span style={{ cursor: "pointer", color: "#007bff", textDecoration: "underline" }} onClick={() => navigate(`/card-detail/${card.id}`, { state: { cardIds: sortedCards.map(c => c.id) } })}>{card.card_number}</span>
+                            ? <span role="link" tabIndex={0} style={{ cursor: "pointer", color: "#007bff", textDecoration: "underline" }} onClick={() => navigate(`/card-detail/${card.id}`, { state: { cardIds: sortedCards.map(c => c.id) } })} onKeyDown={(e) => { if (e.key === "Enter") navigate(`/card-detail/${card.id}`, { state: { cardIds: sortedCards.map(c => c.id) } }); }}>{card.card_number}</span>
                             : <span>{card.card_number}</span>}
                       </td>
 

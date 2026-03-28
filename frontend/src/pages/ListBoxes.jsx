@@ -48,8 +48,8 @@ function SortBoxModal({ sortConfig, defaultSort, onApply, onClose }) {
   const selStyle = { padding: "0.4rem", borderRadius: 4, border: "1px solid var(--border)", background: "var(--bg-input)", color: "var(--text-primary)" };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" style={{ width: 640, maxWidth: "95vw" }} onClick={e => e.stopPropagation()}>
+    <div className="modal-overlay" role="button" tabIndex={0} onClick={onClose} onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
+      <div className="modal-box" style={{ width: 640, maxWidth: "95vw" }} onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
         <h3 style={{ marginTop: 0 }}>Advanced Sort</h3>
 
         {levels.length === 0 && (
@@ -376,7 +376,7 @@ export default function ListBoxes() {
             )}
             {hasFilters && (
               <><span>&middot;</span>
-                <span onClick={() => { setBrandFilter(""); setYearFilter(""); setTypeFilter("all"); setOpenFilterCols(new Set()); }}
+                <span role="button" tabIndex={0} onClick={() => { setBrandFilter(""); setYearFilter(""); setTypeFilter("all"); setOpenFilterCols(new Set()); }} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setBrandFilter(""); setYearFilter(""); setTypeFilter("all"); setOpenFilterCols(new Set()); } }}
                   style={{ color: "#dc3545", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}>✕ Clear</span>
               </>
             )}
@@ -414,8 +414,8 @@ export default function ListBoxes() {
                   {/* Year */}
                   <th style={{ width: 65, textAlign: "center" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("year")}>Year{getSortIndicator("year")}</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("year")} title="Filter by year">🔍</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("year")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("year"); } }}>Year{getSortIndicator("year")}</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("year")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter("year"); } }} title="Filter by year">🔍</span>
                     </div>
                     {openFilterCols.has("year") && (
                       <input type="text" value={yearFilter} onChange={e => setYearFilter(e.target.value)}
@@ -427,8 +427,8 @@ export default function ListBoxes() {
                   {/* Brand */}
                   <th style={{ width: 110, textAlign: "center", padding: "4px 8px" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("brand")}>Brand{getSortIndicator("brand")}</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("brand")} title="Filter by brand">🔍</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("brand")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("brand"); } }}>Brand{getSortIndicator("brand")}</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("brand")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter("brand"); } }} title="Filter by brand">🔍</span>
                     </div>
                     {openFilterCols.has("brand") && (
                       <input type="text" value={brandFilter} onChange={e => setBrandFilter(e.target.value)}
@@ -439,14 +439,14 @@ export default function ListBoxes() {
 
                   {/* Name */}
                   <th style={{ width: 180, textAlign: "center", padding: "4px 8px" }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("name")}>Name{getSortIndicator("name")}</span>
+                    <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("name")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("name"); } }}>Name{getSortIndicator("name")}</span>
                   </th>
 
                   {/* Type */}
                   <th style={{ width: 90, textAlign: "center" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("set_type")}>Type{getSortIndicator("set_type")}</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("set_type")} title="Filter by type">🔍</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("set_type")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("set_type"); } }}>Type{getSortIndicator("set_type")}</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("set_type")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter("set_type"); } }} title="Filter by type">🔍</span>
                     </div>
                     {openFilterCols.has("set_type") && (
                       <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} autoFocus
@@ -461,17 +461,17 @@ export default function ListBoxes() {
 
                   {/* Qty */}
                   <th style={{ width: 55, textAlign: "center" }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("quantity")}>Qty{getSortIndicator("quantity")}</span>
+                    <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("quantity")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("quantity"); } }}>Qty{getSortIndicator("quantity")}</span>
                   </th>
 
                   {/* Value */}
                   <th style={{ width: 85, textAlign: "center" }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("value")}>Value{getSortIndicator("value")}</span>
+                    <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("value")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("value"); } }}>Value{getSortIndicator("value")}</span>
                   </th>
 
                   {/* Total */}
                   <th style={{ width: 85, textAlign: "center" }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("total")}>Total{getSortIndicator("total")}</span>
+                    <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("total")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("total"); } }}>Total{getSortIndicator("total")}</span>
                   </th>
 
                   {/* Notes */}

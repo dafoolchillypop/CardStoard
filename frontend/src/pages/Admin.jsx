@@ -237,7 +237,7 @@ export default function Admin() {
     (acc[s.brand] = acc[s.brand] || []).push(s);
     return acc;
   }, {});
-  const brands = Object.keys(setsByBrand).sort();
+  const brands = Object.keys(setsByBrand).sort((a, b) => a.localeCompare(b));
 
   const isSetVisible = (id) =>
     !settings || settings.visible_set_ids === null || (settings.visible_set_ids || []).includes(id);

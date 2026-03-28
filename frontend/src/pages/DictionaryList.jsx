@@ -215,7 +215,9 @@ export default function DictionaryList() {
           <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.9rem", color: "#555" }}>
             {limit !== "all" && (
               <span
+                role="button" tabIndex={0}
                 onClick={() => setPage(p => Math.max(p - 1, 0))}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setPage(p => Math.max(p - 1, 0)); } }}
                 style={{ cursor: page === 0 ? "not-allowed" : "pointer", opacity: page === 0 ? 0.3 : 1, fontSize: "1.1rem", userSelect: "none" }}
               >{"<"}</span>
             )}
@@ -232,7 +234,9 @@ export default function DictionaryList() {
             <span>of <b>{total}</b> entries</span>
             {limit !== "all" && (
               <span
+                role="button" tabIndex={0}
                 onClick={() => { if ((page + 1) * parseInt(limit, 10) < total) setPage(p => p + 1); }}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if ((page + 1) * parseInt(limit, 10) < total) setPage(p => p + 1); } }}
                 style={{ cursor: (page + 1) * parseInt(limit, 10) >= total ? "not-allowed" : "pointer", opacity: (page + 1) * parseInt(limit, 10) >= total ? 0.3 : 1, fontSize: "1.1rem", userSelect: "none" }}
               >{">"}</span>
             )}
@@ -240,7 +244,9 @@ export default function DictionaryList() {
               <>
                 <span>&middot;</span>
                 <span
+                  role="button" tabIndex={0}
                   onClick={() => { setLastNameFilter(""); setBrandFilter(""); setYearFilter(""); setPage(0); }}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLastNameFilter(""); setBrandFilter(""); setYearFilter(""); setPage(0); } }}
                   style={{ color: "#dc3545", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}
                 >✕ Clear filters</span>
               </>
@@ -262,7 +268,9 @@ export default function DictionaryList() {
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
                       Last{sortArrow("last_name")}
                       <span
+                        role="button" tabIndex={0}
                         onClick={e => { e.stopPropagation(); toggleFilterCol("last"); }}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); toggleFilterCol("last"); } }}
                         style={{ cursor: "pointer", fontSize: "0.75rem", color: lastNameFilter ? "#007bff" : "#aaa" }}
                         title="Filter by last name"
                       >🔍</span>
@@ -284,7 +292,9 @@ export default function DictionaryList() {
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
                       Brand{sortArrow("brand")}
                       <span
+                        role="button" tabIndex={0}
                         onClick={e => { e.stopPropagation(); toggleFilterCol("brand"); }}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); toggleFilterCol("brand"); } }}
                         style={{ cursor: "pointer", fontSize: "0.75rem", color: brandFilter ? "#007bff" : "#aaa" }}
                         title="Filter by brand"
                       >🔍</span>
@@ -304,7 +314,9 @@ export default function DictionaryList() {
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
                       Year{sortArrow("year")}
                       <span
+                        role="button" tabIndex={0}
                         onClick={e => { e.stopPropagation(); toggleFilterCol("year"); }}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); toggleFilterCol("year"); } }}
                         style={{ cursor: "pointer", fontSize: "0.75rem", color: yearFilter ? "#007bff" : "#aaa" }}
                         title="Filter by year"
                       >🔍</span>
