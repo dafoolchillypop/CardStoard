@@ -174,6 +174,15 @@ export default function ListPacks() {
   }, [items]);
 
   useEffect(() => {
+    const handler = () => {
+      if (editingId !== null) return;
+      api.get("/packs/").then(res => setItems(res.data)).catch(() => {});
+    };
+    window.addEventListener("collection-changed", handler);
+    return () => window.removeEventListener("collection-changed", handler);
+  }, [editingId]);
+
+  useEffect(() => {
     if (!focusId) return;
     const el = rowRefsMap.current[focusId];
     if (el) {
@@ -400,6 +409,7 @@ export default function ListPacks() {
 
   // --- Stats ---
   const realItems = filtered.filter(b => b.id !== "new");
+  const totalQty = realItems.reduce((sum, b) => sum + (Number(b.quantity) || 1), 0);
   const totalValue = realItems.reduce((sum, b) => sum + (Number(b.quantity) || 1) * (Number(b.value) || 0), 0);
   const hasFilters = yearFilter || brandFilter || typeFilter !== "all";
 
@@ -424,7 +434,7 @@ export default function ListPacks() {
           <div style={{ flex: 1 }} />
 
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.9rem", color: "var(--text-secondary)" }}>
-            <span style={{ color: "var(--accent-blue)" }}>{realItems.length} pack{realItems.length !== 1 ? "s" : ""}</span>
+            <span style={{ color: "var(--accent-blue)" }}>{totalQty} pack{totalQty !== 1 ? "s" : ""}</span>
             {totalValue > 0 && (
               <><span>&middot;</span><span style={{ color: "#2e7d32" }}>Total: {fmtDollar(totalValue)}</span></>
             )}

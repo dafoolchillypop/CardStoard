@@ -148,6 +148,15 @@ export default function ListBalls() {
   }, [balls]);
 
   useEffect(() => {
+    const handler = () => {
+      if (editingId !== null) return;
+      api.get("/balls/").then(res => setBalls(res.data)).catch(() => {});
+    };
+    window.addEventListener("collection-changed", handler);
+    return () => window.removeEventListener("collection-changed", handler);
+  }, [editingId]);
+
+  useEffect(() => {
     if (!focusId) return;
     const el = rowRefsMap.current[focusId];
     if (el) {

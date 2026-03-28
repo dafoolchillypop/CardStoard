@@ -3,9 +3,10 @@
 # Rebuilds dev containers while PRESERVING the local database.
 #
 # Usage:
-#   ./utils/deploy-local-dev.sh           # full rebuild + smoke test
-#   ./utils/deploy-local-dev.sh --deploy  # rebuild only, skip smoke test
-#   ./utils/deploy-local-dev.sh --check   # validate only, no rebuild
+#   ./utils/deploy-local-dev.sh              # full rebuild + smoke test
+#   ./utils/deploy-local-dev.sh --deploy     # rebuild only, skip smoke test
+#   ./utils/deploy-local-dev.sh --check      # validate only, no rebuild
+#   ./utils/deploy-local-dev.sh --functional # rebuild + smoke test + functional test
 
 set -e
 
@@ -27,6 +28,12 @@ run_smoke_test() {
   echo ""
   echo "--- Running local smoke test ---"
   ./utils/smoke_test.sh --local
+}
+
+run_functional_test() {
+  echo ""
+  echo "--- Running local functional test ---"
+  python3 utils/functional_test.py --local
 }
 
 check_backend() {
@@ -92,8 +99,16 @@ case "$FLAG" in
     echo "✅ Local dev deploy complete."
     echo "📄 Log: $LOG_FILE"
     ;;
+  --functional)
+    rebuild
+    run_smoke_test
+    run_functional_test
+    echo ""
+    echo "✅ Local dev deploy complete (smoke + functional tests)."
+    echo "📄 Log: $LOG_FILE"
+    ;;
   *)
-    echo "Usage: $0 [--deploy | --check]"
+    echo "Usage: $0 [--deploy | --check | --functional]"
     exit 1
     ;;
 esac

@@ -20,6 +20,7 @@ All three functions are called from create_card, update_card, import_csv,
 revalue_all, and the sets overlay (with a duck-typed proxy object).
 """
 
+import math
 from typing import Optional
 from .. import models
 
@@ -28,21 +29,21 @@ def calculate_market_factor(card, settings):
     g = float(card.grade or 0)
     is_rookie = bool(card.rookie in ("*", "1", 1, True))
 
-    if g == 3 and is_rookie:
+    if math.isclose(g, 3.0) and is_rookie:
         return settings.auto_factor
-    elif g == 3:
+    elif math.isclose(g, 3.0):
         return settings.mtgrade_factor
     elif is_rookie:
         return settings.rookie_factor
-    elif g == 1.5:
+    elif math.isclose(g, 1.5):
         return settings.exgrade_factor
-    elif g == 1:
+    elif math.isclose(g, 1.0):
         return settings.vggrade_factor
-    elif g == 0.8:
+    elif math.isclose(g, 0.8):
         return settings.gdgrade_factor
-    elif g == 0.4:
+    elif math.isclose(g, 0.4):
         return settings.frgrade_factor
-    elif g == 0.2:
+    elif math.isclose(g, 0.2):
         return settings.prgrade_factor
     return 1.0
 

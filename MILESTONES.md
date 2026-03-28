@@ -4,6 +4,20 @@
 
 **<->**
 
+## v1.16 — Collection Assistant Context, Username Login & Quality (March 2026)
+**Status:** Complete
+**Focus:** Expand Cy's collection awareness to all inventory types; allow username or email at login; SonarCloud code quality remediations; full functional test suite
+
+### Deliverables
+- **Cy context expansion** — `backend/app/routes/chat.py` updated with pre-computed counts and totals for all inventory types: Auto Balls, Wax Boxes, Wax Packs, and Sets/Binders (was Cards-only); system prompt updated to describe each type and its fields; quantity × value calculation for wax/pack/set totals; Cy-added items now appear immediately on all list pages (EventSource / polling fix)
+- **Toolbar count fix** — Packs and Boxes pages now show total quantity (sum of all rows), consistent with Balls and Wax Boxes
+- **Username or email login** — `/auth/login` now accepts an `identifier` field that matches on either `email` or `username`; smoke test updated to use `identifier`
+- **SonarCloud remediations** — task 1: redundant `not in` condition removed (`sets.py`); task 2: `image_pipeline.py` refactored — unused vars eliminated, raw-string regex literals, `find_card_and_warp` complexity reduced; task 3: remaining security/reliability issues resolved (0 open issues in SonarCloud gate)
+- **Functional test suite** — `utils/functional_test.py`: 41 tests across AUTH, CARDS, BALLS, WAX, PACKS, BOXES, DICT, ANALYTICS, SETTINGS; stdlib only (no new dependencies); self-cleaning seed data (creates + deletes per run); streaming table output with adaptive terminal width; log to `utils/logs/functional_test_*.log`; exit code 0/1 for CI integration
+- **`--functional` flag** — `utils/deploy-local-dev.sh` extended with `--functional` mode: rebuild + smoke test + functional test in one command
+
+---
+
 ## v1.15 — Wax Boxes & Wax Packs (March 2026)
 **Status:** Complete
 **Focus:** Two new first-class inventory types for sealed wax boxes and individual wax packs; Admin nav bar fix

@@ -118,7 +118,7 @@ def insert_cards(conn, user_id, cards, rate=0):
       ) VALUES %s
     """
     batch, count = [], 0
-    for i in range(cards):
+    for _ in range(cards):
         batch.append(generate_card(user_id))
         if len(batch) >= 200:
             with conn.cursor() as cur:

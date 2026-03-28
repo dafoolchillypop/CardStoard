@@ -59,7 +59,7 @@ def parse_card_back(ocr_text: str) -> Dict:
     data["year"] = year
 
     # 4) Card number (No. 123, No 123, #123)
-    m_no = re.search(r"(?:No\.?|#)\s*([0-9]{1,4}[A-Z]?)", text, re.IGNORECASE)
+    m_no = re.search(r"(?:No\.?|#)\s*(\d{1,4}[A-Z]?)", text, re.IGNORECASE)
     if m_no:
         data["card_number"] = m_no.group(1)
 

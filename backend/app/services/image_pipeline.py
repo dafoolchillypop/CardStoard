@@ -58,11 +58,8 @@ def _four_point_transform(image: np.ndarray, pts: np.ndarray) -> np.ndarray:
 # ---------------------------
 # Card detection
 # ---------------------------
-def find_card_and_warp(image_bgr: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any]]:
-    debug: Dict[str, Any] = {"steps": []}
-    h, w = image_bgr.shape[:2]
-
-    # --- Step 1: stronger preprocessing ---
+def _preprocess_for_detection(image_bgr: np.ndarray) -> np.ndarray:
+    """Convert image to edge map for contour detection."""
     gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
     th = cv2.adaptiveThreshold(
         gray, 255,
@@ -71,72 +68,66 @@ def find_card_and_warp(image_bgr: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any
     )
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
     closed = cv2.morphologyEx(th, cv2.MORPH_CLOSE, kernel)
-    edges = cv2.Canny(closed, 50, 150)
+    return cv2.Canny(closed, 50, 150)
 
-    cv2.imwrite(os.path.join(DEBUG_DIR, "edges.jpg"), edges)
 
-    # --- Step 2: contour detection (with hierarchy) ---
+def _find_best_contour(edges: np.ndarray, h: int, w: int):
+    """Find the best card-shaped contour in the edge image.
+
+    Returns (card_quad, chosen_ratio) or (None, None) if not found.
+    """
     contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:15]
-
-    card_quad = None
-    chosen_ratio = None
 
     for c in contours:
         peri = cv2.arcLength(c, True)
         approx = cv2.approxPolyDP(c, 0.02 * peri, True)
         if len(approx) == 4:
-            area = cv2.contourArea(approx)
-            area_ratio = area / float(h * w)
-
-            x, y, w_box, h_box = cv2.boundingRect(approx)
+            area_ratio = cv2.contourArea(approx) / float(h * w)
+            _, _, w_box, h_box = cv2.boundingRect(approx)
             aspect_ratio = w_box / float(h_box)
-
-            # skip slab edges (too big, aspect near 1)
             if area_ratio > 0.97:
                 continue
-
             if 0.2 < area_ratio < 0.95 and 0.6 < aspect_ratio < 0.8:
-                card_quad = approx.reshape(4, 2).astype("float32")
-                chosen_ratio = area_ratio
-                debug["steps"].append(
-                    f"selected contour (ratio={area_ratio:.2f}, aspect={aspect_ratio:.2f})"
-                )
-                break
+                return approx.reshape(4, 2).astype("float32"), area_ratio
 
-    # --- Step 3: fallback hierarchy search ---
-    if card_quad is None and hierarchy is not None:
-        for idx, c in enumerate(contours):
+    # fallback: any large-enough quad regardless of aspect
+    if hierarchy is not None:
+        for c in contours:
             peri = cv2.arcLength(c, True)
             approx = cv2.approxPolyDP(c, 0.02 * peri, True)
             if len(approx) == 4:
                 area_ratio = cv2.contourArea(approx) / float(h * w)
                 if 0.2 < area_ratio < 0.95:
-                    card_quad = approx.reshape(4, 2).astype("float32")
-                    chosen_ratio = area_ratio
-                    debug["steps"].append(
-                        f"hierarchy fallback contour (ratio={area_ratio:.2f})"
-                    )
-                    break
+                    return approx.reshape(4, 2).astype("float32"), area_ratio
 
-    # --- Step 4: central crop fallback ---
+    return None, None
+
+
+def find_card_and_warp(image_bgr: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any]]:
+    debug: Dict[str, Any] = {"steps": []}
+    h, w = image_bgr.shape[:2]
+
+    edges = _preprocess_for_detection(image_bgr)
+    cv2.imwrite(os.path.join(DEBUG_DIR, "edges.jpg"), edges)
+
+    card_quad, chosen_ratio = _find_best_contour(edges, h, w)
+
     if card_quad is None:
         margin = 0.1
-        x1 = int(w * margin)
-        y1 = int(h * margin)
-        x2 = int(w * (1 - margin))
-        y2 = int(h * (1 - margin))
+        x1, y1 = int(w * margin), int(h * margin)
+        x2, y2 = int(w * (1 - margin)), int(h * (1 - margin))
         cropped = image_bgr[y1:y2, x1:x2]
         debug["steps"].append("central crop fallback")
         cv2.imwrite(os.path.join(DEBUG_DIR, "cropped.jpg"), cropped)
         return cropped, debug
 
-    # --- Warp perspective ---
+    debug["steps"].append(f"selected contour (ratio={chosen_ratio:.2f})")
+
     warped = _four_point_transform(image_bgr, card_quad)
     ch, cw = warped.shape[:2]
     debug["cropped_size"] = {"width": cw, "height": ch, "ratio": chosen_ratio}
 
-    # Debug overlays
     dbg_img = image_bgr.copy()
     cv2.drawContours(dbg_img, [card_quad.astype(int)], -1, (0, 255, 0), 3)
     cv2.imwrite(os.path.join(DEBUG_DIR, "contour.jpg"), dbg_img)
@@ -190,10 +181,8 @@ def run_ocr(card_bgr: np.ndarray) -> str:
     # choose the one with more "ink" (mean pixel value lower = more dark text)
     if th_otsu.mean() < th_adapt.mean():
         th = th_otsu
-        method = "otsu"
     else:
         th = th_adapt
-        method = "adaptive"
 
     # --- Step 5: add padding to help Tesseract ---
     padded = cv2.copyMakeBorder(th, 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=255)
@@ -302,7 +291,7 @@ def structured_ocr(ocr_text: str) -> dict:
         fields["last_name"] = tokens[1].capitalize()
 
     # --- Year detection ---
-    year_match = re.search(r"(19[0-9]{2}|20[0-2][0-9])", text)
+    year_match = re.search(r"(19\d{2}|20[0-2]\d)", text)
     if year_match:
         fields["year"] = int(year_match.group(0))
 

@@ -101,12 +101,12 @@ api.interceptors.response.use(
         isRefreshing = false;
         onRefreshFailed(refreshErr);
         logoutHandler();
-        return Promise.reject(refreshErr);
+        throw refreshErr;
       }
     }
 
     // For all other errors
-    return Promise.reject(error);
+    throw error;
   }
 );
 

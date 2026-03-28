@@ -17,6 +17,7 @@ Endpoints:
 """
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
 from pydantic import BaseModel, EmailStr
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 import pyotp, qrcode, os, jwt
@@ -36,7 +37,7 @@ class RegisterIn(BaseModel):
     password: str
 
 class LoginIn(BaseModel):
-    email: EmailStr
+    identifier: str   # email address or username
     password: str
     totp: str | None = None
 
@@ -89,7 +90,9 @@ def login(payload: LoginIn, response: Response, db: Session = Depends(get_db)):
     - Sets access_token (15 min) and refresh_token (14 day) HttpOnly cookies.
     - Updates user.last_login timestamp on success.
     """
-    user = db.query(User).filter(User.email == payload.email).first()
+    user = db.query(User).filter(
+        or_(User.email == payload.identifier, User.username == payload.identifier)
+    ).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(401, "Invalid credentials")
 

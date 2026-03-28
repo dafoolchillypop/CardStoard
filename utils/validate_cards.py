@@ -33,6 +33,6 @@ if not issues:
     print("✅ No issues found!")
 else:
     print(f"⚠️ Found {len(issues)} potential issues:\n")
-    for id, first, last, msg in issues:
-        print(f" - Card #{id}: {first} {last} → {msg}")
+    for card_id, first, last, msg in issues:
+        print(f" - Card #{card_id}: {first} {last} → {msg}")
 

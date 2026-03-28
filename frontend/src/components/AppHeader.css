@@ -96,15 +96,6 @@
   }
 }
 
-.app-header-center {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 /* --- Logo & Title --- */
 .app-header-logo {
   height: 50px;
