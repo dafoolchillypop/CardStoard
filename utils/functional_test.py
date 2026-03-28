@@ -51,6 +51,26 @@ CYN = "\033[1;36m"
 BLD = "\033[1m"
 NC  = "\033[0m"
 
+# ─── Table layout (module-level so record() can stream rows in real-time) ────
+W_TEST   = 46
+W_RESULT = 8
+W_DETAIL = 32
+_SEP = (
+    "+" + "-" * (W_TEST + 2)
+    + "+" + "-" * (W_RESULT + 2)
+    + "+" + "-" * (W_DETAIL + 2)
+    + "+"
+)
+
+
+def _fmt_row(label: str, result: str, detail: str, color: str = "") -> str:
+    nc = NC if color else ""
+    return (
+        f"| {label:<{W_TEST}} "
+        f"| {color}{result:<{W_RESULT}}{nc} "
+        f"| {detail:<{W_DETAIL}} |"
+    )
+
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -122,6 +142,12 @@ class TestRunner:
 
     def record(self, suite: str, name: str, ok: bool, detail: str = ""):
         self.results.append((suite, name, ok, detail))
+        # Stream each row to stdout immediately — no scrolling surprises
+        label    = f"[{suite}] {name}"[:W_TEST]
+        result   = "✓ PASS" if ok else "✗ FAIL"
+        color    = GRN if ok else RED
+        detail_s = (detail or "")[:W_DETAIL]
+        print(_fmt_row(label, result, detail_s, color), flush=True)
 
     def api(self, method: str, path: str, *, json_body=None, multipart=None,
             params=None):
@@ -195,64 +221,33 @@ class TestRunner:
     # ── Reporting ─────────────────────────────────────────────────────────────
 
     def report(self, log_path: str = None) -> int:
-        """Print table to stdout, write log file, return 0=pass 1=fail."""
+        """Print closing footer to stdout, write full log file, return 0=pass 1=fail.
+
+        Each test row is already printed in real-time by record(), so this
+        method only needs to close the table and persist the log.
+        """
         total  = len(self.results)
         passed = sum(1 for _, _, ok, _ in self.results if ok)
         failed = total - passed
 
-        W_TEST   = 46
-        W_RESULT = 7
-        W_DETAIL = 32
-
-        sep = (
-            "+"
-            + "-" * (W_TEST + 2)
-            + "+"
-            + "-" * (W_RESULT + 2)
-            + "+"
-            + "-" * (W_DETAIL + 2)
-            + "+"
-        )
-
-        def _row(label, result, detail, color=""):
-            nc = NC if color else ""
-            return (
-                f"| {label:<{W_TEST}} "
-                f"| {color}{result:<{W_RESULT}}{nc} "
-                f"| {detail:<{W_DETAIL}} |"
-            )
-
-        # Plain lines for log file
-        log_lines = [
-            sep,
-            _row("Test", "Result", "Detail"),
-            sep,
-        ]
-        for suite, name, ok, detail in self.results:
-            label    = f"[{suite}] {name}"[:W_TEST]
-            result   = "PASS" if ok else "FAIL"
-            detail_s = (detail or "")[:W_DETAIL]
-            log_lines.append(_row(label, result, detail_s))
-        log_lines.append(sep)
-        log_lines.append(
-            _row("RESULTS", f"{passed}/{total}", f"{failed} failed")
-        )
-        log_lines.append(sep)
-
-        # Colour output to stdout
-        print(sep)
-        print(_row("Test", "Result", "Detail"))
-        print(sep)
-        for suite, name, ok, detail in self.results:
-            label    = f"[{suite}] {name}"[:W_TEST]
-            result   = "PASS" if ok else "FAIL"
-            color    = GRN if ok else RED
-            detail_s = (detail or "")[:W_DETAIL]
-            print(_row(label, result, detail_s, color))
-        print(sep)
+        # Close the streaming table
         summary_color = GRN if failed == 0 else RED
-        print(_row("RESULTS", f"{passed}/{total}", f"{failed} failed", summary_color))
-        print(sep)
+        print(_SEP)
+        print(_fmt_row("RESULTS", f"{passed}/{total}", f"{failed} failed", summary_color))
+        print(_SEP)
+
+        # Write the full plain-text table to the log file
+        log_lines = [_SEP, _fmt_row("Test", "Result", "Detail"), _SEP]
+        for suite, name, ok, detail in self.results:
+            label    = f"[{suite}] {name}"[:W_TEST]
+            result   = "PASS" if ok else "FAIL"
+            detail_s = (detail or "")[:W_DETAIL]
+            log_lines.append(_fmt_row(label, result, detail_s))
+        log_lines += [
+            _SEP,
+            _fmt_row("RESULTS", f"{passed}/{total}", f"{failed} failed"),
+            _SEP,
+        ]
 
         if log_path:
             os.makedirs(os.path.dirname(log_path), exist_ok=True)
@@ -758,6 +753,11 @@ def main():
     print(f"User:   {email}\n")
 
     runner = TestRunner(base_url, email, password)
+
+    # Print table header — rows stream in real-time via record() as each test completes
+    print(_SEP)
+    print(_fmt_row("Test", "Result", "Detail"))
+    print(_SEP, flush=True)
 
     try:
         runner.run_all()
