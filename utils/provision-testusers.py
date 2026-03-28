@@ -69,6 +69,13 @@ BRANDS = ["Topps", "Donruss", "Fleer", "Bowman", "Score", "Upper Deck"]
 GRADES = [3.0, 1.5, 1.0, 0.8, 0.4, 0.2]
 CARD_ATTRIBUTES = ["refractor", "autograph", "short_print", "parallel", "numbered"]
 
+BALL_BRANDS   = ["Wilson", "Rawlings", "Spalding", "Rawlings OML"]
+COMMISSIONERS = ["Bart Giamatti", "Fay Vincent", "Bud Selig", "Peter Ueberroth", "Bowie Kuhn"]
+INSCRIPTIONS  = ["HOF 1974", "500 HR Club", "3000 Hits", "7 Gold Gloves", "MVP 1955",
+                 "61*", "The Kid", "Mr. October", "The Mick", "Say Hey"]
+WAX_BOX_TYPES = ["cello", "rack", "std"]
+PACK_TYPES    = ["cello", "rack", "wax", "blister"]
+
 # ---------------------------------------------------------------------------
 # User profiles
 # ---------------------------------------------------------------------------
@@ -85,6 +92,11 @@ PROFILES = [
         "freshness": {"fresh": 0.80, "aging": 0.15, "stale": 0.05, "null": 0.00},
         "history_months": 12,
         "history_growth": "strong",
+        "n_balls": 75, "n_wax": 70, "n_packs": 80,
+        "ball_auth_rate": 0.65,
+        "ball_value_range": (25, 500),
+        "wax_value_range": (20, 300),
+        "pack_value_range": (5, 80),
     },
     {
         "n": 2,
@@ -97,6 +109,11 @@ PROFILES = [
         "freshness": {"fresh": 0.40, "aging": 0.30, "stale": 0.20, "null": 0.10},
         "history_months": 8,
         "history_growth": "moderate",
+        "n_balls": 65, "n_wax": 60, "n_packs": 68,
+        "ball_auth_rate": 0.55,
+        "ball_value_range": (15, 300),
+        "wax_value_range": (15, 200),
+        "pack_value_range": (5, 60),
     },
     {
         "n": 3,
@@ -109,6 +126,11 @@ PROFILES = [
         "freshness": {"fresh": 0.10, "aging": 0.25, "stale": 0.40, "null": 0.25},
         "history_months": 6,
         "history_growth": "slow",
+        "n_balls": 50, "n_wax": 48, "n_packs": 55,
+        "ball_auth_rate": 0.40,
+        "ball_value_range": (10, 150),
+        "wax_value_range": (10, 120),
+        "pack_value_range": (3, 40),
     },
     {
         "n": 4,
@@ -121,6 +143,11 @@ PROFILES = [
         "freshness": {"fresh": 0.00, "aging": 0.05, "stale": 0.15, "null": 0.80},
         "history_months": 3,
         "history_growth": "flat",
+        "n_balls": 25, "n_wax": 24, "n_packs": 28,
+        "ball_auth_rate": 0.20,
+        "ball_value_range": (5, 60),
+        "wax_value_range": (5, 50),
+        "pack_value_range": (2, 20),
     },
     {
         "n": 5,
@@ -133,6 +160,11 @@ PROFILES = [
         "freshness": {"fresh": 0.25, "aging": 0.25, "stale": 0.25, "null": 0.25},
         "history_months": 12,
         "history_growth": "scurve",
+        "n_balls": 72, "n_wax": 65, "n_packs": 75,
+        "ball_auth_rate": 0.50,
+        "ball_value_range": (10, 400),
+        "wax_value_range": (10, 250),
+        "pack_value_range": (4, 70),
     },
 ]
 
@@ -318,6 +350,140 @@ def insert_cards(conn, rows: list):
         execute_values(cur, sql, rows)
         conn.commit()
 
+# ---------------------------------------------------------------------------
+# Auto Balls
+# ---------------------------------------------------------------------------
+def delete_existing_balls(conn, user_id: int):
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM auto_balls WHERE user_id = %s", (user_id,))
+        conn.commit()
+
+def generate_balls(user_id: int, profile: dict) -> list:
+    now = datetime.now(timezone.utc)
+    null_weight = profile["freshness"]["null"]
+    rows = []
+    for _ in range(profile["n_balls"]):
+        player       = random.choice(PLAYERS)
+        brand        = random.choice(BALL_BRANDS)
+        commissioner = random.choice(COMMISSIONERS) if random.random() < 0.50 else None
+        auth         = random.random() < profile["ball_auth_rate"]
+        inscription  = random.choice(INSCRIPTIONS) if random.random() < 0.35 else None
+        value        = None
+        if random.random() >= null_weight:
+            value = round(random.uniform(*profile["ball_value_range"]), 2)
+        freshness_state  = _pick_freshness(profile["freshness"])
+        value_updated_at = _freshness_to_dt(freshness_state, now)
+        rows.append((
+            user_id,
+            player["first"], player["last"],
+            brand, commissioner, auth, inscription,
+            value, value_updated_at,
+            None,  # notes
+            now, now,
+        ))
+    return rows
+
+def insert_balls(conn, rows: list):
+    sql = """
+        INSERT INTO auto_balls (
+            user_id, first_name, last_name,
+            brand, commissioner, auth, inscription,
+            value, value_updated_at,
+            notes, created_at, updated_at
+        ) VALUES %s
+    """
+    with conn.cursor() as cur:
+        execute_values(cur, sql, rows)
+        conn.commit()
+
+# ---------------------------------------------------------------------------
+# Wax Boxes
+# ---------------------------------------------------------------------------
+def delete_existing_wax(conn, user_id: int):
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM wax_boxes WHERE user_id = %s", (user_id,))
+        conn.commit()
+
+def generate_wax(user_id: int, profile: dict) -> list:
+    now = datetime.now(timezone.utc)
+    null_weight = profile["freshness"]["null"]
+    year_lo, year_hi = profile["year_range"]
+    rows = []
+    for _ in range(profile["n_wax"]):
+        year     = random.randint(year_lo, year_hi)
+        brand    = random.choice(BRANDS)
+        set_name = random.choice(WAX_BOX_TYPES + [None])
+        quantity = random.randint(1, 3)
+        value    = None
+        if random.random() >= null_weight:
+            value = round(random.uniform(*profile["wax_value_range"]), 2)
+        freshness_state  = _pick_freshness(profile["freshness"])
+        value_updated_at = _freshness_to_dt(freshness_state, now)
+        rows.append((
+            user_id,
+            year, brand, set_name, quantity,
+            value, value_updated_at,
+            None,  # notes
+            now, now,
+        ))
+    return rows
+
+def insert_wax(conn, rows: list):
+    sql = """
+        INSERT INTO wax_boxes (
+            user_id, year, brand, set_name, quantity,
+            value, value_updated_at,
+            notes, created_at, updated_at
+        ) VALUES %s
+    """
+    with conn.cursor() as cur:
+        execute_values(cur, sql, rows)
+        conn.commit()
+
+# ---------------------------------------------------------------------------
+# Wax Packs
+# ---------------------------------------------------------------------------
+def delete_existing_packs(conn, user_id: int):
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM wax_packs WHERE user_id = %s", (user_id,))
+        conn.commit()
+
+def generate_packs(user_id: int, profile: dict) -> list:
+    now = datetime.now(timezone.utc)
+    null_weight = profile["freshness"]["null"]
+    year_lo, year_hi = profile["year_range"]
+    rows = []
+    for _ in range(profile["n_packs"]):
+        year      = random.randint(year_lo, year_hi)
+        brand     = random.choice(BRANDS)
+        pack_type = random.choice(PACK_TYPES)
+        quantity  = random.randint(1, 5)
+        value     = None
+        if random.random() >= null_weight:
+            value = round(random.uniform(*profile["pack_value_range"]), 2)
+        freshness_state  = _pick_freshness(profile["freshness"])
+        value_updated_at = _freshness_to_dt(freshness_state, now)
+        rows.append((
+            user_id,
+            year, brand, pack_type, quantity,
+            value, value_updated_at,
+            None,  # notes
+            now, now,
+        ))
+    return rows
+
+def insert_packs(conn, rows: list):
+    sql = """
+        INSERT INTO wax_packs (
+            user_id, year, brand, pack_type, quantity,
+            value, value_updated_at,
+            notes, created_at, updated_at
+        ) VALUES %s
+    """
+    with conn.cursor() as cur:
+        execute_values(cur, sql, rows)
+        conn.commit()
+
 def get_user_totals(conn, user_id: int) -> tuple:
     """Returns (total_value, card_count) for a user."""
     with conn.cursor() as cur:
@@ -408,6 +574,9 @@ def reset_test_users(conn, domain: str):
         return
 
     with conn.cursor() as cur:
+        cur.execute("DELETE FROM auto_balls  WHERE user_id = ANY(%s)", (user_ids,))
+        cur.execute("DELETE FROM wax_boxes   WHERE user_id = ANY(%s)", (user_ids,))
+        cur.execute("DELETE FROM wax_packs   WHERE user_id = ANY(%s)", (user_ids,))
         cur.execute("DELETE FROM valuation_history WHERE user_id = ANY(%s)", (user_ids,))
         cur.execute("DELETE FROM cards WHERE user_id = ANY(%s)", (user_ids,))
         cur.execute("DELETE FROM global_settings WHERE user_id = ANY(%s)", (user_ids,))
@@ -432,14 +601,29 @@ def seed_user(conn, profile: dict, domain: str):
 
     delete_existing_cards(conn, user_id)
     delete_existing_history(conn, user_id)
+    delete_existing_balls(conn, user_id)
+    delete_existing_wax(conn, user_id)
+    delete_existing_packs(conn, user_id)
 
     cards = generate_cards(user_id, profile)
     insert_cards(conn, cards)
+
+    balls = generate_balls(user_id, profile)
+    insert_balls(conn, balls)
+
+    wax = generate_wax(user_id, profile)
+    insert_wax(conn, wax)
+
+    packs = generate_packs(user_id, profile)
+    insert_packs(conn, packs)
 
     final_value, final_count = get_user_totals(conn, user_id)
     insert_valuation_history(conn, user_id, profile, float(final_value), int(final_count))
 
     print(f"  cards:   {final_count}")
+    print(f"  balls:   {len(balls)}")
+    print(f"  wax:     {len(wax)}")
+    print(f"  packs:   {len(packs)}")
     print(f"  value:   ${final_value:,.0f}")
     print(f"  history: {profile['history_months']} monthly snapshots ({profile['history_growth']} growth)")
 
