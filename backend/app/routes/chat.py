@@ -382,7 +382,7 @@ def build_collection_context(
         lines.append("  No wax boxes in collection.")
     else:
         total_qty = sum(int(w.quantity or 1) for w in wax_boxes)
-        total_val = sum(float(w.value or 0) for w in wax_boxes)
+        total_val = sum(int(w.quantity or 1) * float(w.value or 0) for w in wax_boxes)
         lines.append(f"  Total: {len(wax_boxes)} boxes ({total_qty} qty) | Total value: ${round(total_val):,}")
 
         brand_counts = defaultdict(int)
@@ -400,7 +400,7 @@ def build_collection_context(
         lines.append("  No wax packs in collection.")
     else:
         total_qty = sum(int(p.quantity or 1) for p in wax_packs)
-        total_val = sum(float(p.value or 0) for p in wax_packs)
+        total_val = sum(int(p.quantity or 1) * float(p.value or 0) for p in wax_packs)
         lines.append(f"  Total: {len(wax_packs)} packs ({total_qty} qty) | Total value: ${round(total_val):,}")
 
         type_counts = defaultdict(int)
@@ -424,7 +424,7 @@ def build_collection_context(
         lines.append("  No sets/binders in collection.")
     else:
         total_qty = sum(int(s.quantity or 1) for s in box_binders)
-        total_val = sum(float(s.value or 0) for s in box_binders)
+        total_val = sum(int(s.quantity or 1) * float(s.value or 0) for s in box_binders)
         lines.append(f"  Total: {len(box_binders)} sets ({total_qty} qty) | Total value: ${round(total_val):,}")
 
         type_counts = defaultdict(int)
