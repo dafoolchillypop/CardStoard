@@ -161,6 +161,15 @@ export default function ListBoxes() {
   }, [boxes]);
 
   useEffect(() => {
+    const handler = () => {
+      if (editingId !== null) return;
+      api.get("/boxes/").then(res => setBoxes(res.data)).catch(() => {});
+    };
+    window.addEventListener("collection-changed", handler);
+    return () => window.removeEventListener("collection-changed", handler);
+  }, [editingId]);
+
+  useEffect(() => {
     if (!focusId) return;
     const el = rowRefsMap.current[focusId];
     if (el) {
