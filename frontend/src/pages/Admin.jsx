@@ -803,6 +803,8 @@ export default function Admin() {
         {showModal && (
           <div
             className="modal-overlay"
+            role="button"
+            tabIndex={0}
             style={{
               position: "fixed",
               top: 0,
@@ -816,10 +818,12 @@ export default function Admin() {
               zIndex: 9999,
             }}
             onClick={() => setShowModal(false)}
+            onKeyDown={(e) => { if (e.key === "Escape") setShowModal(false); }}
           >
             <div
               className="modal-content"
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
               style={{
                 background: "#f9f9f9",
                 borderRadius: "12px",

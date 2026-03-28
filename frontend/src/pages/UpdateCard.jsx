@@ -32,8 +32,8 @@ export default function UpdateCard() {
       .then((res) => {
         const players = res.data.players || [];
         setPlayerNames({
-          firstNames: [...new Set(players.map(p => p.first_name))].sort(),
-          lastNames: [...new Set(players.map(p => p.last_name))].sort(),
+          firstNames: [...new Set(players.map(p => p.first_name))].sort((a, b) => a.localeCompare(b)),
+          lastNames: [...new Set(players.map(p => p.last_name))].sort((a, b) => a.localeCompare(b)),
         });
       })
       .catch((err) => console.error("Error fetching player names:", err));

@@ -454,8 +454,8 @@ export default function ListCards() {
       .then((res) => {
         const players = res.data.players || [];
         setPlayerNames({
-          firstNames: [...new Set(players.map(p => p.first_name))].sort(),
-          lastNames: [...new Set(players.map(p => p.last_name))].sort(),
+          firstNames: [...new Set(players.map(p => p.first_name))].sort((a, b) => a.localeCompare(b)),
+          lastNames: [...new Set(players.map(p => p.last_name))].sort((a, b) => a.localeCompare(b)),
         });
       })
       .catch(() => {});
@@ -713,7 +713,10 @@ export default function ListCards() {
               ? <>
                   <span><span style={{ color: "#dc3545" }}>{displayedCards.length}</span><span style={{ color: "var(--accent-blue)" }}> of {total} cards</span></span>
                   <span
+                    role="button"
+                    tabIndex={0}
                     onClick={() => { setLastNameFilter(""); setBrandFilter(""); setYearFilter(""); setGradeFilter(""); clearCloneAnchor(); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") { setLastNameFilter(""); setBrandFilter(""); setYearFilter(""); setGradeFilter(""); clearCloneAnchor(); } }}
                     style={{ color: "#dc3545", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}
                   >✕ Clear filters</span>
                 </>
@@ -786,7 +789,7 @@ export default function ListCards() {
                   <th className="lname-col" onClick={() => requestSort("last_name")} style={{ cursor: "pointer" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
                       Last {getSortIndicator("last_name")}
-                      <span onClick={(e) => { e.stopPropagation(); toggleFilterCol("last"); }} style={{ cursor: "pointer", fontSize: "0.75rem", color: lastNameFilter ? "#007bff" : "#aaa" }} title="Filter by last name">🔍</span>
+                      <span role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); toggleFilterCol("last"); }} onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); toggleFilterCol("last"); } }} style={{ cursor: "pointer", fontSize: "0.75rem", color: lastNameFilter ? "#007bff" : "#aaa" }} title="Filter by last name">🔍</span>
                     </div>
                     {openFilterCols.has("last") && (
                       <input autoFocus type="text" value={lastNameFilter} onChange={(e) => setLastNameFilter(e.target.value)} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.key === "Escape" && toggleFilterCol("last")} placeholder="Filter..." style={{ width: "90%", fontSize: "0.75rem", padding: "1px 4px", display: "block", margin: "3px auto 0" }} />
@@ -795,7 +798,7 @@ export default function ListCards() {
                   <th className="year-col" onClick={() => requestSort("year")} style={{ cursor: "pointer" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
                       Year {getSortIndicator("year")}
-                      <span onClick={(e) => { e.stopPropagation(); toggleFilterCol("year"); }} style={{ cursor: "pointer", fontSize: "0.75rem", color: yearFilter ? "#007bff" : "#aaa" }} title="Filter by year">🔍</span>
+                      <span role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); toggleFilterCol("year"); }} onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); toggleFilterCol("year"); } }} style={{ cursor: "pointer", fontSize: "0.75rem", color: yearFilter ? "#007bff" : "#aaa" }} title="Filter by year">🔍</span>
                     </div>
                     {openFilterCols.has("year") && (
                       <input autoFocus type="text" value={yearFilter} onChange={(e) => setYearFilter(e.target.value)} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.key === "Escape" && toggleFilterCol("year")} placeholder="Filter..." style={{ width: "90%", fontSize: "0.75rem", padding: "1px 4px", display: "block", margin: "3px auto 0" }} />
@@ -804,7 +807,7 @@ export default function ListCards() {
                   <th className="brand-col">
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
                       Brand
-                      <span onClick={() => toggleFilterCol("brand")} style={{ cursor: "pointer", fontSize: "0.75rem", color: brandFilter ? "#007bff" : "#aaa" }} title="Filter by brand">🔍</span>
+                      <span role="button" tabIndex={0} onClick={() => toggleFilterCol("brand")} onKeyDown={(e) => { if (e.key === "Enter") toggleFilterCol("brand"); }} style={{ cursor: "pointer", fontSize: "0.75rem", color: brandFilter ? "#007bff" : "#aaa" }} title="Filter by brand">🔍</span>
                     </div>
                     {openFilterCols.has("brand") && (
                       <input autoFocus type="text" value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)} onKeyDown={(e) => e.key === "Escape" && toggleFilterCol("brand")} placeholder="Filter..." style={{ width: "90%", fontSize: "0.75rem", padding: "1px 4px", display: "block", margin: "3px auto 0" }} />
@@ -816,7 +819,7 @@ export default function ListCards() {
                   <th className="grade-col" style={{ textAlign: "center", width: 65, cursor: "pointer" }} onClick={() => requestSort("grade")}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
                       Grade {getSortIndicator("grade")}
-                      <span onClick={(e) => { e.stopPropagation(); toggleFilterCol("grade"); }} style={{ cursor: "pointer", fontSize: "0.75rem", color: gradeFilter ? "#007bff" : "#aaa" }} title="Filter by grade">🔍</span>
+                      <span role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); toggleFilterCol("grade"); }} onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); toggleFilterCol("grade"); } }} style={{ cursor: "pointer", fontSize: "0.75rem", color: gradeFilter ? "#007bff" : "#aaa" }} title="Filter by grade">🔍</span>
                     </div>
                     {openFilterCols.has("grade") && (
                       <input autoFocus type="text" value={gradeFilter} onChange={(e) => setGradeFilter(e.target.value)} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.key === "Escape" && toggleFilterCol("grade")} placeholder="Filter..." style={{ width: "90%", fontSize: "0.75rem", padding: "1px 4px", display: "block", margin: "3px auto 0" }} />
@@ -1043,8 +1046,11 @@ export default function ListCards() {
                           : <>
                               <span
                                 className="badge badge-brand"
+                                role="button"
+                                tabIndex={0}
                                 style={{ cursor: "pointer", userSelect: "none" }}
                                 onClick={() => variantOpenId === card.id ? closeVariant() : openVariant(card)}
+                                onKeyDown={(e) => { if (e.key === "Enter") { variantOpenId === card.id ? closeVariant() : openVariant(card); } }}
                                 title="Click to view/edit card variants"
                               >{card.brand}</span>
                               {/* Variant chips — shown when collapsed and attributes set */}
@@ -1200,7 +1206,9 @@ export default function ListCards() {
                             src={`http://host.docker.internal:8000${card.front_image}`}
                             alt="Front"
                             style={{ width: "50px", height: "auto", cursor: "pointer" }}
+                            tabIndex={0}
                             onClick={() => setSelectedCard(card)}
+                            onKeyDown={(e) => { if (e.key === "Enter") setSelectedCard(card); }}
                           />
                         ) : (
                           <span style={{ color: "#aaa" }}>No Image</span>
