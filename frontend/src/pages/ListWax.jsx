@@ -173,6 +173,15 @@ export default function ListWax() {
   }, [items]);
 
   useEffect(() => {
+    const handler = () => {
+      if (editingId !== null) return;
+      api.get("/wax/").then(res => setItems(res.data)).catch(() => {});
+    };
+    window.addEventListener("collection-changed", handler);
+    return () => window.removeEventListener("collection-changed", handler);
+  }, [editingId]);
+
+  useEffect(() => {
     if (!focusId) return;
     const el = rowRefsMap.current[focusId];
     if (el) {
@@ -399,6 +408,7 @@ export default function ListWax() {
 
   // --- Stats ---
   const realItems = filtered.filter(b => b.id !== "new");
+  const totalQty = realItems.reduce((sum, b) => sum + (Number(b.quantity) || 1), 0);
   const totalValue = realItems.reduce((sum, b) => sum + (Number(b.quantity) || 1) * (Number(b.value) || 0), 0);
   const hasFilters = yearFilter || brandFilter || typeFilter !== "all";
 
@@ -423,7 +433,7 @@ export default function ListWax() {
           <div style={{ flex: 1 }} />
 
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.9rem", color: "var(--text-secondary)" }}>
-            <span style={{ color: "var(--accent-blue)" }}>{realItems.length} box{realItems.length !== 1 ? "es" : ""}</span>
+            <span style={{ color: "var(--accent-blue)" }}>{totalQty} box{totalQty !== 1 ? "es" : ""}</span>
             {totalValue > 0 && (
               <><span>&middot;</span><span style={{ color: "#2e7d32" }}>Total: {fmtDollar(totalValue)}</span></>
             )}

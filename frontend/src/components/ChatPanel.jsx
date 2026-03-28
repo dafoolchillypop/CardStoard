@@ -40,6 +40,7 @@ export default function ChatPanel({ onClose }) {
       const history = updatedMessages.slice(0, -1); // all but the current message
       const res = await api.post("/chat/", { message: text, history });
       setMessages((prev) => [...prev, { role: "assistant", text: res.data.response }]);
+      window.dispatchEvent(new Event("collection-changed"));
     } catch (err) {
       const detail = err?.response?.data?.detail || err?.message || "Unknown error";
       setMessages((prev) => [...prev, { role: "assistant", text: `Error: ${detail}` }]);
