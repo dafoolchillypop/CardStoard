@@ -7,7 +7,7 @@ import api from "../api/api";
 export default function Login() {
   const navigate = useNavigate();
   const { setUser, setIsLoggedIn, applyTheme } = useAuth();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ identifier: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false); // ⏳ new
 
@@ -22,7 +22,7 @@ export default function Login() {
 
     try {
       const res = await api.post("/auth/login", {
-        email: form.email.trim(),
+        identifier: form.identifier.trim(),
         password: form.password,
       });
 
@@ -42,7 +42,7 @@ export default function Login() {
       } catch (_) {}
 
       setIsLoggedIn(true);
-      setForm({ email: "", password: "" });
+      setForm({ identifier: "", password: "" });
       navigate("/"); // redirect home
     } catch (err) {
       console.error("Login failed:", err);
@@ -77,10 +77,10 @@ export default function Login() {
         }}
       >
         <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={form.email}
+          type="text"
+          name="identifier"
+          placeholder="Email or Username"
+          value={form.identifier}
           onChange={handleChange}
           required
           style={{ width: "100%", padding: "0.5rem" }}
