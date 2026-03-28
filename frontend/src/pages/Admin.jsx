@@ -360,17 +360,21 @@ export default function Admin() {
           return (
             <div className="card-section" style={{ marginBottom: "1rem" }}>
               <h3>Nav Bar <InfoIcon id="navbar" text="Choose which buttons appear in the navigation bar. Changes take effect immediately." /></h3>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem 1.5rem", justifyContent: "center" }}>
-                {ALL_NAV.map(({ key, label }) => (
-                  <label key={key} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.9rem", fontWeight: "bold", cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={current.includes(key)}
-                      onChange={() => toggle(key)}
-                      style={{ width: "16px", height: "16px", margin: 0, cursor: "pointer" }}
-                    />
-                    {label}
-                  </label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", alignItems: "center" }}>
+                {[ALL_NAV.slice(0, 4), ALL_NAV.slice(4)].map((row, ri) => (
+                  <div key={ri} style={{ display: "flex", gap: "1.5rem" }}>
+                    {row.map(({ key, label }) => (
+                      <label key={key} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.9rem", fontWeight: "bold", cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={current.includes(key)}
+                          onChange={() => toggle(key)}
+                          style={{ width: "16px", height: "16px", margin: 0, cursor: "pointer" }}
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
                 ))}
               </div>
             </div>

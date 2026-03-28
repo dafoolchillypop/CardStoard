@@ -135,12 +135,19 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.14</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.15</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.15 (March 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Wax Boxes: new inventory type for sealed wax boxes (year, brand, Cello/Rack/Std type badge, quantity, value freshness, label print + QR)</li>
+            <li>Wax Packs: new inventory type for individual packs (year, brand, Cello/Rack/Wax/Blister type badge, quantity, value freshness, label print + QR)</li>
+            <li>📦 Wax and 🎴 Packs nav buttons activated</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.14 (March 2026)</p>
           <ul style={{ marginTop: 0 }}>

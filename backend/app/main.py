@@ -19,7 +19,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from .database import engine, Base
-from .routes import cards, rtr_settings, auth, analytics, email_test, account, chat, dictionary, sets, boxes, balls
+from .routes import cards, rtr_settings, auth, analytics, email_test, account, chat, dictionary, sets, boxes, balls, wax, packs
 from .config import cfg_settings
 from .auth.cookies import set_access_cookie
 
@@ -118,8 +118,8 @@ app.include_router(dictionary.router)
 app.include_router(sets.router)
 app.include_router(boxes.router)
 app.include_router(balls.router)
-#app.include_router(packs.router, prefix="/packs", tags=["packs"])
-#app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(wax.router)
+app.include_router(packs.router)
 
 # ---------------------------
 # Health check endpoint

@@ -12,6 +12,8 @@ Models and tables:
   UserSetCard      → user_set_cards     Per-user build progress overlay on a set
   BoxBinder        → boxes_binders      Physical set/binder containers owned by a user
   AutoBall         → auto_balls         Autographed baseballs owned by a user
+  WaxBox           → wax_boxes          Wax boxes owned by a user
+  WaxPack          → wax_packs          Individual wax/cello/rack/blister packs owned by a user
   ValuationHistory → valuation_history  Time-series collection value snapshots
   DictionaryEntry  → dictionary_entries Global player/card reference for Smart Fill
 
@@ -21,7 +23,7 @@ Key constraints:
 - BoxBinder.quantity column is nullable in DB (SQLAlchemy create_all doesn't enforce NOT NULL
   for default-only columns); Pydantic coerces NULL → 1 in BoxBinderOut.
 
-See migrations/ for schema change history (001–018).
+See migrations/ for schema change history (001–020).
 """
 from sqlalchemy import Column, Integer, String, Boolean, Float, JSON, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
@@ -132,10 +134,14 @@ class GlobalSettings(Base):
     default_sort = Column(JSON, nullable=True, default=None)
     default_sort_boxes = Column(JSON, nullable=True, default=None)
     default_sort_balls = Column(JSON, nullable=True, default=None)
+    default_sort_wax   = Column(JSON, nullable=True, default=None)
+    default_sort_packs = Column(JSON, nullable=True, default=None)
     visible_set_ids = Column(JSON, nullable=True, default=None)
     nav_items = Column(JSON, nullable=True, default=None)
     pinned_card_id = Column(Integer, nullable=True)
     pinned_ball_id = Column(Integer, nullable=True)
+    pinned_wax_id  = Column(Integer, nullable=True)
+    pinned_pack_id = Column(Integer, nullable=True)
 
 class SetList(Base):
     """Global reference set definition (e.g. '1952 Topps Baseball'). Not user-scoped."""
@@ -203,6 +209,39 @@ class AutoBall(Base):
     commissioner     = Column(String, nullable=True)
     auth             = Column(Boolean, default=False)
     inscription      = Column(Text, nullable=True)
+    value            = Column(Float, nullable=True)
+    value_updated_at = Column(DateTime, nullable=True)
+    notes            = Column(Text, nullable=True)
+    created_at       = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at       = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    user             = relationship("User")
+
+class WaxBox(Base):
+    """Wax box owned by a user. Tracks year, brand, set name, quantity, and value."""
+    __tablename__ = "wax_boxes"
+    id               = Column(Integer, primary_key=True)
+    user_id          = Column(Integer, ForeignKey(USER_ID_REF), nullable=False)
+    year             = Column(Integer, nullable=False)
+    brand            = Column(String, nullable=False)
+    set_name         = Column(String, nullable=True)
+    quantity         = Column(Integer, default=1)
+    value            = Column(Float, nullable=True)
+    value_updated_at = Column(DateTime, nullable=True)
+    notes            = Column(Text, nullable=True)
+    created_at       = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at       = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    user             = relationship("User")
+
+class WaxPack(Base):
+    """Individual wax/cello/rack/blister pack owned by a user."""
+    __tablename__ = "wax_packs"
+    id               = Column(Integer, primary_key=True)
+    user_id          = Column(Integer, ForeignKey(USER_ID_REF), nullable=False)
+    year             = Column(Integer, nullable=False)
+    brand            = Column(String, nullable=False)
+    set_name         = Column(String, nullable=True)
+    pack_type        = Column(String, nullable=True)   # cello, rack, wax, blister
+    quantity         = Column(Integer, default=1)
     value            = Column(Float, nullable=True)
     value_updated_at = Column(DateTime, nullable=True)
     notes            = Column(Text, nullable=True)

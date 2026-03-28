@@ -41,6 +41,12 @@ import SetBinderLabel from "./pages/SetBinderLabel.jsx";
 import ListBalls from "./pages/ListBalls.jsx";
 import BallLabel from "./pages/BallLabel.jsx";
 import BallView from "./pages/BallView.jsx";
+import ListWax from "./pages/ListWax.jsx";
+import WaxLabel from "./pages/WaxLabel.jsx";
+import WaxView from "./pages/WaxView.jsx";
+import ListPacks from "./pages/ListPacks.jsx";
+import PackLabel from "./pages/PackLabel.jsx";
+import PackView from "./pages/PackView.jsx";
 import UserGuide from "./pages/UserGuide.jsx";
 
 import "./index.css";
@@ -61,6 +67,10 @@ function AppRouter() {
       <Route path="/set-label/:id" element={<SetBinderLabel />} />
       <Route path="/ball-view/:id" element={<BallView />} />
       <Route path="/ball-label/:id" element={<BallLabel />} />
+      <Route path="/wax-view/:id" element={<WaxView />} />
+      <Route path="/wax-label/:id" element={<WaxLabel />} />
+      <Route path="/pack-view/:id" element={<PackView />} />
+      <Route path="/pack-label/:id" element={<PackLabel />} />
 
       {/* Public only if not logged in */}
       {!isLoggedIn && (
@@ -100,6 +110,8 @@ function AppRouter() {
           <Route path="/boxes" element={<ProtectedRoute><ListBoxes /></ProtectedRoute>} />
           <Route path="/add-box" element={<ProtectedRoute><AddBox /></ProtectedRoute>} />
           <Route path="/balls" element={<ProtectedRoute><ListBalls /></ProtectedRoute>} />
+          <Route path="/wax" element={<ProtectedRoute><ListWax /></ProtectedRoute>} />
+          <Route path="/packs" element={<ProtectedRoute><ListPacks /></ProtectedRoute>} />
           <Route path="/set-detail/:id" element={<ProtectedRoute><SetBinderDetail /></ProtectedRoute>} />
           <Route path="/batch-labels" element={<ProtectedRoute><BatchLabels /></ProtectedRoute>} />
           <Route path="/user-guide" element={<ProtectedRoute><UserGuide /></ProtectedRoute>} />
