@@ -115,7 +115,7 @@ if [[ -n "$EMAIL" && -n "$PASSWORD" ]]; then
   STATUS=$($CURL -c "$COOKIE_JAR" -o "$RESP" -w "%{http_code}" \
     -X POST "$API/auth/login" \
     -H "Content-Type: application/json" \
-    -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" 2>/dev/null || echo "000")
+    -d "{\"identifier\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" 2>/dev/null || echo "000")
   BODY=$(cat "$RESP"); rm -f "$RESP"
   if [[ "$STATUS" == "200" ]]; then
     USERNAME=$(echo "$BODY" | python3 -c \
