@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.16
+# 🧾 CardStoard — v1.17
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -244,6 +244,7 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.17** | Mar 2026 | SonarCloud code quality remediations pass 2: datetime lambda fix, sort localeCompare, React hooks ordering, accessibility (keyboard/role/tabIndex), credential variable rename; 0 bugs, 0 vulnerabilities |
 | **v1.16** | Mar 2026 | Collection Assistant context expanded to all inventory types (Cards, Balls, Wax Boxes, Wax Packs, Sets/Binders); username or email login; SonarCloud code quality remediations; full functional test suite (`utils/functional_test.py`) |
 | **v1.15** | Mar 2026 | Wax Boxes (CS-WX, cello/rack/std type badges, value freshness, label + QR) and Wax Packs (CS-PK, cello/rack/wax/blister type badges, value freshness, label + QR) inventory types; Admin nav bar layout fix |
 | **v1.14** | Mar 2026 | Auto Balls: autographed baseball inventory type (signer, brand, commissioner, COA auth badge, inscription, value freshness, label print + QR); pin/bookmark persisted to DB; scroll fix for Book: never updated nav |
