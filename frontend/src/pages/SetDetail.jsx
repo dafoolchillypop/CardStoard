@@ -362,7 +362,9 @@ export default function SetDetail() {
                 <span>&middot;</span>
                 <span style={{ color: "#dc3545" }}>{filteredEntries.length} shown</span>
                 <span
+                  role="button" tabIndex={0}
                   onClick={() => { setLastNameFilter(""); setRookieFilter("all"); setBuildFilter("all"); setCardNumFilter(""); }}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLastNameFilter(""); setRookieFilter("all"); setBuildFilter("all"); setCardNumFilter(""); } }}
                   style={{ color: "#dc3545", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}
                 >✕ Clear</span>
               </>
@@ -414,8 +416,8 @@ export default function SetDetail() {
                 <tr>
                   <th className="set-cardnum-col" style={{ width: 55, textAlign: "center" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("card_number")}>#{ getSortIndicator("card_number") }</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("card_number")} title="Filter by #">🔍</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("card_number")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("card_number"); } }}>#{ getSortIndicator("card_number") }</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("card_number")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter("card_number"); } }} title="Filter by #">🔍</span>
                     </div>
                     {openFilterCols.has("card_number") && (
                       <input type="text" value={cardNumFilter} onChange={e => setCardNumFilter(e.target.value)}
@@ -426,8 +428,8 @@ export default function SetDetail() {
                   <th style={{ textAlign: "left", padding: "4px 8px", width: 80 }}>First</th>
                   <th style={{ textAlign: "left", padding: "4px 8px", width: 100 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("last_name")}>Last{ getSortIndicator("last_name") }</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("last_name")} title="Filter by last name">🔍</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("last_name")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("last_name"); } }}>Last{ getSortIndicator("last_name") }</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("last_name")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter("last_name"); } }} title="Filter by last name">🔍</span>
                     </div>
                     {openFilterCols.has("last_name") && (
                       <input type="text" value={lastNameFilter} onChange={e => setLastNameFilter(e.target.value)}
@@ -436,14 +438,14 @@ export default function SetDetail() {
                     )}
                   </th>
                   <th className="set-rookie-col" style={{ width: 36, textAlign: "center" }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("rookie")} title="Sort by rookie">RC{ getSortIndicator("rookie") }</span>
+                    <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("rookie")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("rookie"); } }} title="Sort by rookie">RC{ getSortIndicator("rookie") }</span>
                   </th>
                   <th style={{ textAlign: "center", width: 65 }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("grade")} title="Sort by grade">Grade{ getSortIndicator("grade") }</span>
+                    <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("grade")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("grade"); } }} title="Sort by grade">Grade{ getSortIndicator("grade") }</span>
                   </th>
                   <th className="book-col" style={{ textAlign: "center", minWidth: 180 }}>Book</th>
                   <th className="card-value-col" style={{ textAlign: "center" }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("value")} title="Sort by value">Value{ getSortIndicator("value") }</span>
+                    <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("value")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("value"); } }} title="Sort by value">Value{ getSortIndicator("value") }</span>
                   </th>
                   <th className="action-col actions-col" style={{ textAlign: "center", width: 140 }}>
                     {/* CD nav row 1 */}

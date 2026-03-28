@@ -36,8 +36,8 @@ function SortBallModal({ sortConfig, defaultSort, onApply, onClose }) {
   const selStyle = { padding: "0.4rem", borderRadius: 4, border: "1px solid var(--border)", background: "var(--bg-input)", color: "var(--text-primary)" };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" style={{ width: 640, maxWidth: "95vw" }} onClick={e => e.stopPropagation()}>
+    <div className="modal-overlay" role="button" tabIndex={0} onClick={onClose} onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
+      <div className="modal-box" style={{ width: 640, maxWidth: "95vw" }} onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
         <h3 style={{ marginTop: 0 }}>Advanced Sort</h3>
 
         {levels.length === 0 && (
@@ -426,7 +426,7 @@ export default function ListBalls() {
             )}
             {hasFilters && (
               <><span>&middot;</span>
-                <span onClick={() => { setLastNameFilter(""); setBrandFilter(""); setAuthFilter("all"); setOpenFilterCols(new Set()); }}
+                <span role="button" tabIndex={0} onClick={() => { setLastNameFilter(""); setBrandFilter(""); setAuthFilter("all"); setOpenFilterCols(new Set()); }} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLastNameFilter(""); setBrandFilter(""); setAuthFilter("all"); setOpenFilterCols(new Set()); } }}
                   style={{ color: "#dc3545", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}>✕ Clear</span>
               </>
             )}
@@ -459,8 +459,8 @@ export default function ListBalls() {
                   {/* Last */}
                   <th style={{ width: 120, textAlign: "center", padding: "4px 6px" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("last_name")}>Last{getSortIndicator("last_name")}</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("last_name")} title="Filter by last name">🔍</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("last_name")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("last_name"); } }}>Last{getSortIndicator("last_name")}</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("last_name")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter("last_name"); } }} title="Filter by last name">🔍</span>
                     </div>
                     {openFilterCols.has("last_name") && (
                       <input type="text" value={lastNameFilter} onChange={e => setLastNameFilter(e.target.value)}
@@ -471,14 +471,14 @@ export default function ListBalls() {
 
                   {/* First */}
                   <th style={{ width: 100, textAlign: "center", padding: "4px 6px" }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("first_name")}>First{getSortIndicator("first_name")}</span>
+                    <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("first_name")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("first_name"); } }}>First{getSortIndicator("first_name")}</span>
                   </th>
 
                   {/* Brand */}
                   <th style={{ width: 100, textAlign: "center", padding: "4px 6px" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("brand")}>Brand{getSortIndicator("brand")}</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("brand")} title="Filter by brand">🔍</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("brand")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("brand"); } }}>Brand{getSortIndicator("brand")}</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("brand")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter("brand"); } }} title="Filter by brand">🔍</span>
                     </div>
                     {openFilterCols.has("brand") && (
                       <input type="text" value={brandFilter} onChange={e => setBrandFilter(e.target.value)}
@@ -489,14 +489,14 @@ export default function ListBalls() {
 
                   {/* Commissioner */}
                   <th style={{ width: 110, textAlign: "center", padding: "4px 6px" }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("commissioner")}>Commissioner{getSortIndicator("commissioner")}</span>
+                    <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("commissioner")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("commissioner"); } }}>Commissioner{getSortIndicator("commissioner")}</span>
                   </th>
 
                   {/* Auth */}
                   <th style={{ width: 80, textAlign: "center" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("auth")}>Auth{getSortIndicator("auth")}</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("auth")} title="Filter by auth">🔍</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("auth")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("auth"); } }}>Auth{getSortIndicator("auth")}</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("auth")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter("auth"); } }} title="Filter by auth">🔍</span>
                     </div>
                     {openFilterCols.has("auth") && (
                       <select value={authFilter} onChange={e => setAuthFilter(e.target.value)} autoFocus
@@ -513,7 +513,7 @@ export default function ListBalls() {
 
                   {/* Value */}
                   <th style={{ width: 90, textAlign: "center" }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("value")}>Value{getSortIndicator("value")}</span>
+                    <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("value")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("value"); } }}>Value{getSortIndicator("value")}</span>
                   </th>
 
                   {/* Notes */}

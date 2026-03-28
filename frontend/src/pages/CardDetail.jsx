@@ -242,7 +242,10 @@ export default function CardDetail() {
             {bookFreshness.label && (
               bookFreshness.label === "Book: never updated"
                 ? <span
+                    role="link"
+                    tabIndex={0}
                     onClick={() => navigate("/list-cards", { state: { editCardId: card.id, scrollToCardId: card.id } })}
+                    onKeyDown={(e) => { if (e.key === "Enter") navigate("/list-cards", { state: { editCardId: card.id, scrollToCardId: card.id } }); }}
                     style={{ color: bookFreshness.color, fontWeight: 600, fontSize: "0.85rem",
                              marginLeft: "0.4rem", verticalAlign: "middle",
                              cursor: "pointer", textDecoration: "underline" }}

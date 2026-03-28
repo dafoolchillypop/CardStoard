@@ -62,8 +62,8 @@ function SortWaxModal({ sortConfig, defaultSort, onApply, onClose }) {
   const selStyle = { padding: "0.4rem", borderRadius: 4, border: "1px solid var(--border)", background: "var(--bg-input)", color: "var(--text-primary)" };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" style={{ width: 640, maxWidth: "95vw" }} onClick={e => e.stopPropagation()}>
+    <div className="modal-overlay" role="button" tabIndex={0} onClick={onClose} onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
+      <div className="modal-box" style={{ width: 640, maxWidth: "95vw" }} onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
         <h3 style={{ marginTop: 0 }}>Advanced Sort</h3>
 
         {levels.length === 0 && (
@@ -439,7 +439,7 @@ export default function ListWax() {
             )}
             {hasFilters && (
               <><span>&middot;</span>
-                <span onClick={() => { setYearFilter(""); setBrandFilter(""); setTypeFilter("all"); setOpenFilterCols(new Set()); }}
+                <span role="button" tabIndex={0} onClick={() => { setYearFilter(""); setBrandFilter(""); setTypeFilter("all"); setOpenFilterCols(new Set()); }} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setYearFilter(""); setBrandFilter(""); setTypeFilter("all"); setOpenFilterCols(new Set()); } }}
                   style={{ color: "#dc3545", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}>✕ Clear</span>
               </>
             )}
@@ -472,8 +472,8 @@ export default function ListWax() {
                   {/* Year */}
                   <th style={{ width: 70, textAlign: "center", padding: "4px 6px" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("year")}>Year{getSortIndicator("year")}</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("year")} title="Filter by year">🔍</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("year")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("year"); } }}>Year{getSortIndicator("year")}</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("year")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter("year"); } }} title="Filter by year">🔍</span>
                     </div>
                     {openFilterCols.has("year") && (
                       <input type="number" value={yearFilter} onChange={e => setYearFilter(e.target.value)}
@@ -485,8 +485,8 @@ export default function ListWax() {
                   {/* Brand */}
                   <th style={{ width: 110, textAlign: "center", padding: "4px 6px" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("brand")}>Brand{getSortIndicator("brand")}</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("brand")} title="Filter by brand">🔍</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("brand")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("brand"); } }}>Brand{getSortIndicator("brand")}</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("brand")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter("brand"); } }} title="Filter by brand">🔍</span>
                     </div>
                     {openFilterCols.has("brand") && (
                       <input type="text" value={brandFilter} onChange={e => setBrandFilter(e.target.value)}
@@ -498,8 +498,8 @@ export default function ListWax() {
                   {/* Type */}
                   <th style={{ width: 100, textAlign: "center", padding: "4px 6px" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-                      <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("set_name")}>Type{getSortIndicator("set_name")}</span>
-                      <span style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("set_name")} title="Filter by type">🔍</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("set_name")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("set_name"); } }}>Type{getSortIndicator("set_name")}</span>
+                      <span role="button" tabIndex={0} style={{ cursor: "pointer", fontSize: "0.75rem", opacity: 0.6 }} onClick={() => toggleFilter("set_name")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter("set_name"); } }} title="Filter by type">🔍</span>
                     </div>
                     {openFilterCols.has("set_name") && (
                       <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} autoFocus
@@ -512,12 +512,12 @@ export default function ListWax() {
 
                   {/* Qty */}
                   <th style={{ width: 60, textAlign: "center", padding: "4px 6px" }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("quantity")}>Qty{getSortIndicator("quantity")}</span>
+                    <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("quantity")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("quantity"); } }}>Qty{getSortIndicator("quantity")}</span>
                   </th>
 
                   {/* Value */}
                   <th style={{ width: 90, textAlign: "center" }}>
-                    <span style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("value")}>Value{getSortIndicator("value")}</span>
+                    <span role="button" tabIndex={0} style={{ cursor: "pointer", userSelect: "none" }} onClick={() => requestSort("value")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); requestSort("value"); } }}>Value{getSortIndicator("value")}</span>
                   </th>
 
                   {/* Total */}

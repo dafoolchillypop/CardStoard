@@ -7,10 +7,11 @@ export default function LabelPreviewModal({ labelData, onPrint, onClose }) {
   if (!labelData) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" role="button" tabIndex={0} onClick={onClose} onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
       <div
         className="modal-box label-preview-box"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <h2 className="modal-title">Label Preview</h2>
         <p style={{ color: "#666", fontSize: "0.85rem", margin: "0 0 1rem" }}>
