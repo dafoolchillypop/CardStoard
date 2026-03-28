@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.15
+# 🧾 CardStoard — v1.16
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -130,7 +130,7 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 
 ### Collection Assistant
 - AI-powered chat with full context about your collection (powered by Claude)
-- Accurate counting via pre-computed player, grade, and brand summaries
+- Accurate counting via pre-computed player, grade, and brand summaries across **all inventory types** — Cards, Balls, Wax Boxes, Wax Packs, and Sets/Binders
 - Conversation history maintained within each session
 - Enable / disable from Admin settings
 
@@ -141,6 +141,7 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 
 ### Account & Security
 - Email verification and secure JWT session handling (httpOnly cookies, auto token refresh)
+- **Username or email login** — log in with either your username or email address at the login screen
 - Optional TOTP multi-factor authentication *(coming soon)*
 - Update username, email, and password from Account page
 - Last login date/time displayed on Account page
@@ -243,6 +244,7 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.16** | Mar 2026 | Collection Assistant context expanded to all inventory types (Cards, Balls, Wax Boxes, Wax Packs, Sets/Binders); username or email login; SonarCloud code quality remediations; full functional test suite (`utils/functional_test.py`) |
 | **v1.15** | Mar 2026 | Wax Boxes (CS-WX, cello/rack/std type badges, value freshness, label + QR) and Wax Packs (CS-PK, cello/rack/wax/blister type badges, value freshness, label + QR) inventory types; Admin nav bar layout fix |
 | **v1.14** | Mar 2026 | Auto Balls: autographed baseball inventory type (signer, brand, commissioner, COA auth badge, inscription, value freshness, label print + QR); pin/bookmark persisted to DB; scroll fix for Book: never updated nav |
 | **v1.13** | Mar 2026 | Value Dictionary: admin-maintained book values on dictionary entries, Smart Fill auto-populates all 5 book value tiers, seed from existing cards, CSV import, Values column in Dictionary list |

@@ -53,7 +53,7 @@ export default function UserGuide() {
           <ol style={{ marginTop: 0 }}>
             <li>Click <strong>Register</strong> on the login page and fill in your username, email, and password.</li>
             <li>Check your inbox for a verification email and click the link to activate your account.</li>
-            <li>Log in with your email and password.</li>
+            <li>Log in with your email address <em>or</em> username and password.</li>
           </ol>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>Navigation bar</p>
@@ -62,7 +62,7 @@ export default function UserGuide() {
             <li><strong>📈 Analytics</strong> — charts and breakdowns</li>
             <li><strong>⚙️ Admin</strong> — settings, valuation factors, dictionary, import/export</li>
             <li><strong>Your username</strong> — account settings and security</li>
-            <li><strong>💬 Chat</strong> (if enabled in Admin) — AI Collection Assistant</li>
+            <li><strong>💬 Chat</strong> (if enabled in Admin) — AI Collection Assistant (Cy); knows about all inventory types</li>
           </ul>
         </div>
 
@@ -559,7 +559,7 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           <p style={h4Style}>Feature toggles</p>
           <ul style={{ marginTop: 0 }}>
             <li><strong>Smart Fill</strong> — enable/disable dictionary-based auto-population</li>
-            <li><strong>Collection Assistant</strong> — enable/disable the AI chatbot (requires Anthropic API key)</li>
+            <li><strong>Collection Assistant</strong> — enable/disable the AI chatbot (Cy); aware of Cards, Balls, Wax Boxes, Wax Packs, and Sets/Binders (requires Anthropic API key)</li>
             <li><strong>Dark Mode</strong> — toggle the dark colour theme; persists across sessions</li>
           </ul>
 

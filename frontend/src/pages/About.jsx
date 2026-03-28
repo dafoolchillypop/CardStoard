@@ -135,12 +135,19 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.15</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.16</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.16 (March 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Collection Assistant (Cy) now knows about all inventory types — ask about your Balls, Wax Boxes, Wax Packs, and Sets/Binders</li>
+            <li>Login with either your username or email address</li>
+            <li>Code quality improvements (SonarCloud remediations)</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.15 (March 2026)</p>
           <ul style={{ marginTop: 0 }}>
