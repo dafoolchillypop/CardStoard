@@ -135,12 +135,17 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.17</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.18</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.18 (March 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Internal code quality — duplicate component logic extracted into shared modules (no user-facing changes)</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.17 (March 2026)</p>
           <ul style={{ marginTop: 0 }}>
