@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { handleNameKeyDown } from "../utils/cardUtils";
 
 export default function UpdateCard() {
   const { id } = useParams();
@@ -42,17 +43,6 @@ export default function UpdateCard() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCard({ ...card, [name]: value });
-  };
-
-  const handleNameKeyDown = (e, field, names) => {
-    if (e.key !== "Enter" && e.key !== "Tab") return;
-    const typed = (card[field] || "").trim().toLowerCase();
-    if (!typed) return;
-    const match = names.find(n => n.toLowerCase().startsWith(typed));
-    if (match && match.toLowerCase() !== typed) {
-      if (e.key === "Enter") e.preventDefault();
-      setCard(prev => ({ ...prev, [field]: match }));
-    }
   };
 
   const handleSubmit = (e) => {
@@ -137,7 +127,7 @@ export default function UpdateCard() {
             name="first_name"
             value={card.first_name ?? ""}
             onChange={handleChange}
-            onKeyDown={(e) => handleNameKeyDown(e, "first_name", playerNames.firstNames)}
+            onKeyDown={(e) => handleNameKeyDown(e, "first_name", playerNames.firstNames, card, setCard)}
             required
           />
 
@@ -146,7 +136,7 @@ export default function UpdateCard() {
             name="last_name"
             value={card.last_name ?? ""}
             onChange={handleChange}
-            onKeyDown={(e) => handleNameKeyDown(e, "last_name", playerNames.lastNames)}
+            onKeyDown={(e) => handleNameKeyDown(e, "last_name", playerNames.lastNames, card, setCard)}
             required
           />
 

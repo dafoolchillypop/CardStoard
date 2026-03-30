@@ -4,6 +4,21 @@
 
 **<->**
 
+## v1.18 — Duplicate Code Refactor (March 2026)
+**Status:** Complete
+**Focus:** Eliminate SonarCloud-flagged duplicate lines by extracting shared scaffold components and utility functions
+
+### Deliverables
+- **`GenericItemLabel.jsx`** — shared label page scaffold (fetch, print trigger, QR render, error/loading states); also exports `useLabelLoader` hook used by CardDetail and SetBinderDetail
+- **`GenericItemView.jsx`** — shared public view page scaffold (fetch, error/loading UI, logo, footer Sign In link)
+- **`cardUtils.js`** — shared `handleNameKeyDown` and `calcCardValue` utility functions
+- **Refactored label pages** — BallLabel, PackLabel, WaxLabel, SetBinderLabel each reduced to ~15 lines
+- **Refactored view pages** — BallView, PackView, WaxView, SetBinderView each reduced to ~25–35 lines
+- **Refactored detail pages** — CardDetail and SetBinderDetail use `useLabelLoader` hook; CardDetail and DeleteCard use `calcCardValue`
+- **Net reduction**: 453 lines removed across 13 files; 41/41 functional tests pass
+
+---
+
 ## v1.17 — SonarCloud Code Quality Pass (March 2026)
 **Status:** Complete
 **Focus:** Zero bugs, zero vulnerabilities in SonarCloud — two remediation passes covering reliability, security, and accessibility

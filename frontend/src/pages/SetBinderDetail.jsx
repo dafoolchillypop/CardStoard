@@ -4,6 +4,7 @@ import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
 import LabelPreviewModal from "../components/LabelPreviewModal";
+import { useLabelLoader } from "../components/GenericItemLabel";
 
 const TYPE_COLORS = { factory: "#1976d2", collated: "#d97706", binder: "#16a34a" };
 const TYPE_LABELS = { factory: "Factory", collated: "Collated", binder: "Binder" };
@@ -22,8 +23,7 @@ export default function SetBinderDetail() {
   const [record, setRecord] = useState(null);
   const [notes, setNotes] = useState("");
   const [notesSaving, setNotesSaving] = useState(false);
-  const [labelData, setLabelData] = useState(null);
-  const [labelLoading, setLabelLoading] = useState(false);
+  const { labelData, setLabelData, labelLoading, handlePrintLabel } = useLabelLoader("boxes", id);
 
   useEffect(() => {
     api.get(`/boxes/${id}`)
@@ -33,14 +33,6 @@ export default function SetBinderDetail() {
       })
       .catch((err) => console.error("Error fetching set:", err));
   }, [id]);
-
-  const handlePrintLabel = () => {
-    setLabelLoading(true);
-    api.get(`/boxes/${id}/public`)
-      .then((res) => setLabelData(res.data))
-      .catch((err) => console.error("Label fetch error:", err))
-      .finally(() => setLabelLoading(false));
-  };
 
   const saveNotes = () => {
     setNotesSaving(true);
