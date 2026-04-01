@@ -1,0 +1,1 @@
+ALTER TABLE global_settings ADD COLUMN IF NOT EXISTS enable_image_ai BOOLEAN DEFAULT FALSE;

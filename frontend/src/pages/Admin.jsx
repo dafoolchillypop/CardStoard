@@ -322,6 +322,19 @@ export default function Admin() {
                 <InfoIcon id="chatbot" text="Enables the AI-powered chat assistant (💬) in the header. Requires an Anthropic API key to be configured." />
               </div>
             </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <input
+                type="checkbox"
+                name="image_ai"
+                checked={settings.enable_image_ai ?? false}
+                onChange={() => handleToggle("enable_image_ai")}
+                style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }}
+              />
+              <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
+                Image AI (Scan)
+                <InfoIcon id="imageai" text="Enable AI-powered card identification from photos and QR code scanning. Uses Claude Vision API — requires ANTHROPIC_API_KEY." />
+              </div>
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "0.5rem" }}>
               <input
                 type="checkbox"
