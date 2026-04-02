@@ -636,6 +636,9 @@ async def identify_image(
                 "book_low_mid": entry.book_low_mid,
                 "book_low": entry.book_low,
             }
+            # Back-fill card_number if Claude didn't extract it
+            if not fields["card_number"] and entry.card_number:
+                fields["card_number"] = entry.card_number
 
     # Collection match
     collection_match = {"found": False, "cards": [], "duplicate_count": 0}

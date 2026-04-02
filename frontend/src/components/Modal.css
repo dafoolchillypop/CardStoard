@@ -56,8 +56,14 @@
 }
 
 .nav-btn.secondary {
-  background-color: var(--border);
-  color: var(--text-secondary);
+  background: transparent;
+  color: var(--accent-blue-nav);
+  border: 1.5px solid var(--accent-blue-nav);
+}
+
+.nav-btn.secondary:hover {
+  background: var(--accent-blue-nav);
+  color: #fff;
 }
 
 @keyframes fadeIn {

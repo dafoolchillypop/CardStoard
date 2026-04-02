@@ -60,6 +60,12 @@ export default function ScanPage() {
   const [adding, setAdding] = useState(false);
   const [addResult, setAddResult] = useState(null);
 
+  // --- Camera capture state ---
+  const [showCamera, setShowCamera] = useState(false);
+  const [cameraError, setCameraError] = useState(null);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
   // --- QR tab state ---
   const [qrDecodeError, setQrDecodeError] = useState(null);
   const [manualQr, setManualQr] = useState("");
@@ -72,7 +78,7 @@ export default function ScanPage() {
       .catch(() => setSettingsLoaded(true));
   }, []);
 
-  // Stop QR scanner when leaving QR tab
+  // Stop QR scanner and camera when leaving QR tab
   useEffect(() => {
     if (activeTab !== "qr") {
       if (qrScannerRef.current) {
@@ -80,6 +86,8 @@ export default function ScanPage() {
         qrScannerRef.current = null;
       }
     }
+    // Stop camera stream whenever tab changes
+    stopCamera();
   }, [activeTab]);
 
   // Start QR scanner when QR tab becomes active
@@ -130,6 +138,49 @@ export default function ScanPage() {
   const handleManualQr = () => {
     if (!manualQr.trim()) return;
     handleQrDecode(manualQr.trim());
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+    setShowCamera(false);
+    setCameraError(null);
+  };
+
+  const startCamera = async () => {
+    setCameraError(null);
+    setShowCamera(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch {
+      setCameraError("Camera access denied or not available.");
+      setShowCamera(false);
+    }
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d").drawImage(video, 0, 0);
+    canvas.toBlob(blob => {
+      const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(blob));
+      setIdentifyResult(null);
+      setIdentifyError(null);
+      setEditedFields({});
+      setAddResult(null);
+      stopCamera();
+    }, "image/jpeg", 0.92);
   };
 
   const handleFileChange = (e) => {
@@ -304,32 +355,61 @@ export default function ScanPage() {
                 {/* Upload area */}
                 {!identifyResult && (
                   <div className="card-section" style={{ textAlign: "center" }}>
-                    <label style={{ display: "block", cursor: "pointer" }}>
-                      {imagePreview ? (
-                        <img
-                          src={imagePreview}
-                          alt="Card preview"
-                          style={{ maxWidth: "100%", maxHeight: 300, borderRadius: 8, objectFit: "contain", border: "2px solid var(--border, #ddd)" }}
+                    {/* Camera preview overlay */}
+                    {showCamera && (
+                      <div style={{ marginBottom: "1rem" }}>
+                        <video
+                          ref={videoRef}
+                          autoPlay
+                          playsInline
+                          style={{ width: "100%", maxHeight: 320, borderRadius: 8, background: "#000", objectFit: "contain" }}
                         />
-                      ) : (
-                        <div style={{
-                          border: "2px dashed var(--border, #ccc)",
-                          borderRadius: 12,
-                          padding: "2.5rem 1rem",
-                          color: "var(--text-muted)",
-                          fontSize: "1.1rem",
-                        }}>
-                          📷 Tap to choose a photo or capture
+                        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", marginTop: "0.5rem" }}>
+                          <button className="nav-btn" onClick={capturePhoto}>📸 Snap</button>
+                          <button className="nav-btn secondary" onClick={stopCamera}>✕ Cancel</button>
                         </div>
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        style={{ display: "none" }}
-                        onChange={handleFileChange}
-                      />
-                    </label>
+                      </div>
+                    )}
+
+                    {!showCamera && (
+                      <label style={{ display: "block", cursor: "pointer" }}>
+                        {imagePreview ? (
+                          <img
+                            src={imagePreview}
+                            alt="Card preview"
+                            style={{ maxWidth: "100%", maxHeight: 300, borderRadius: 8, objectFit: "contain", border: "2px solid var(--border, #ddd)" }}
+                          />
+                        ) : (
+                          <div style={{
+                            border: "2px dashed var(--border, #ccc)",
+                            borderRadius: 12,
+                            padding: "2.5rem 1rem",
+                            color: "var(--text-muted)",
+                            fontSize: "1.1rem",
+                          }}>
+                            📂 Choose a photo
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: "none" }}
+                          onChange={handleFileChange}
+                        />
+                      </label>
+                    )}
+
+                    {cameraError && (
+                      <p style={{ color: "#dc3545", fontSize: "0.9rem", marginTop: "0.5rem" }}>{cameraError}</p>
+                    )}
+
+                    {!showCamera && !imagePreview && (
+                      <div style={{ marginTop: "0.75rem" }}>
+                        <button className="nav-btn" onClick={startCamera} style={{ fontSize: "0.9rem" }}>
+                          📷 Use Camera
+                        </button>
+                      </div>
+                    )}
 
                     {imagePreview && (
                       <button
@@ -449,14 +529,14 @@ export default function ScanPage() {
                         <strong style={{ fontSize: "0.95rem" }}>📖 Dictionary Match — Book Values</strong>
                         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
                           {[
-                            ["book_high", "H"],
-                            ["book_high_mid", "HM"],
-                            ["book_mid", "M"],
-                            ["book_low_mid", "LM"],
-                            ["book_low", "L"],
-                          ].map(([field, label]) =>
+                            ["book_high",     "H",  "book-high"],
+                            ["book_high_mid", "HM", "book-highmid"],
+                            ["book_mid",      "M",  "book-mid"],
+                            ["book_low_mid",  "LM", "book-lowmid"],
+                            ["book_low",      "L",  "book-low"],
+                          ].map(([field, label, cls]) =>
                             identifyResult.dictionary_match[field] != null ? (
-                              <span key={field} className={`book-badge ${field.replace("_", "-")}`} title={label}>
+                              <span key={field} className={`book-badge ${cls}`} title={label}>
                                 {label}: ${identifyResult.dictionary_match[field]}
                               </span>
                             ) : null
