@@ -110,7 +110,7 @@ export default function ScanPage() {
         qrScannerRef.current = null;
       }
     };
-  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const handleQrDecode = (text) => {
     try {
