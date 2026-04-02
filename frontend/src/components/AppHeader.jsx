@@ -63,10 +63,13 @@ export default function AppHeader() {
 
   return (
     <header className="app-header">
-      {/* --- Left: App title --- */}
+      {/* --- Left: App title + username --- */}
       <div className="app-header-left">
         <Link to="/" className="app-header-title">
           CardStoard
+        </Link>
+        <Link to="/account" className="user-info-link" title="Account details">
+          <span className="user-info">{displayName}</span>
         </Link>
       </div>
 
@@ -115,11 +118,8 @@ export default function AppHeader() {
         )}
       </div>
 
-      {/* --- Right: user info, admin, chat, about, logout --- */}
+      {/* --- Right: admin, chat, about, logout --- */}
       <div className="app-header-right">
-        <Link to="/account" className="user-info-link" title="Account details">
-          <span className="user-info">{displayName}</span>
-        </Link>
         {show("analytics") && (
           <button className="header-icon-btn" onClick={() => navigate("/analytics")} title="Analytics">
             📊

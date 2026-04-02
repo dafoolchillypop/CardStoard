@@ -22,7 +22,7 @@
   border: none;
   cursor: pointer;
   font-size: 1.3rem;
-  margin-left: 0.5rem;
+  margin-left: 0.35rem;
   padding: 0.2rem 0.3rem;
   line-height: 1;
   opacity: 0.75;
@@ -44,7 +44,7 @@
 .header-icon-btn {
   background: none;
   border: none;
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   cursor: pointer;
   opacity: 0.75;
   transition: opacity 0.2s, background 0.2s;
@@ -73,7 +73,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0.75rem; /* ⬅️ NEW: even spacing between buttons */
+  gap: 0.75rem;
 }
 
 .app-header-center a {
@@ -81,8 +81,8 @@
 }
 
 .app-header-center .header-btn {
-  min-width: 120px; /* ⬅️ NEW: consistent button width */
-  padding: 0.5rem 1.1rem;
+  min-width: 90px;
+  padding: 0.5rem 0.9rem;
 }
 
 /* Responsive fix for smaller screens */
@@ -116,7 +116,7 @@
 .user-info {
   font-size: 1rem;
   color: var(--text-primary);
-  margin-right: 0.75rem;
+  margin-left: 1rem;
 }
 
 .user-id {
@@ -164,7 +164,7 @@
 
 /* --- Spacing adjustments --- */
 .app-header-right button {
-  margin-left: 0.5rem;
+  margin-left: 0.35rem;
 }
 
 .user-info-link {
