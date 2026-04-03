@@ -178,6 +178,7 @@ export default function ListCards() {
       const imgField = side === "front" ? "front_image" : "back_image";
       const imgVal = side === "front" ? res.data.front_image : res.data.back_image;
       setCards(prev => prev.map(c => c.id === cardId ? { ...c, [imgField]: imgVal } : c));
+      setEditForm(prev => ({ ...prev, [imgField]: imgVal }));
       if (pinnedCard?.id === cardId) setPinnedCard(prev => ({ ...prev, [imgField]: imgVal }));
       showToast(`${side === "front" ? "Front" : "Back"} image uploaded`);
     } catch {
@@ -191,6 +192,7 @@ export default function ListCards() {
   const [scanPreview, setScanPreview] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState(null);
+  const [pendingScanFile, setPendingScanFile] = useState(null); // scan image to upload after card save
 
   const handleScanIdentify = async () => {
     if (!scanFile) return;
@@ -203,19 +205,22 @@ export default function ListCards() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const f = res.data.fields || {};
+      const dm = res.data.dictionary_match || {};
       setEditForm(prev => ({
         ...prev,
-        ...(f.first_name ? { first_name: f.first_name } : {}),
-        ...(f.last_name  ? { last_name:  f.last_name  } : {}),
-        ...(f.year       ? { year:       f.year       } : {}),
-        ...(f.brand      ? { brand:      f.brand      } : {}),
+        ...(f.first_name  ? { first_name:  f.first_name  } : {}),
+        ...(f.last_name   ? { last_name:   f.last_name   } : {}),
+        ...(f.year        ? { year:        f.year        } : {}),
+        ...(f.brand       ? { brand:       f.brand       } : {}),
         ...(f.card_number ? { card_number: f.card_number } : {}),
-        ...(res.data.dictionary_match?.book_high     != null ? { book_high:     res.data.dictionary_match.book_high }     : {}),
-        ...(res.data.dictionary_match?.book_high_mid != null ? { book_high_mid: res.data.dictionary_match.book_high_mid } : {}),
-        ...(res.data.dictionary_match?.book_mid      != null ? { book_mid:      res.data.dictionary_match.book_mid }      : {}),
-        ...(res.data.dictionary_match?.book_low_mid  != null ? { book_low_mid:  res.data.dictionary_match.book_low_mid }  : {}),
-        ...(res.data.dictionary_match?.book_low      != null ? { book_low:      res.data.dictionary_match.book_low }      : {}),
+        ...(dm.rookie != null ? { rookie: dm.rookie ? 1 : 0 } : {}),
+        ...(dm.book_high     != null ? { book_high:     dm.book_high }     : {}),
+        ...(dm.book_high_mid != null ? { book_high_mid: dm.book_high_mid } : {}),
+        ...(dm.book_mid      != null ? { book_mid:      dm.book_mid }      : {}),
+        ...(dm.book_low_mid  != null ? { book_low_mid:  dm.book_low_mid }  : {}),
+        ...(dm.book_low      != null ? { book_low:      dm.book_low }      : {}),
       }));
+      setPendingScanFile(scanFile);
       setShowScanModal(false);
       setScanFile(null);
       setScanPreview(null);
@@ -312,7 +317,20 @@ export default function ListCards() {
     if (cardId === "new") {
       try {
         const res = await api.post("/cards/", editForm);
-        setCards(prev => [res.data, ...prev]);
+        const newCard = res.data;
+        // Upload scan image as front photo if one was captured via the camera modal
+        if (pendingScanFile) {
+          const imgForm = new FormData();
+          imgForm.append("file", pendingScanFile);
+          try {
+            const imgRes = await api.post(`/cards/${newCard.id}/upload-front`, imgForm, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+            newCard.front_image = imgRes.data.front_image;
+          } catch { /* non-fatal — card still saved */ }
+          setPendingScanFile(null);
+        }
+        setCards(prev => [newCard, ...prev]);
         setTotal(prev => prev + 1);
         setEditingCardId(null);
         setEditForm({});
@@ -378,6 +396,7 @@ export default function ListCards() {
     }
     setEditingCardId(null);
     setEditForm({});
+    setPendingScanFile(null);
   };
 
   const openVariant = (card) => {
@@ -942,6 +961,7 @@ export default function ListCards() {
                           onClick={() => {
                             if (editingCardId === "new") return;
                             setEditingCardId("new");
+                            if (tableSectionRef.current) tableSectionRef.current.scrollTop = 0;
                             setEditForm({
                               first_name: "", last_name: "", year: "", card_number: "",
                               brand: settings?.card_makes?.[0] || "",
@@ -1273,7 +1293,7 @@ export default function ListCards() {
                           <div style={{ display: "flex", flexDirection: "column", gap: "3px", alignItems: "center" }}>
                             {/* Front upload */}
                             {editForm.front_image && (
-                              <img src={`http://host.docker.internal:8000${editForm.front_image}`} alt="Front" style={{ width: 40, height: "auto", marginBottom: 2 }} />
+                              <img src={editForm.front_image} alt="Front" style={{ width: 40, height: "auto", marginBottom: 2 }} />
                             )}
                             <label style={{ fontSize: "0.7rem", color: "#1976d2", cursor: "pointer", textDecoration: "underline", display: "block" }}
                               title="Upload front image">
@@ -1283,7 +1303,7 @@ export default function ListCards() {
                             </label>
                             {/* Back upload */}
                             {editForm.back_image && (
-                              <img src={`http://host.docker.internal:8000${editForm.back_image}`} alt="Back" style={{ width: 40, height: "auto", marginBottom: 2 }} />
+                              <img src={editForm.back_image} alt="Back" style={{ width: 40, height: "auto", marginBottom: 2 }} />
                             )}
                             <label style={{ fontSize: "0.7rem", color: "#6c757d", cursor: "pointer", textDecoration: "underline", display: "block" }}
                               title="Upload back image">
@@ -1294,7 +1314,7 @@ export default function ListCards() {
                           </div>
                         ) : card.front_image ? (
                           <img
-                            src={`http://host.docker.internal:8000${card.front_image}`}
+                            src={card.front_image}
                             alt="Front"
                             style={{ width: "50px", height: "auto", cursor: "pointer" }}
                             tabIndex={0}

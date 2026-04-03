@@ -34,8 +34,8 @@ const CardImages = ({ card, onClose }) => {
       <img
         src={
           showBack
-            ? `http://host.docker.internal:8000${card.back_image}`
-            : `http://host.docker.internal:8000${card.front_image}`
+            ? card.back_image
+            : card.front_image
         }
         alt={showBack ? "Back" : "Front"}
         style={{

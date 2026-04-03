@@ -255,15 +255,11 @@ export default function ScanPage() {
 
       // Upload photo as front image if requested
       if (savePhoto && imageFile) {
-        try {
-          const form = new FormData();
-          form.append("file", imageFile);
-          await api.post(`/cards/${newCardId}/upload-front`, form, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-        } catch {
-          // Non-fatal — card was saved, image upload failed
-        }
+        const form = new FormData();
+        form.append("file", imageFile);
+        await api.post(`/cards/${newCardId}/upload-front`, form, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       }
 
       setAddResult({ success: true, cardId: newCardId });
@@ -523,8 +519,11 @@ export default function ScanPage() {
                       </div>
                     )}
 
-                    {/* Dictionary match */}
-                    {identifyResult.dictionary_match?.found && (
+                    {/* Dictionary match — only show if at least one book value present */}
+                    {identifyResult.dictionary_match?.found &&
+                      (identifyResult.dictionary_match.book_high != null ||
+                       identifyResult.dictionary_match.book_mid != null ||
+                       identifyResult.dictionary_match.book_low != null) && (
                       <div className="card-section" style={{ marginBottom: "1rem", background: "var(--bg-success-light, #f0fff4)" }}>
                         <strong style={{ fontSize: "0.95rem" }}>📖 Dictionary Match — Book Values</strong>
                         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
@@ -560,7 +559,7 @@ export default function ScanPage() {
                               style={{ fontSize: "0.8rem", padding: "0.2rem 0.6rem" }}
                               onClick={() => navigate(`/card-detail/${c.id}`)}
                             >
-                              {c.year} {c.brand} Grade {c.grade}
+                              {c.year} {c.brand}{c.card_number ? ` #${c.card_number}` : ""} Grade {c.grade}
                             </button>
                           ))}
                         </div>

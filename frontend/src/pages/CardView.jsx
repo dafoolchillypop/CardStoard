@@ -55,9 +55,7 @@ export default function CardView() {
   }
 
   const gradeLabel = GRADE_LABELS[parseFloat(card.grade)] || card.grade;
-  const imageBase = window.location.hostname === "localhost"
-    ? "http://host.docker.internal:8000"
-    : "";
+  const imageBase = "";
 
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", padding: "1.5rem", textAlign: "center" }}>

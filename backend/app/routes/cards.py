@@ -30,7 +30,7 @@ Key endpoints:
   PATCH /cards/propagate-book-values   Spread book values to all duplicate cards
 """
 # Standard library
-import io, os, csv, shutil, json, base64, qrcode
+import io, os, csv, re, shutil, json, base64, qrcode
 from pydantic import BaseModel
 from pathlib import Path as FSPath
 from typing import Optional
@@ -85,9 +85,9 @@ def upload_front(
     safe_name = secure_filename(file.filename)
     filename = f"card_{card_id}_front_{safe_name}"
 
-    upload_dir = Path(UPLOAD_DIR).resolve()
+    upload_dir = FSPath(UPLOAD_DIR).resolve()
     upload_dir.mkdir(parents=True, exist_ok=True)
-    filepath = (upload_dir / filename).resolve()
+    filepath = (FSPath(upload_dir) / filename).resolve()
 
     # Ensure no path traversal outside upload directory
     if not str(filepath).startswith(str(upload_dir)):
@@ -123,9 +123,9 @@ def upload_back(
     safe_name = secure_filename(file.filename)
     filename = f"card_{card_id}_back_{safe_name}"
 
-    upload_dir = Path(UPLOAD_DIR).resolve()
+    upload_dir = FSPath(UPLOAD_DIR).resolve()
     upload_dir.mkdir(parents=True, exist_ok=True)
-    filepath = (upload_dir / filename).resolve()
+    filepath = (FSPath(upload_dir) / filename).resolve()
 
     if not str(filepath).startswith(str(upload_dir)):
         raise HTTPException(status_code=400, detail="Invalid file path")
@@ -581,13 +581,17 @@ async def identify_image(
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"AI request failed: {exc}")
 
-    # Parse JSON from response (strip markdown fences if present)
+    # Parse JSON from response — try several extraction strategies
     raw = response.content[0].text.strip()
-    if raw.startswith("```"):
-        parts = raw.split("```")
-        raw = parts[1] if len(parts) > 1 else raw
-        if raw.startswith("json"):
-            raw = raw[4:]
+    # 1. Strip markdown code fences
+    if "```" in raw:
+        fence_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw, re.DOTALL)
+        if fence_match:
+            raw = fence_match.group(1)
+    # 2. If still not a JSON object, grab the first {...} block
+    if not raw.startswith("{"):
+        obj_match = re.search(r"\{.*\}", raw, re.DOTALL)
+        raw = obj_match.group(0) if obj_match else raw
     raw = raw.strip()
     try:
         parsed = json.loads(raw)
@@ -627,6 +631,19 @@ async def identify_image(
         if fields["card_number"]:
             q = q.filter(func.lower(DictionaryEntry.card_number) == fields["card_number"].lower())
         entry = q.first()
+        # If matched entry has no book values, fall back to card_number+year+brand
+        # to find a valued entry (handles duplicate entries with different name spellings)
+        if entry and not any([entry.book_high, entry.book_mid, entry.book_low]):
+            cn = fields.get("card_number") or entry.card_number
+            if cn and fields.get("year") and fields.get("brand"):
+                valued = db.query(DictionaryEntry).filter(
+                    func.lower(DictionaryEntry.card_number) == str(cn).lower(),
+                    DictionaryEntry.year == fields["year"],
+                    func.lower(DictionaryEntry.brand) == fields["brand"].lower(),
+                    DictionaryEntry.book_high.isnot(None),
+                ).first()
+                if valued:
+                    entry = valued
         if entry:
             dictionary_match = {
                 "found": True,
@@ -635,6 +652,7 @@ async def identify_image(
                 "book_mid": entry.book_mid,
                 "book_low_mid": entry.book_low_mid,
                 "book_low": entry.book_low,
+                "rookie": (entry.rookie_year is not None and fields.get("year") == entry.rookie_year),
             }
             # Back-fill card_number if Claude didn't extract it
             if not fields["card_number"] and entry.card_number:
@@ -657,7 +675,7 @@ async def identify_image(
             collection_match = {
                 "found": True,
                 "cards": [
-                    {"id": c.id, "year": c.year, "brand": c.brand, "grade": c.grade, "value": c.value}
+                    {"id": c.id, "year": c.year, "brand": c.brand, "card_number": c.card_number, "grade": c.grade, "value": c.value}
                     for c in matches
                 ],
                 "duplicate_count": len(matches),

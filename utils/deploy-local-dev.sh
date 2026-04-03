@@ -55,12 +55,16 @@ check_backend() {
 check_frontend_build() {
   echo ""
   echo "--- Checking frontend build (ESLint + compile) ---"
+  if ! command -v npm &>/dev/null; then
+    echo "⚠️  npm not found locally — skipping frontend build check."
+    echo "   Install Node.js locally to enable pre-deploy ESLint validation."
+    return 0
+  fi
   if ! (cd frontend && npm run build 2>&1); then
     echo "❌ Frontend build failed. Fix errors before deploying."
     exit 1
   fi
   echo "✅ Frontend build OK."
-  # Clean up the build artifact — we don't need it for dev
   rm -rf frontend/build
 }
 
