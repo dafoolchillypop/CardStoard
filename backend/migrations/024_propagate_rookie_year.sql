@@ -65,7 +65,7 @@ UPDATE dictionary_entries SET rookie_year = 1967 WHERE first_name = 'Tom'     AN
 UPDATE dictionary_entries SET rookie_year = 1968 WHERE first_name = 'Nolan'   AND last_name = 'Ryan'        AND rookie_year IS NULL;
 UPDATE dictionary_entries SET rookie_year = 1969 WHERE first_name = 'Rollie'  AND last_name = 'Fingers'     AND rookie_year IS NULL;
 UPDATE dictionary_entries SET rookie_year = 1969 WHERE first_name = 'Reggie'  AND last_name = 'Jackson'     AND rookie_year IS NULL;
-UPDATE dictionary_entries SET rookie_year = 1975 WHERE first_name = 'Rich'    AND last_name = 'Gossage'     AND rookie_year IS NULL;
+UPDATE dictionary_entries SET rookie_year = 1973 WHERE first_name = 'Rich'    AND last_name = 'Gossage'     AND rookie_year IS NULL;
 UPDATE dictionary_entries SET rookie_year = 1974 WHERE first_name = 'Dave'    AND last_name = 'Winfield'    AND rookie_year IS NULL;
 UPDATE dictionary_entries SET rookie_year = 1975 WHERE first_name = 'Robin'   AND last_name = 'Yount'       AND rookie_year IS NULL;
 UPDATE dictionary_entries SET rookie_year = 1977 WHERE first_name = 'Bruce'   AND last_name = 'Sutter'      AND rookie_year IS NULL;

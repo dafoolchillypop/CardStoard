@@ -12,9 +12,9 @@ UPDATE dictionary_entries SET rookie_year = 1948 WHERE first_name = 'Pee Wee' AN
 -- Nellie Fox — first Bowman: 1951 (MLB debut 1947 is wrong)
 UPDATE dictionary_entries SET rookie_year = 1951 WHERE first_name = 'Nellie'  AND last_name = 'Fox';
 
--- Rich Gossage (Goose) — first Topps: 1975 (MLB debut 1972 is wrong;
+-- Rich Gossage (Goose) — first Topps: 1973 (MLB debut 1972 is wrong;
 -- migration 024 incorrectly set 1972 for null entries — this corrects it)
-UPDATE dictionary_entries SET rookie_year = 1975 WHERE first_name = 'Rich'    AND last_name = 'Gossage';
+UPDATE dictionary_entries SET rookie_year = 1973 WHERE first_name = 'Rich'    AND last_name = 'Gossage';
 
 -- Carlton Fisk — first Topps: 1972 (MLB debut 1969 is wrong)
 UPDATE dictionary_entries SET rookie_year = 1972 WHERE first_name = 'Carlton' AND last_name = 'Fisk';
