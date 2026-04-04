@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.18
+# 🧾 CardStoard — v1.19
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -14,7 +14,7 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 | | `backend/app/services/` | Business logic: valuations, fuzzy match, image pipeline |
 | | `backend/app/models.py` | SQLAlchemy entities (Card, User, GlobalSettings, SetList, SetEntry, UserSetCard, BoxBinder, AutoBall, WaxBox, WaxPack, DictionaryEntry, ValuationHistory) |
 | | `backend/app/schemas.py` | Pydantic models for validation & API I/O |
-| | `backend/app/data/` | Player dictionary seed data (867+ entries, Topps 1952–1980) |
+| | `backend/app/data/` | Player dictionary seed data (28,800+ entries, Topps 1952–1990, Bowman 1948–1955, Fleer 1959–1963, Donruss/Fleer/Upper Deck 1981–1990) |
 | **Frontend** | `frontend/src/` | React client app root |
 | | `frontend/src/pages/` | Full-page views (Home, Admin, ListCards, Analytics, Dictionary, About, User Guide, etc.) |
 | | `frontend/src/components/` | Reusable components (AppHeader, ChatPanel, ChipsInput, LabelPreviewModal, CardImages) |
@@ -109,8 +109,14 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - Set/binder labels include notes as a 4th line when present
 - Print-optimized layout; browser print dialog triggered automatically
 
+### AI Image Recognition
+- Photograph or upload a card image — AI identifies the player, brand, year, and card number automatically
+- Camera capture directly in the browser (mobile and desktop)
+- Parsed results pre-fill the Add Card form; user reviews and confirms before saving
+- Enable / disable from Admin settings (requires Anthropic API key)
+
 ### Player Dictionary & Smart Fill
-- Searchable database of players, brands, years, and card numbers — seeded with 1,875+ entries covering Topps 1952–1980, Bowman 1948–1955, Fleer 1960–1963, Donruss 1981–1990, and Upper Deck 1989
+- Searchable database of players, brands, years, and card numbers — seeded with **28,800+ entries** covering Topps 1952–1990 (every player), Bowman 1948–1955, Fleer 1959–1963, Donruss/Fleer/Upper Deck 1981–1990
 - **Smart Fill** — auto-populates card number and rookie flag when adding or editing cards
 - Player name autocomplete with Tab/Enter key completion
 - Import dictionary entries via CSV; full CRUD for individual entries
@@ -244,6 +250,7 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.19** | Apr 2026 | AI Image Recognition: photograph or upload a card — AI identifies player/brand/year/card number and pre-fills the Add Card form; camera capture in browser; dictionary expanded to 28,800+ entries (Topps 1952–1990 full checklist) |
 | **v1.18** | Mar 2026 | Duplicate code refactor: extracted `GenericItemLabel`, `GenericItemView`, and `cardUtils` shared modules; eliminated ~138 SonarCloud-flagged duplicate lines across 13 components |
 | **v1.17** | Mar 2026 | SonarCloud code quality remediations pass 2: datetime lambda fix, sort localeCompare, React hooks ordering, accessibility (keyboard/role/tabIndex), credential variable rename; 0 bugs, 0 vulnerabilities |
 | **v1.16** | Mar 2026 | Collection Assistant context expanded to all inventory types (Cards, Balls, Wax Boxes, Wax Packs, Sets/Binders); username or email login; SonarCloud code quality remediations; full functional test suite (`utils/functional_test.py`) |

@@ -106,8 +106,9 @@ class GlobalSettingsBase(BaseModel):
     card_grades: Optional[List[str]] = ["3","1.5","1","0.8","0.4","0.2"]
     enable_smart_fill: bool = False
     chatbot_enabled: bool = False
+    enable_image_ai: bool = False
 
-    @field_validator("enable_smart_fill", "chatbot_enabled", "dark_mode", mode="before")
+    @field_validator("enable_smart_fill", "chatbot_enabled", "dark_mode", "enable_image_ai", mode="before")
     @classmethod
     def coerce_null_bool(cls, v):
         return False if v is None else v
@@ -153,6 +154,7 @@ class GlobalSettingsUpdate(BaseModel):
     card_grades: Optional[List[str]] = None
     enable_smart_fill: Optional[bool] = None
     chatbot_enabled: Optional[bool] = None
+    enable_image_ai: Optional[bool] = None
 
     rookie_factor: Optional[float] = None
     auto_factor: Optional[float] = None

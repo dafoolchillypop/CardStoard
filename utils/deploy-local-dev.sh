@@ -52,12 +52,30 @@ check_backend() {
   exit 1
 }
 
+check_frontend_build() {
+  echo ""
+  echo "--- Checking frontend build (ESLint + compile) ---"
+  if ! command -v npm &>/dev/null; then
+    echo "⚠️  npm not found locally — skipping frontend build check."
+    echo "   Install Node.js locally to enable pre-deploy ESLint validation."
+    return 0
+  fi
+  if ! (cd frontend && npm run build 2>&1); then
+    echo "❌ Frontend build failed. Fix errors before deploying."
+    exit 1
+  fi
+  echo "✅ Frontend build OK."
+  rm -rf frontend/build
+}
+
 rebuild() {
   echo ""
   echo "🚀 CardStoard Local Dev Deploy"
   echo "   Compose: $COMPOSE_FILE"
   echo "   DB:      preserved (volumes not wiped)"
   echo ""
+
+  check_frontend_build
 
   echo "--- Stopping containers (keeping volumes) ---"
   docker compose -f "$COMPOSE_FILE" down --rmi all 2>/dev/null || true

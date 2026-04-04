@@ -14,6 +14,21 @@ KEY="~/.ssh/id_rsa"
 SSH="ssh -i $KEY -o StrictHostKeyChecking=no $EC2"
 BACKUP_FILE="/home/ubuntu/cardstoard_predeploy_backup.sql"
 
+# Frontend build check (runs locally before touching EC2)
+if [[ "$1" != "--check" ]]; then
+  echo "--- Checking frontend build (ESLint + compile) ---"
+  if ! command -v npm &>/dev/null; then
+    echo "⚠️  npm not found locally — skipping frontend build check."
+    echo "   Install Node.js locally to enable pre-deploy ESLint validation."
+  elif ! (cd frontend && npm run build 2>&1); then
+    echo "❌ Frontend build failed. Fix errors before deploying to prod."
+    exit 1
+  else
+    echo "✅ Frontend build OK."
+    rm -rf frontend/build
+  fi
+fi
+
 # --check and --deploy pass-throughs skip backup/restore
 if [[ "$1" == "--check" || "$1" == "--deploy" ]]; then
   $SSH "

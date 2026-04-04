@@ -225,7 +225,7 @@ export default function CardDetail() {
       >
       {card.front_image && (
         <img
-          src={`http://host.docker.internal:8000${card.front_image}`}
+          src={card.front_image}
           alt="Front"
           style={{
             maxWidth: "800px",
@@ -235,7 +235,7 @@ export default function CardDetail() {
       )}
       {card.back_image && (
         <img
-          src={`http://host.docker.internal:8000${card.back_image}`}
+          src={card.back_image}
           alt="Back"
           style={{
             maxWidth: "800px",

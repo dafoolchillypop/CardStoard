@@ -166,6 +166,71 @@ export default function ListCards() {
   const [refreshTick, setRefreshTick] = useState(0);
   const [jumpRate, setJumpRate] = useState(50);
 
+  // Image upload (inline edit row — always-on)
+  const handleImageUpload = async (cardId, side, file) => {
+    const form = new FormData();
+    form.append("file", file);
+    const endpoint = side === "front" ? "upload-front" : "upload-back";
+    try {
+      const res = await api.post(`/cards/${cardId}/${endpoint}`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const imgField = side === "front" ? "front_image" : "back_image";
+      const imgVal = side === "front" ? res.data.front_image : res.data.back_image;
+      setCards(prev => prev.map(c => c.id === cardId ? { ...c, [imgField]: imgVal } : c));
+      setEditForm(prev => ({ ...prev, [imgField]: imgVal }));
+      if (pinnedCard?.id === cardId) setPinnedCard(prev => ({ ...prev, [imgField]: imgVal }));
+      showToast(`${side === "front" ? "Front" : "Back"} image uploaded`);
+    } catch {
+      alert(`Failed to upload ${side} image.`);
+    }
+  };
+
+  // AI card identification modal (inline add row — gated by enable_image_ai)
+  const [showScanModal, setShowScanModal] = useState(false);
+  const [scanFile, setScanFile] = useState(null);
+  const [scanPreview, setScanPreview] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState(null);
+  const [pendingScanFile, setPendingScanFile] = useState(null); // scan image to upload after card save
+
+  const handleScanIdentify = async () => {
+    if (!scanFile) return;
+    setScanning(true);
+    setScanError(null);
+    const form = new FormData();
+    form.append("file", scanFile);
+    try {
+      const res = await api.post("/cards/identify-image", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const f = res.data.fields || {};
+      const dm = res.data.dictionary_match || {};
+      setEditForm(prev => ({
+        ...prev,
+        ...(f.first_name  ? { first_name:  f.first_name  } : {}),
+        ...(f.last_name   ? { last_name:   f.last_name   } : {}),
+        ...(f.year        ? { year:        f.year        } : {}),
+        ...(f.brand       ? { brand:       f.brand       } : {}),
+        ...(f.card_number ? { card_number: f.card_number } : {}),
+        ...(dm.rookie != null ? { rookie: dm.rookie ? 1 : 0 } : {}),
+        ...(dm.book_high     != null ? { book_high:     dm.book_high }     : {}),
+        ...(dm.book_high_mid != null ? { book_high_mid: dm.book_high_mid } : {}),
+        ...(dm.book_mid      != null ? { book_mid:      dm.book_mid }      : {}),
+        ...(dm.book_low_mid  != null ? { book_low_mid:  dm.book_low_mid }  : {}),
+        ...(dm.book_low      != null ? { book_low:      dm.book_low }      : {}),
+      }));
+      setPendingScanFile(scanFile);
+      setShowScanModal(false);
+      setScanFile(null);
+      setScanPreview(null);
+    } catch (err) {
+      setScanError(err.response?.data?.detail || "Identification failed. Please try again.");
+    } finally {
+      setScanning(false);
+    }
+  };
+
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 4000);
@@ -252,7 +317,20 @@ export default function ListCards() {
     if (cardId === "new") {
       try {
         const res = await api.post("/cards/", editForm);
-        setCards(prev => [res.data, ...prev]);
+        const newCard = res.data;
+        // Upload scan image as front photo if one was captured via the camera modal
+        if (pendingScanFile) {
+          const imgForm = new FormData();
+          imgForm.append("file", pendingScanFile);
+          try {
+            const imgRes = await api.post(`/cards/${newCard.id}/upload-front`, imgForm, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+            newCard.front_image = imgRes.data.front_image;
+          } catch { /* non-fatal — card still saved */ }
+          setPendingScanFile(null);
+        }
+        setCards(prev => [newCard, ...prev]);
         setTotal(prev => prev + 1);
         setEditingCardId(null);
         setEditForm({});
@@ -318,6 +396,7 @@ export default function ListCards() {
     }
     setEditingCardId(null);
     setEditForm({});
+    setPendingScanFile(null);
   };
 
   const openVariant = (card) => {
@@ -882,6 +961,7 @@ export default function ListCards() {
                           onClick={() => {
                             if (editingCardId === "new") return;
                             setEditingCardId("new");
+                            if (tableSectionRef.current) tableSectionRef.current.scrollTop = 0;
                             setEditForm({
                               first_name: "", last_name: "", year: "", card_number: "",
                               brand: settings?.card_makes?.[0] || "",
@@ -934,7 +1014,15 @@ export default function ListCards() {
                       </td>
                       <td className="market-factor-col"></td>
                       <td className="value-col"></td>
-                      <td className="image-col"></td>
+                      <td className="image-col" style={{ textAlign: "center" }}>
+                        {settings?.enable_image_ai && (
+                          <button
+                            onClick={() => { setShowScanModal(true); setScanFile(null); setScanPreview(null); setScanError(null); }}
+                            title="Identify card from photo"
+                            style={{ background: "none", border: "1px solid #1976d2", borderRadius: 6, padding: "3px 6px", cursor: "pointer", fontSize: "1rem", color: "#1976d2" }}
+                          >📷</button>
+                        )}
+                      </td>
                       <td className="action-col actions-col" style={{ textAlign: "center" }}>
                         <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center" }}>
                           <button onClick={() => handleEditSave("new")} style={{ background: "#28a745", color: "white", border: "none", borderRadius: "4px", padding: "4px 10px", cursor: "pointer", fontSize: "0.85rem", fontWeight: "bold", width: "auto" }}>✓ Save</button>
@@ -1201,9 +1289,32 @@ export default function ListCards() {
 
                       {/* Card Image */}
                       <td className="image-col" style={{ textAlign: "center" }}>
-                        {card.front_image ? (
+                        {isEditing ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "3px", alignItems: "center" }}>
+                            {/* Front upload */}
+                            {editForm.front_image && (
+                              <img src={editForm.front_image} alt="Front" style={{ width: 40, height: "auto", marginBottom: 2 }} />
+                            )}
+                            <label style={{ fontSize: "0.7rem", color: "#1976d2", cursor: "pointer", textDecoration: "underline", display: "block" }}
+                              title="Upload front image">
+                              {editForm.front_image ? "↑ Front" : "+ Front"}
+                              <input type="file" accept="image/*" style={{ display: "none" }}
+                                onChange={e => { if (e.target.files[0]) handleImageUpload(card.id, "front", e.target.files[0]); }} />
+                            </label>
+                            {/* Back upload */}
+                            {editForm.back_image && (
+                              <img src={editForm.back_image} alt="Back" style={{ width: 40, height: "auto", marginBottom: 2 }} />
+                            )}
+                            <label style={{ fontSize: "0.7rem", color: "#6c757d", cursor: "pointer", textDecoration: "underline", display: "block" }}
+                              title="Upload back image">
+                              {editForm.back_image ? "↑ Back" : "+ Back"}
+                              <input type="file" accept="image/*" style={{ display: "none" }}
+                                onChange={e => { if (e.target.files[0]) handleImageUpload(card.id, "back", e.target.files[0]); }} />
+                            </label>
+                          </div>
+                        ) : card.front_image ? (
                           <img
-                            src={`http://host.docker.internal:8000${card.front_image}`}
+                            src={card.front_image}
                             alt="Front"
                             style={{ width: "50px", height: "auto", cursor: "pointer" }}
                             tabIndex={0}
@@ -1300,6 +1411,69 @@ export default function ListCards() {
         onApply={(levels) => { clearPin(); clearCloneAnchor(); setSortConfig(levels); }}
         onClose={() => { setShowSortModal(false); tableSectionRef.current?.focus(); }}
       />
+    )}
+
+    {/* AI card scan modal (inline add row camera button) */}
+    {showScanModal && (
+      <div
+        className="modal-overlay"
+        role="button"
+        tabIndex={0}
+        onClick={() => setShowScanModal(false)}
+        onKeyDown={e => { if (e.key === "Escape") setShowScanModal(false); }}
+      >
+        <div
+          className="modal-box"
+          style={{ width: 420, maxWidth: "95vw" }}
+          onClick={e => e.stopPropagation()}
+          onKeyDown={e => e.stopPropagation()}
+        >
+          <h3 style={{ marginTop: 0 }}>📷 Identify Card from Photo</h3>
+          <label style={{ display: "block", cursor: "pointer", marginBottom: "0.75rem" }}>
+            {scanPreview ? (
+              <img src={scanPreview} alt="Preview" style={{ maxWidth: "100%", maxHeight: 220, borderRadius: 8, objectFit: "contain", border: "1px solid #ddd" }} />
+            ) : (
+              <div style={{ border: "2px dashed #ccc", borderRadius: 10, padding: "1.5rem", textAlign: "center", color: "#888" }}>
+                📷 Tap to choose a photo or capture
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: "none" }}
+              onChange={e => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                setScanFile(f);
+                setScanPreview(URL.createObjectURL(f));
+                setScanError(null);
+              }}
+            />
+          </label>
+          {scanError && (
+            <p style={{ color: "#dc3545", fontSize: "0.85rem", margin: "0 0 0.5rem" }}>{scanError}</p>
+          )}
+          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+            <button
+              className="nav-btn"
+              disabled={!scanFile || scanning}
+              onClick={handleScanIdentify}
+            >
+              {scanning ? "Identifying…" : "🔍 Identify"}
+            </button>
+            <button
+              className="nav-btn secondary"
+              onClick={() => { setShowScanModal(false); setScanFile(null); setScanPreview(null); setScanError(null); }}
+            >
+              Cancel
+            </button>
+          </div>
+          <p style={{ fontSize: "0.78rem", color: "#888", marginTop: "0.75rem", marginBottom: 0, textAlign: "center" }}>
+            Fields will be pre-filled in the add form after identification.
+          </p>
+        </div>
+      </div>
     )}
     </>
   );

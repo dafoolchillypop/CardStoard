@@ -30,15 +30,17 @@ Key endpoints:
   PATCH /cards/propagate-book-values   Spread book values to all duplicate cards
 """
 # Standard library
-import io, os, csv, shutil, json, base64, qrcode
+import io, os, csv, re, shutil, json, base64, qrcode
 from pydantic import BaseModel
 from pathlib import Path as FSPath
 from typing import Optional
 from datetime import datetime, timezone
 
 # Third-party
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path
+import anthropic as _anthropic
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path, Query
 from fastapi.responses import JSONResponse, StreamingResponse
+from PIL import Image as PILImage
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from werkzeug.utils import secure_filename
@@ -83,9 +85,9 @@ def upload_front(
     safe_name = secure_filename(file.filename)
     filename = f"card_{card_id}_front_{safe_name}"
 
-    upload_dir = Path(UPLOAD_DIR).resolve()
+    upload_dir = FSPath(UPLOAD_DIR).resolve()
     upload_dir.mkdir(parents=True, exist_ok=True)
-    filepath = (upload_dir / filename).resolve()
+    filepath = (FSPath(upload_dir) / filename).resolve()
 
     # Ensure no path traversal outside upload directory
     if not str(filepath).startswith(str(upload_dir)):
@@ -121,9 +123,9 @@ def upload_back(
     safe_name = secure_filename(file.filename)
     filename = f"card_{card_id}_back_{safe_name}"
 
-    upload_dir = Path(UPLOAD_DIR).resolve()
+    upload_dir = FSPath(UPLOAD_DIR).resolve()
     upload_dir.mkdir(parents=True, exist_ok=True)
-    filepath = (upload_dir / filename).resolve()
+    filepath = (FSPath(upload_dir) / filename).resolve()
 
     if not str(filepath).startswith(str(upload_dir)):
         raise HTTPException(status_code=400, detail="Invalid file path")
@@ -351,7 +353,7 @@ def create_card(
                 db.add(DictionaryEntry(
                     first_name=db_card.first_name,
                     last_name=db_card.last_name,
-                    rookie_year=db_card.year,
+                    rookie_year=db_card.year if db_card.rookie else None,
                     brand=db_card.brand,
                     year=db_card.year,
                     card_number=db_card.card_number,
@@ -472,6 +474,221 @@ async def smart_fill(
 
     except Exception as e:
         return {"detail": f"Unexpected error in smart-fill: {repr(e)}"}
+
+# ---- AI prompts (module-level constants to keep endpoint code concise) ----
+_IDENTIFY_PROMPT = """\
+You are reading a sports trading card. Extract exactly what is printed on the card.
+
+Return ONLY this JSON (no other text):
+{
+  "first_name": "<player first name as printed, or null>",
+  "last_name": "<player last name as printed, or null>",
+  "year": <4-digit year from copyright line or set name, or null>,
+  "brand": "<manufacturer: Topps/Bowman/Fleer/Donruss/Upper Deck/Score/Panini/Leaf/Goudey, or null>",
+  "card_number": "<number as printed (digits only, no #), or null>",
+  "confidence": <0.0-1.0, your confidence in the extraction>
+}"""
+
+_GRADE_EXTENSION = """\
+
+
+Also assess the card's physical condition. Add these fields to your JSON response:
+  "grade": <one of: 3.0=Mint, 1.5=Excellent, 1.0=VeryGood, 0.8=Good, 0.4=Fair, 0.2=Poor>,
+  "grade_label": "<MT|EX|VG|GD|FR|PR>",
+  "condition_notes": "<1-2 sentence description of visible condition issues>"
+
+Return ONLY the complete JSON object with all fields including the ones above."""
+
+_VALID_MEDIA_TYPES = {"image/jpeg", "image/png", "image/jpg"}
+_MAX_IMAGE_BYTES = 5 * 1024 * 1024  # 5MB
+_MAX_IMAGE_DIM = 1024
+
+
+def _resize_image(content: bytes, media_type: str) -> tuple[bytes, str]:
+    """Resize image to max 1024px on longest side. Returns (bytes, media_type)."""
+    img = PILImage.open(io.BytesIO(content))
+    # Convert RGBA or palette to RGB for JPEG compatibility
+    if img.mode not in ("RGB", "L"):
+        img = img.convert("RGB")
+        media_type = "image/jpeg"
+    if max(img.width, img.height) > _MAX_IMAGE_DIM:
+        ratio = _MAX_IMAGE_DIM / max(img.width, img.height)
+        new_size = (int(img.width * ratio), int(img.height * ratio))
+        img = img.resize(new_size, PILImage.LANCZOS)
+    fmt = "PNG" if media_type == "image/png" else "JPEG"
+    buf = io.BytesIO()
+    img.save(buf, format=fmt)
+    return buf.getvalue(), media_type
+
+
+# AI card identification
+@router.post("/identify-image")
+async def identify_image(
+    file: UploadFile = File(...),
+    include_grade: bool = Query(False),
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    """
+    Identify a card from a photo using Claude Vision.
+    Returns extracted fields, confidence, optional grade estimate,
+    dictionary match, and collection match.
+    Requires enable_image_ai = True in GlobalSettings.
+    """
+    settings = db.query(models.GlobalSettings).filter(
+        models.GlobalSettings.user_id == current.id
+    ).first()
+    if not settings or not settings.enable_image_ai:
+        raise HTTPException(status_code=403, detail="Image AI is not enabled")
+
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Anthropic API key not configured")
+
+    # Validate file type
+    ct = (file.content_type or "").lower()
+    fname = (file.filename or "").lower()
+    if ct not in _VALID_MEDIA_TYPES and not (fname.endswith((".jpg", ".jpeg", ".png"))):
+        raise HTTPException(status_code=400, detail="Only JPEG and PNG images are supported")
+    media_type = "image/png" if (ct == "image/png" or fname.endswith(".png")) else "image/jpeg"
+
+    content = await file.read()
+    if len(content) > _MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=400, detail="Image exceeds 5MB limit")
+
+    # Resize and base64-encode
+    try:
+        img_bytes, media_type = _resize_image(content, media_type)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Could not process image: {exc}")
+    img_b64 = base64.b64encode(img_bytes).decode()
+
+    # Call Claude Vision
+    prompt_text = _IDENTIFY_PROMPT + (_GRADE_EXTENSION if include_grade else "")
+    client = _anthropic.Anthropic(api_key=api_key)
+    try:
+        response = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=512,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_b64}},
+                    {"type": "text", "text": prompt_text},
+                ],
+            }],
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"AI request failed: {exc}")
+
+    # Parse JSON from response — try several extraction strategies
+    raw = response.content[0].text.strip()
+    # 1. Strip markdown code fences
+    if "```" in raw:
+        fence_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw, re.DOTALL)
+        if fence_match:
+            raw = fence_match.group(1)
+    # 2. If still not a JSON object, grab the first {...} block
+    if not raw.startswith("{"):
+        obj_match = re.search(r"\{.*\}", raw, re.DOTALL)
+        raw = obj_match.group(0) if obj_match else raw
+    raw = raw.strip()
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="AI returned unexpected format")
+
+    fields = {
+        "first_name": parsed.get("first_name"),
+        "last_name": parsed.get("last_name"),
+        "year": parsed.get("year"),
+        "brand": parsed.get("brand"),
+        "card_number": parsed.get("card_number"),
+    }
+    confidence = float(parsed.get("confidence") or 0.0)
+
+    grade_estimate = None
+    if include_grade and "grade" in parsed:
+        grade_estimate = {
+            "grade": parsed.get("grade"),
+            "grade_label": parsed.get("grade_label"),
+            "condition_notes": parsed.get("condition_notes"),
+        }
+
+    # Dictionary lookup for book values
+    dictionary_match = None
+    fn = (fields["first_name"] or "").strip().lower()
+    ln = (fields["last_name"] or "").strip().lower()
+    if fn and ln:
+        q = db.query(DictionaryEntry).filter(
+            func.lower(DictionaryEntry.first_name) == fn,
+            func.lower(DictionaryEntry.last_name) == ln,
+        )
+        if fields["brand"]:
+            q = q.filter(func.lower(DictionaryEntry.brand) == fields["brand"].lower())
+        if fields["year"]:
+            q = q.filter(DictionaryEntry.year == fields["year"])
+        if fields["card_number"]:
+            q = q.filter(func.lower(DictionaryEntry.card_number) == fields["card_number"].lower())
+        entry = q.first()
+        # If matched entry has no book values, fall back to card_number+year+brand
+        # to find a valued entry (handles duplicate entries with different name spellings)
+        if entry and not any([entry.book_high, entry.book_mid, entry.book_low]):
+            cn = fields.get("card_number") or entry.card_number
+            if cn and fields.get("year") and fields.get("brand"):
+                valued = db.query(DictionaryEntry).filter(
+                    func.lower(DictionaryEntry.card_number) == str(cn).lower(),
+                    DictionaryEntry.year == fields["year"],
+                    func.lower(DictionaryEntry.brand) == fields["brand"].lower(),
+                    DictionaryEntry.book_high.isnot(None),
+                ).first()
+                if valued:
+                    entry = valued
+        if entry:
+            dictionary_match = {
+                "found": True,
+                "book_high": entry.book_high,
+                "book_high_mid": entry.book_high_mid,
+                "book_mid": entry.book_mid,
+                "book_low_mid": entry.book_low_mid,
+                "book_low": entry.book_low,
+                "rookie": (entry.rookie_year is not None and fields.get("year") == entry.rookie_year),
+            }
+            # Back-fill card_number if Claude didn't extract it
+            if not fields["card_number"] and entry.card_number:
+                fields["card_number"] = entry.card_number
+
+    # Collection match
+    collection_match = {"found": False, "cards": [], "duplicate_count": 0}
+    if fn and ln:
+        q = db.query(models.Card).filter(
+            models.Card.user_id == current.id,
+            func.lower(models.Card.first_name) == fn,
+            func.lower(models.Card.last_name) == ln,
+        )
+        if fields["brand"]:
+            q = q.filter(func.lower(models.Card.brand) == fields["brand"].lower())
+        if fields["year"]:
+            q = q.filter(models.Card.year == fields["year"])
+        matches = q.limit(10).all()
+        if matches:
+            collection_match = {
+                "found": True,
+                "cards": [
+                    {"id": c.id, "year": c.year, "brand": c.brand, "card_number": c.card_number, "grade": c.grade, "value": c.value}
+                    for c in matches
+                ],
+                "duplicate_count": len(matches),
+            }
+
+    return {
+        "fields": fields,
+        "confidence": confidence,
+        "grade_estimate": grade_estimate,
+        "dictionary_match": dictionary_match,
+        "collection_match": collection_match,
+    }
+
 
 # Export card data (CSV / TSV / JSON)
 @router.get("/export")

@@ -29,6 +29,7 @@ export default function AppHeader() {
   const navigate = useNavigate();
   const [chatOpen, setChatOpen] = useState(false);
   const [chatbotEnabled, setChatbotEnabled] = useState(false);
+  const [imageAiEnabled, setImageAiEnabled] = useState(false);
   const [navItems, setNavItems] = useState(null); // null = show all
 
   const show = (key) => navItems === null || navItems.includes(key);
@@ -37,6 +38,7 @@ export default function AppHeader() {
     api.get("/settings/")
       .then(res => {
         setChatbotEnabled(res.data.chatbot_enabled ?? false);
+        setImageAiEnabled(res.data.enable_image_ai ?? false);
         setNavItems(res.data.nav_items ?? null);
       })
       .catch(() => {});
@@ -61,10 +63,13 @@ export default function AppHeader() {
 
   return (
     <header className="app-header">
-      {/* --- Left: App title --- */}
+      {/* --- Left: App title + username --- */}
       <div className="app-header-left">
         <Link to="/" className="app-header-title">
           CardStoard
+        </Link>
+        <Link to="/account" className="user-info-link" title="Account details">
+          <span className="user-info">{displayName}</span>
         </Link>
       </div>
 
@@ -106,13 +111,15 @@ export default function AppHeader() {
             🧧 Packs
           </button>
         )}
+        {imageAiEnabled && (
+          <button className="header-btn" onClick={() => navigate("/scan")} title="Scan / Identify Card">
+            📷 Scan
+          </button>
+        )}
       </div>
 
-      {/* --- Right: user info, admin, chat, about, logout --- */}
+      {/* --- Right: admin, chat, about, logout --- */}
       <div className="app-header-right">
-        <Link to="/account" className="user-info-link" title="Account details">
-          <span className="user-info">{displayName}</span>
-        </Link>
         {show("analytics") && (
           <button className="header-icon-btn" onClick={() => navigate("/analytics")} title="Analytics">
             📊

@@ -41,6 +41,7 @@ def seed_dictionary(db: Session) -> None:
                         year=int(year),
                         card_number=str(card_number),
                     ))
+                    existing.add(key)  # prevent intra-batch dupes
 
     # -- Source 2: Modern players.json (single card_number per brand) --
     import json
@@ -65,10 +66,31 @@ def seed_dictionary(db: Session) -> None:
                     year=rookie_year,
                     card_number=str(card_number),
                 ))
+                existing.add(key)  # prevent intra-batch dupes
+
+    # -- Source 3: Dict CSV files (topps, bowman, fleer, etc.) --
+    import csv
+    data_dir = Path(__file__).resolve().parent
+    for csv_path in sorted(data_dir.glob("*_dict.csv")):
+        with open(csv_path, newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                ry = row.get("RookieYear", "").strip()
+                rookie_year = int(ry) if ry else None
+                key = (row["First"], row["Last"], row["Brand"], int(row["Year"]), str(row["CardNumber"]))
+                if key not in existing:
+                    rows.append(DictionaryEntry(
+                        first_name=row["First"],
+                        last_name=row["Last"],
+                        rookie_year=rookie_year,
+                        brand=row["Brand"],
+                        year=int(row["Year"]),
+                        card_number=str(row["CardNumber"]),
+                    ))
+                    existing.add(key)  # prevent intra-batch dupes
 
     if rows:
         db.add_all(rows)
         db.commit()
-        print(f"[seed] Seeded {len(rows)} new dictionary_entries rows ({len(existing)} already existed).", flush=True)
+        print(f"[seed] Seeded {len(rows)} new dictionary_entries rows ({len(existing) - len(rows)} already existed).", flush=True)
     else:
         print(f"[seed] dictionary_entries up to date ({len(existing)} rows, nothing to add).", flush=True)

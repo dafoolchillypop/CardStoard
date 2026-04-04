@@ -135,12 +135,19 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.18</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.19</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.19 (April 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>AI Image Recognition — photograph or upload a card; AI identifies the player, brand, year, and card number and pre-fills the Add Card form</li>
+            <li>Camera capture directly in the browser (mobile and desktop)</li>
+            <li>Player Dictionary expanded to 28,800+ entries — full Topps 1952–1990 checklist (every player, every year)</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.18 (March 2026)</p>
           <ul style={{ marginTop: 0 }}>
