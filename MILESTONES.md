@@ -17,6 +17,8 @@
 - **Seed Source 3** — `seed_dictionary.py` extended to auto-load any `*_dict.csv` in `backend/app/data/`; idempotent with fingerprint dedup across all 3 sources
 - **Rookie year fix** — auto-created `DictionaryEntry` on card save now only sets `rookie_year` when `card.rookie` is True (was incorrectly set for all cards)
 - **Mike Schmidt 1973 #615** — the missing RC is now in the dictionary
+- **Dictionary data quality** — removed ~500 bogus non-player entries (empty names, Leaders, Checklist, All-Star, Team cards); `rookie_year` propagated/corrected across 13,000+ entries; HOF and star players (70+) filled across all eras including Eckersley, Drysdale, Gibson, Santo corrections
+- **DictionaryEdit save fix** — editing a dictionary entry with empty book value fields no longer fails (empty string → null coercion for `Optional[float]` Pydantic fields)
 
 ---
 
