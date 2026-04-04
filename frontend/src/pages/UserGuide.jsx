@@ -84,6 +84,10 @@ export default function UserGuide() {
             Tip: If Smart Fill is enabled in Admin, the card number and rookie flag will auto-populate as you type the player name.
             Press Tab or Enter on a name field to accept the suggested completion.
           </p>
+          <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: 0 }}>
+            Tip: If Image AI is enabled in Admin, click the <strong>📷 Scan Card</strong> button to photograph or upload a card.
+            The AI identifies the player, brand, year, and card number and pre-fills the form for you to review before saving.
+          </p>
 
           <p style={h4Style}>Editing a card</p>
           <ol style={{ marginTop: 0 }}>
@@ -286,8 +290,8 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/dictionary" style={{ color: "var(--link)" }}>Player Dictionary</Link> is a reference
-            database of player names, brands, years, and card numbers. It is seeded with 1,875+ entries covering
-            Topps 1952–1980, Bowman 1948–1955, Fleer 1960–1963, Donruss 1981–1990, and Upper Deck 1989.
+            database of player names, brands, years, and card numbers. It is seeded with 28,800+ entries covering
+            Topps 1952–1990 (every player), Bowman 1948–1955, Fleer 1959–1963, Donruss 1981–1990, and Upper Deck 1989.
             Dictionary entries that match cards in your collection are highlighted in green.
           </p>
 
@@ -559,6 +563,7 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           <p style={h4Style}>Feature toggles</p>
           <ul style={{ marginTop: 0 }}>
             <li><strong>Smart Fill</strong> — enable/disable dictionary-based auto-population</li>
+            <li><strong>Image AI</strong> — enable/disable card image recognition (📷 Scan Card button); requires Anthropic API key</li>
             <li><strong>Collection Assistant</strong> — enable/disable the AI chatbot (Cy); aware of Cards, Balls, Wax Boxes, Wax Packs, and Sets/Binders (requires Anthropic API key)</li>
             <li><strong>Dark Mode</strong> — toggle the dark colour theme; persists across sessions</li>
           </ul>

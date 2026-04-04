@@ -4,6 +4,22 @@
 
 **<->**
 
+## v1.19 — AI Vision & Dictionary Expansion (April 2026)
+**Status:** Complete
+**Focus:** AI-powered card identification from photos, and full Topps 1952–1990 dictionary coverage
+
+### Deliverables
+- **AI Image Recognition** — photograph or upload a card image; Claude Vision identifies player, brand, year, and card number; parsed results pre-fill the Add Card form for user review
+- **Camera capture** — in-browser camera access (mobile + desktop) with snapshot → identify flow
+- **Image upload** — upload JPEG/PNG from device; same AI identification pipeline
+- **Admin toggle** — `enable_image_ai` setting (migration 021) enables/disables the feature; requires Anthropic API key on server
+- **Dictionary expansion** — Topps 1952–1990 full checklist imported (24,674 rows → `topps_1952_1990_dict.csv`); dictionary grows from 4,777 → 28,803 entries; Topps AI match rate ~15% → ~95%+
+- **Seed Source 3** — `seed_dictionary.py` extended to auto-load any `*_dict.csv` in `backend/app/data/`; idempotent with fingerprint dedup across all 3 sources
+- **Rookie year fix** — auto-created `DictionaryEntry` on card save now only sets `rookie_year` when `card.rookie` is True (was incorrectly set for all cards)
+- **Mike Schmidt 1973 #615** — the missing RC is now in the dictionary
+
+---
+
 ## v1.18 — Duplicate Code Refactor (March 2026)
 **Status:** Complete
 **Focus:** Eliminate SonarCloud-flagged duplicate lines by extracting shared scaffold components and utility functions
