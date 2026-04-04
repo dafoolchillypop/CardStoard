@@ -116,6 +116,8 @@ export default function DictionaryList() {
     setTimeout(() => setToast(""), 4000);
   };
 
+  const cleanFloat = (v) => (v !== "" && v != null ? parseFloat(v) : null);
+
   const handleEditSave = async (id) => {
     if (!editForm.first_name?.trim() || !editForm.last_name?.trim()) {
       alert("First name and last name are required.");
@@ -126,6 +128,11 @@ export default function DictionaryList() {
       rookie_year: editForm.rookie_year !== "" && editForm.rookie_year != null
         ? parseInt(editForm.rookie_year, 10) : null,
       year: parseInt(editForm.year, 10),
+      book_high:     cleanFloat(editForm.book_high),
+      book_high_mid: cleanFloat(editForm.book_high_mid),
+      book_mid:      cleanFloat(editForm.book_mid),
+      book_low_mid:  cleanFloat(editForm.book_low_mid),
+      book_low:      cleanFloat(editForm.book_low),
     };
     try {
       if (id === "new") {

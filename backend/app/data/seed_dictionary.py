@@ -74,7 +74,19 @@ def seed_dictionary(db: Session) -> None:
     for csv_path in sorted(data_dir.glob("*_dict.csv")):
         with open(csv_path, newline="", encoding="utf-8") as f:
             for row in csv.DictReader(f):
-                if not row["First"].strip() or not row["Last"].strip():
+                first_s = row["First"].strip()
+                last_s  = row["Last"].strip()
+                if not first_s or not last_s:
+                    continue
+                # Skip non-player entries: leader cards, team cards, checklists
+                last_lower = last_s.lower()
+                if (
+                    "leaders" in last_lower
+                    or "checklist" in last_lower
+                    or "all-star" in last_lower
+                    or last_lower.endswith(" team")
+                    or last_lower in ("team", "teamcl")
+                ):
                     continue
                 ry = row.get("RookieYear", "").strip()
                 rookie_year = int(ry) if ry else None
