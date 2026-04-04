@@ -117,13 +117,23 @@ export default function DictionaryList() {
   };
 
   const handleEditSave = async (id) => {
+    if (!editForm.first_name?.trim() || !editForm.last_name?.trim()) {
+      alert("First name and last name are required.");
+      return;
+    }
+    const cleanedForm = {
+      ...editForm,
+      rookie_year: editForm.rookie_year !== "" && editForm.rookie_year != null
+        ? parseInt(editForm.rookie_year, 10) : null,
+      year: parseInt(editForm.year, 10),
+    };
     try {
       if (id === "new") {
-        const res = await api.post("/dictionary/entries", editForm);
+        const res = await api.post("/dictionary/entries", cleanedForm);
         setEntries(prev => [res.data, ...prev]);
         setTotal(prev => prev + 1);
       } else {
-        const res = await api.put(`/dictionary/entries/${id}`, editForm);
+        const res = await api.put(`/dictionary/entries/${id}`, cleanedForm);
         setEntries(prev => prev.map(e => e.id === id ? res.data : e));
 
         // Propagate rookie_year change across all entries for this player

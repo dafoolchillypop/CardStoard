@@ -73,7 +73,7 @@ def convert(input_path: str, output_path: Optional[str]) -> None:
         first = row["First"].strip()
         last  = row["Last"].strip()
 
-        if not first and not last:
+        if not first or not last:
             skipped += 1
             continue
 

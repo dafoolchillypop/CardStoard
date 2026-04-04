@@ -74,6 +74,8 @@ def seed_dictionary(db: Session) -> None:
     for csv_path in sorted(data_dir.glob("*_dict.csv")):
         with open(csv_path, newline="", encoding="utf-8") as f:
             for row in csv.DictReader(f):
+                if not row["First"].strip() or not row["Last"].strip():
+                    continue
                 ry = row.get("RookieYear", "").strip()
                 rookie_year = int(ry) if ry else None
                 key = (row["First"], row["Last"], row["Brand"], int(row["Year"]), str(row["CardNumber"]))
