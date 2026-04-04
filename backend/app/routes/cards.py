@@ -353,7 +353,7 @@ def create_card(
                 db.add(DictionaryEntry(
                     first_name=db_card.first_name,
                     last_name=db_card.last_name,
-                    rookie_year=db_card.year,
+                    rookie_year=db_card.year if db_card.rookie else None,
                     brand=db_card.brand,
                     year=db_card.year,
                     card_number=db_card.card_number,
