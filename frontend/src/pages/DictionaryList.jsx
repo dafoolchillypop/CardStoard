@@ -449,7 +449,7 @@ export default function DictionaryList() {
                             ))}
                           </div>
                         ) : (
-                          <span style={{ color: entry.book_high != null ? "#1a7a1a" : "#bbb", fontWeight: entry.book_high != null ? "bold" : "normal" }}>
+                          <span style={{ color: entry.book_high != null ? "#c8a000" : "#bbb", fontWeight: entry.book_high != null ? "bold" : "normal" }}>
                             {entry.book_high != null ? "✓" : "—"}
                           </span>
                         )}
