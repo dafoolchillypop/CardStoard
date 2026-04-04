@@ -73,7 +73,19 @@ def convert(input_path: str, output_path: Optional[str]) -> None:
         first = row["First"].strip()
         last  = row["Last"].strip()
 
-        if not first and not last:
+        if not first or not last:
+            skipped += 1
+            continue
+
+        # Skip non-player entries: leader cards, team cards, checklists
+        last_lower = last.lower()
+        if (
+            "leaders" in last_lower
+            or "checklist" in last_lower
+            or "all-star" in last_lower
+            or last_lower.endswith(" team")
+            or last_lower in ("team", "teamcl")
+        ):
             skipped += 1
             continue
 

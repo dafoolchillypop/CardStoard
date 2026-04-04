@@ -47,9 +47,12 @@ export default function DictionaryEdit() {
     e.preventDefault();
     setError("");
     try {
+      const ry = entry.rookie_year !== "" && entry.rookie_year != null
+        ? parseInt(entry.rookie_year, 10)
+        : null;
       await api.put(`/dictionary/entries/${id}`, {
         ...entry,
-        rookie_year: parseInt(entry.rookie_year, 10),
+        rookie_year: ry,
         year: parseInt(entry.year, 10),
       });
       navigate("/dictionary");
@@ -92,7 +95,6 @@ export default function DictionaryEdit() {
             name="rookie_year"
             value={entry.rookie_year ?? ""}
             onChange={handleChange}
-            required
           />
 
           <label>Brand</label>

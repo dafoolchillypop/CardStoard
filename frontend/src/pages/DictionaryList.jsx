@@ -116,14 +116,31 @@ export default function DictionaryList() {
     setTimeout(() => setToast(""), 4000);
   };
 
+  const cleanFloat = (v) => (v !== "" && v != null ? parseFloat(v) : null);
+
   const handleEditSave = async (id) => {
+    if (!editForm.first_name?.trim() || !editForm.last_name?.trim()) {
+      alert("First name and last name are required.");
+      return;
+    }
+    const cleanedForm = {
+      ...editForm,
+      rookie_year: editForm.rookie_year !== "" && editForm.rookie_year != null
+        ? parseInt(editForm.rookie_year, 10) : null,
+      year: parseInt(editForm.year, 10),
+      book_high:     cleanFloat(editForm.book_high),
+      book_high_mid: cleanFloat(editForm.book_high_mid),
+      book_mid:      cleanFloat(editForm.book_mid),
+      book_low_mid:  cleanFloat(editForm.book_low_mid),
+      book_low:      cleanFloat(editForm.book_low),
+    };
     try {
       if (id === "new") {
-        const res = await api.post("/dictionary/entries", editForm);
+        const res = await api.post("/dictionary/entries", cleanedForm);
         setEntries(prev => [res.data, ...prev]);
         setTotal(prev => prev + 1);
       } else {
-        const res = await api.put(`/dictionary/entries/${id}`, editForm);
+        const res = await api.put(`/dictionary/entries/${id}`, cleanedForm);
         setEntries(prev => prev.map(e => e.id === id ? res.data : e));
 
         // Propagate rookie_year change across all entries for this player
@@ -432,7 +449,7 @@ export default function DictionaryList() {
                             ))}
                           </div>
                         ) : (
-                          <span style={{ color: entry.book_high != null ? "#1a7a1a" : "#bbb", fontWeight: entry.book_high != null ? "bold" : "normal" }}>
+                          <span style={{ color: entry.book_high != null ? "#c8a000" : "#bbb", fontWeight: entry.book_high != null ? "bold" : "normal" }}>
                             {entry.book_high != null ? "✓" : "—"}
                           </span>
                         )}
