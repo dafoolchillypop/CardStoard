@@ -49,6 +49,10 @@ export default function Admin() {
   const [valuesStats, setValuesStats] = useState(null);
   const [seedMsg, setSeedMsg] = useState("");
   const [seedLoading, setSeedLoading] = useState(false);
+  const [dedupStats, setDedupStats] = useState(null);
+  const [dedupLoading, setDedupLoading] = useState(false);
+  const [dedupMsg, setDedupMsg] = useState("");
+  const [dedupConfirming, setDedupConfirming] = useState(false);
 
   const fetchValuesStats = () => {
     api.get("/dictionary/values-stats")
@@ -92,6 +96,37 @@ export default function Admin() {
     }
   };
   
+  const handleCheckDuplicates = async () => {
+    setDedupLoading(true);
+    setDedupMsg("");
+    setDedupStats(null);
+    setDedupConfirming(false);
+    try {
+      const res = await api.get("/dictionary/duplicate-stats");
+      setDedupStats(res.data);
+    } catch (err) {
+      setDedupMsg("Check failed: " + (err.response?.data?.detail || err.message));
+    } finally {
+      setDedupLoading(false);
+    }
+  };
+
+  const handleDeduplicate = async () => {
+    setDedupLoading(true);
+    setDedupMsg("");
+    try {
+      const res = await api.post("/dictionary/deduplicate");
+      setDedupMsg(res.data.message);
+      setDedupStats(null);
+      setDedupConfirming(false);
+      api.get("/dictionary/count").then(r => setDictCount(r.data.count)).catch(() => {});
+    } catch (err) {
+      setDedupMsg("Dedup failed: " + (err.response?.data?.detail || err.message));
+    } finally {
+      setDedupLoading(false);
+    }
+  };
+
   const debouncedSave = (updatedSettings) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
@@ -579,11 +614,58 @@ export default function Admin() {
         <div className="card-section" style={{ marginTop: "1rem", textAlign: "center" }}>
           <h3>Player Dictionary <InfoIcon id="dictionary" text="A searchable database of players, brands, years, and card numbers used by Smart Fill and collection highlights." /></h3>
           <p>Total entries: <strong>{dictCount !== null ? dictCount : "Loading..."}</strong></p>
-          <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", justifyContent: "center" }}>
+          <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
             <button className="nav-btn" onClick={() => navigate("/dictionary")}>📖 View / Edit</button>
             <button className="nav-btn" onClick={() => navigate("/dictionary/import")}>📥 Import CSV</button>
             <button className="nav-btn" onClick={() => navigate("/dictionary/add")}>➕ Add Entry</button>
+            <button className="nav-btn secondary" onClick={handleCheckDuplicates} disabled={dedupLoading}>
+              {dedupLoading ? "Checking…" : "🔍 Check Duplicates"}
+            </button>
           </div>
+          {dedupStats !== null && (
+            <div style={{ marginTop: "0.75rem" }}>
+              {dedupStats.entries_to_remove === 0 ? (
+                <p style={{ color: "#1a7a1a", fontSize: "0.9rem", margin: 0 }}>
+                  No duplicates found — dictionary is clean.
+                </p>
+              ) : (
+                <>
+                  <p style={{ color: "#856404", fontSize: "0.9rem", margin: "0 0 0.5rem" }}>
+                    Found <strong>{dedupStats.duplicate_groups}</strong> duplicate {dedupStats.duplicate_groups === 1 ? "group" : "groups"} —{" "}
+                    <strong>{dedupStats.entries_to_remove}</strong> {dedupStats.entries_to_remove === 1 ? "entry" : "entries"} to remove.
+                    The record with the most recent book values will be kept.
+                  </p>
+                  {!dedupConfirming ? (
+                    <button
+                      className="nav-btn"
+                      style={{ background: "#dc3545", borderColor: "#dc3545" }}
+                      onClick={() => setDedupConfirming(true)}
+                    >
+                      🗑️ Remove Duplicates
+                    </button>
+                  ) : (
+                    <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", alignItems: "center" }}>
+                      <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Are you sure?</span>
+                      <button
+                        className="nav-btn"
+                        style={{ background: "#dc3545", borderColor: "#dc3545" }}
+                        onClick={handleDeduplicate}
+                        disabled={dedupLoading}
+                      >
+                        {dedupLoading ? "Removing…" : "Yes, Remove"}
+                      </button>
+                      <button className="nav-btn secondary" onClick={() => setDedupConfirming(false)}>Cancel</button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+          {dedupMsg && (
+            <p style={{ marginTop: "0.5rem", fontSize: "0.9rem", color: dedupMsg.startsWith("Dedup failed") || dedupMsg.startsWith("Check failed") ? "#dc3545" : "#1a7a1a" }}>
+              {dedupMsg}
+            </p>
+          )}
         </div>
 
         {/* Value Dictionary */}
