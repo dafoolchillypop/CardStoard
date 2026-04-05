@@ -55,6 +55,8 @@ services:
       # AI
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
 
+    volumes:
+      - cards_data:/code/app/static/cards
     expose:
       - "8000"
     healthcheck:
@@ -83,3 +85,4 @@ services:
 
 volumes:
   postgres_data:
+  cards_data:
