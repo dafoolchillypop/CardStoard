@@ -59,6 +59,8 @@ export default function ScanPage() {
   const [savePhoto, setSavePhoto] = useState(true);
   const [adding, setAdding] = useState(false);
   const [addResult, setAddResult] = useState(null);
+  const [dictMatch, setDictMatch] = useState(null);
+  const [dictLookupPending, setDictLookupPending] = useState(false);
 
   // --- Camera capture state ---
   const [showCamera, setShowCamera] = useState(false);
@@ -210,6 +212,7 @@ export default function ScanPage() {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
       setIdentifyResult(res.data);
+      setDictMatch(res.data.dictionary_match ?? null);
       const f = res.data.fields || {};
       setEditedFields({
         first_name: f.first_name || "",
@@ -232,6 +235,59 @@ export default function ScanPage() {
     }
   };
 
+  useEffect(() => {
+    const firstName = editedFields.first_name?.trim();
+    const lastName  = editedFields.last_name?.trim();
+    if (!firstName || !lastName) return;
+
+    const params = { first_name: firstName, last_name: lastName };
+    if (editedFields.brand) params.brand = editedFields.brand.trim();
+    if (editedFields.year && !isNaN(Number(editedFields.year))) params.year = Number(editedFields.year);
+
+    setDictLookupPending(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        let cardNum = editedFields.card_number?.trim() || "";
+
+        // Call 1 — get canonical card_number when not set by user
+        if (!cardNum) {
+          const res = await api.get("/cards/smart-fill", { params });
+          if (res.data.status === "ok" && res.data.fields.card_number) {
+            cardNum = res.data.fields.card_number;
+            setEditedFields(prev => ({ ...prev, card_number: cardNum }));
+          }
+        }
+
+        // Call 2 — get book values with card_number pinned
+        if (cardNum) {
+          const res2 = await api.get("/cards/smart-fill", { params: { ...params, card_number: cardNum } });
+          if (res2.data.status === "ok") {
+            const f = res2.data.fields;
+            setDictMatch({
+              found: true,
+              book_high:     f.book_high     ?? null,
+              book_high_mid: f.book_high_mid ?? null,
+              book_mid:      f.book_mid      ?? null,
+              book_low_mid:  f.book_low_mid  ?? null,
+              book_low:      f.book_low      ?? null,
+            });
+          } else {
+            setDictMatch({ found: false });
+          }
+        } else {
+          setDictMatch({ found: false });
+        }
+      } catch (err) {
+        console.error("Dictionary re-lookup error:", err);
+      } finally {
+        setDictLookupPending(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [editedFields.first_name, editedFields.last_name, editedFields.brand, editedFields.year, editedFields.card_number]);
+
   const handleAddToCollection = async () => {
     if (!identifyResult) return;
     setAdding(true);
@@ -243,12 +299,17 @@ export default function ScanPage() {
         brand: editedFields.brand || null,
         card_number: editedFields.card_number || null,
         grade: addGrade,
-        // Pre-fill book values from dictionary match if available
-        ...(identifyResult.dictionary_match?.book_high != null && { book_high: identifyResult.dictionary_match.book_high }),
-        ...(identifyResult.dictionary_match?.book_high_mid != null && { book_high_mid: identifyResult.dictionary_match.book_high_mid }),
-        ...(identifyResult.dictionary_match?.book_mid != null && { book_mid: identifyResult.dictionary_match.book_mid }),
-        ...(identifyResult.dictionary_match?.book_low_mid != null && { book_low_mid: identifyResult.dictionary_match.book_low_mid }),
-        ...(identifyResult.dictionary_match?.book_low != null && { book_low: identifyResult.dictionary_match.book_low }),
+        // Pre-fill book values from live dict match (falls back to original scan result)
+        ...(() => {
+          const dm = dictMatch ?? identifyResult.dictionary_match;
+          return {
+            ...(dm?.book_high     != null && { book_high:     dm.book_high }),
+            ...(dm?.book_high_mid != null && { book_high_mid: dm.book_high_mid }),
+            ...(dm?.book_mid      != null && { book_mid:      dm.book_mid }),
+            ...(dm?.book_low_mid  != null && { book_low_mid:  dm.book_low_mid }),
+            ...(dm?.book_low      != null && { book_low:      dm.book_low }),
+          };
+        })(),
       };
       const cardRes = await api.post("/cards/", payload);
       const newCardId = cardRes.data.id;
@@ -277,6 +338,8 @@ export default function ScanPage() {
     setIdentifyError(null);
     setEditedFields({});
     setAddResult(null);
+    setDictMatch(null);
+    setDictLookupPending(false);
   };
 
   // --- Render ---
@@ -519,29 +582,35 @@ export default function ScanPage() {
                       </div>
                     )}
 
-                    {/* Dictionary match — only show if at least one book value present */}
-                    {identifyResult.dictionary_match?.found &&
-                      (identifyResult.dictionary_match.book_high != null ||
-                       identifyResult.dictionary_match.book_mid != null ||
-                       identifyResult.dictionary_match.book_low != null) && (
-                      <div className="card-section" style={{ marginBottom: "1rem", background: "var(--bg-success-light, #f0fff4)" }}>
-                        <strong style={{ fontSize: "0.95rem" }}>📖 Dictionary Match — Book Values</strong>
-                        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
-                          {[
-                            ["book_high",     "H",  "book-high"],
-                            ["book_high_mid", "HM", "book-highmid"],
-                            ["book_mid",      "M",  "book-mid"],
-                            ["book_low_mid",  "LM", "book-lowmid"],
-                            ["book_low",      "L",  "book-low"],
-                          ].map(([field, label, cls]) =>
-                            identifyResult.dictionary_match[field] != null ? (
-                              <span key={field} className={`book-badge ${cls}`} title={label}>
-                                {label}: ${identifyResult.dictionary_match[field]}
-                              </span>
-                            ) : null
-                          )}
+                    {/* Dictionary match — live result takes precedence over initial scan result */}
+                    {(() => {
+                      const dm = dictMatch ?? identifyResult.dictionary_match;
+                      return dm?.found &&
+                        (dm.book_high != null || dm.book_mid != null || dm.book_low != null) ? (
+                        <div className="card-section" style={{ marginBottom: "1rem", background: "var(--bg-success-light, #f0fff4)" }}>
+                          <strong style={{ fontSize: "0.95rem" }}>📖 Dictionary Match — Book Values</strong>
+                          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
+                            {[
+                              ["book_high",     "H",  "book-high"],
+                              ["book_high_mid", "HM", "book-highmid"],
+                              ["book_mid",      "M",  "book-mid"],
+                              ["book_low_mid",  "LM", "book-lowmid"],
+                              ["book_low",      "L",  "book-low"],
+                            ].map(([field, label, cls]) =>
+                              dm[field] != null ? (
+                                <span key={field} className={`book-badge ${cls}`} title={label}>
+                                  {label}: ${dm[field]}
+                                </span>
+                              ) : null
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      ) : null;
+                    })()}
+                    {dictLookupPending && (
+                      <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>
+                        Searching dictionary…
+                      </p>
                     )}
 
                     {/* Collection match */}

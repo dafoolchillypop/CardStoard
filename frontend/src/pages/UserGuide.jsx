@@ -226,9 +226,62 @@ export default function UserGuide() {
           </p>
         </div>
 
-        {/* 4. Valuation Engine */}
+        {/* 5. Scan Page */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>4. Valuation Engine</h3>
+          <h3 style={h3Style}>5. Scan Page — AI Card Identification</h3>
+
+          <p style={{ marginTop: 0 }}>
+            The Scan page (accessible via the <strong>📷 Scan Card</strong> button on My Cards, or from your browser
+            when Image AI is enabled in Admin) has two tabs: <strong>Identify Card</strong> and <strong>Scan QR Code</strong>.
+          </p>
+
+          <p style={h4Style}>Tab 1 — Identify Card</p>
+          <ol style={{ marginTop: 0 }}>
+            <li>
+              <strong>Choose a photo</strong> — tap the upload area to select an image from your device,
+              or click <strong>📷 Use Camera</strong> to capture a photo directly in the browser (front-facing or rear camera).
+            </li>
+            <li>
+              Optionally check <strong>Include condition assessment</strong> to have the AI estimate the card's grade.
+            </li>
+            <li>Click <strong>🔍 Identify</strong>. The AI analyses the image and returns extracted fields.</li>
+          </ol>
+
+          <p style={h4Style}>Results panel</p>
+          <ul style={{ marginTop: 0 }}>
+            <li><strong>Confidence bar</strong> — green (&gt;75%), amber (50–75%), or red (&lt;50%) indicates how certain the AI is about its extraction.</li>
+            <li><strong>Extracted Fields</strong> — editable inputs for First Name, Last Name, Year, Brand, Card #, and Grade. Correct any field that the AI got wrong.</li>
+            <li>
+              <strong>Dictionary Match — Book Values</strong> — if a dictionary entry is found for the identified player,
+              brand, year, and card number, the matching book value tiers are shown (H / HM / M / LM / L).
+              <br />
+              <em>Live re-query:</em> As you edit any field, the dictionary is re-queried automatically after a short pause.
+              If the AI mis-read the name, correct it and the correct book values will appear immediately — no need to re-scan.
+              The card number is also auto-filled from the dictionary if the AI did not detect one.
+            </li>
+            <li><strong>Condition Estimate</strong> — if condition assessment was requested, the AI's grade suggestion and condition notes are shown. The Grade dropdown is pre-filled with the suggested grade.</li>
+            <li><strong>Already in Collection</strong> — a warning appears if you already own one or more copies of the identified card, with links to the existing cards.</li>
+          </ul>
+
+          <p style={h4Style}>Adding to your collection</p>
+          <ol style={{ marginTop: 0 }}>
+            <li>Review and correct any extracted fields.</li>
+            <li>Optionally check <strong>Save this photo as the card's front image</strong>.</li>
+            <li>Click <strong>＋ Add to Collection</strong>. The card is created with the current field values and book values from the live dictionary match.</li>
+            <li>After adding, click <strong>View in My Cards</strong> to jump to the new card, or <strong>Scan Another</strong> to start over.</li>
+          </ol>
+
+          <p style={h4Style}>Tab 2 — Scan QR Code</p>
+          <p style={{ marginTop: 0, marginBottom: 0 }}>
+            Point your device camera at a CardStoard QR label to navigate directly to that card, ball, pack, or set.
+            If camera access is unavailable, paste a URL or path (e.g. <code>/card-detail/42</code>) into the
+            manual input and click <strong>Go →</strong>.
+          </p>
+        </div>
+
+        {/* 6. Valuation Engine */}
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>6. Valuation Engine</h3>
 
           <p style={{ marginTop: 0 }}>
             Every card's value is computed server-side each time you save. The formula is:
@@ -284,9 +337,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 6. Player Dictionary & Smart Fill */}
+        {/* 7. Player Dictionary & Smart Fill */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>6. Player Dictionary &amp; Smart Fill</h3>
+          <h3 style={h3Style}>7. Player Dictionary &amp; Smart Fill</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/dictionary" style={{ color: "var(--link)" }}>Player Dictionary</Link> is a reference
@@ -323,9 +376,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </ul>
         </div>
 
-        {/* 7. Sets */}
+        {/* 8. Sets */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>7. Sets</h3>
+          <h3 style={h3Style}>8. Sets</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/sets" style={{ color: "var(--link)" }}>Sets</Link> page lets you browse global set
@@ -355,9 +408,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 8. Sets/Binders */}
+        {/* 9. Sets/Binders */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>8. Sets/Binders</h3>
+          <h3 style={h3Style}>9. Sets/Binders</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/boxes" style={{ color: "var(--link)" }}>Sets/Binders</Link> page tracks complete
@@ -402,9 +455,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 9. Auto Balls */}
+        {/* 10. Auto Balls */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>9. Auto Balls</h3>
+          <h3 style={h3Style}>10. Auto Balls</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/balls" style={{ color: "var(--link)" }}>Auto Balls</Link> page tracks autographed
@@ -442,9 +495,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 10. Wax Boxes */}
+        {/* 11. Wax Boxes */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>10. Wax Boxes</h3>
+          <h3 style={h3Style}>11. Wax Boxes</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/wax" style={{ color: "var(--link)" }}>Wax Boxes</Link> page tracks sealed wax boxes
@@ -481,9 +534,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 11. Wax Packs */}
+        {/* 12. Wax Packs */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>11. Wax Packs</h3>
+          <h3 style={h3Style}>12. Wax Packs</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/packs" style={{ color: "var(--link)" }}>Wax Packs</Link> page tracks individual wax packs
@@ -520,9 +573,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 12. Analytics */}
+        {/* 13. Analytics */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>12. Analytics</h3>
+          <h3 style={h3Style}>13. Analytics</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/analytics" style={{ color: "var(--link)" }}>Analytics</Link> dashboard gives you a high-level
@@ -552,9 +605,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 13. Admin */}
+        {/* 14. Admin */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>13. Admin Settings</h3>
+          <h3 style={h3Style}>14. Admin Settings</h3>
 
           <p style={{ marginTop: 0 }}>
             All administrative tools are consolidated on the <Link to="/admin" style={{ color: "var(--link)" }}>Admin</Link> page.
@@ -626,9 +679,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </ul>
         </div>
 
-        {/* 14. Account & Security */}
+        {/* 15. Account & Security */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>14. Account &amp; Security</h3>
+          <h3 style={h3Style}>15. Account &amp; Security</h3>
 
           <p style={{ marginTop: 0 }}>
             Access your account settings by clicking your username in the top-right of the navigation bar.

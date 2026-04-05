@@ -556,7 +556,8 @@ def seed_values_from_cards(
         Card.book_low.isnot(None),      Card.book_low > 0,
     ).all()
 
-    seeded = 0
+    created = 0
+    updated = 0
     for card in cards_with_values:
         if not card.brand or not card.year or not card.card_number:
             continue
@@ -573,7 +574,27 @@ def seed_values_from_cards(
             entry.book_low_mid  = card.book_low_mid
             entry.book_low      = card.book_low
             entry.book_values_imported_at = now
-            seeded += 1
+            updated += 1
+        else:
+            db.add(DictionaryEntry(
+                first_name=card.first_name,
+                last_name=card.last_name,
+                rookie_year=None,
+                brand=card.brand,
+                year=card.year,
+                card_number=card.card_number,
+                book_high=card.book_high,
+                book_high_mid=card.book_high_mid,
+                book_mid=card.book_mid,
+                book_low_mid=card.book_low_mid,
+                book_low=card.book_low,
+                book_values_imported_at=now,
+            ))
+            created += 1
 
     db.commit()
-    return {"seeded": seeded, "message": f"Seeded {seeded} dictionary entries from your cards."}
+    return {
+        "updated": updated,
+        "created": created,
+        "message": f"Seeded {updated + created} dictionary entries ({updated} updated, {created} created).",
+    }
