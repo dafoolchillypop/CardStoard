@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# CardStoard — Local Production Deploy
-# Runs from this machine, SSHs into EC2, pulls latest, and deploys.
+# CardStoard — Production Deploy Script
+# Runs from local machine, SSHs into EC2, pulls latest, and deploys.
 #
 # Usage:
 #   ./utils/deploy-ec2-prod.sh           # full rebuild + validation (with DB backup/restore)
-#   ./utils/deploy-ec2-prod.sh --deploy  # rebuild only, skip validation
 #   ./utils/deploy-ec2-prod.sh --check   # validate only, no rebuild
 
 set -e
@@ -12,42 +11,81 @@ set -e
 EC2="ubuntu@3.221.77.22"
 KEY="~/.ssh/id_rsa"
 SSH="ssh -i $KEY -o StrictHostKeyChecking=no $EC2"
-BACKUP_FILE="/home/ubuntu/cardstoard_predeploy_backup.sql"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="/home/ubuntu/backups"
+BACKUP_FILE="$BACKUP_DIR/cardstoard_${TIMESTAMP}.sql"
+LATEST_LINK="$BACKUP_DIR/latest.sql"
 
-# Frontend build check (runs locally before touching EC2)
-if [[ "$1" != "--check" ]]; then
-  echo "--- Checking frontend build (ESLint + compile) ---"
-  if ! command -v npm &>/dev/null; then
-    echo "⚠️  npm not found locally — skipping frontend build check."
-    echo "   Install Node.js locally to enable pre-deploy ESLint validation."
-  elif ! (cd frontend && npm run build 2>&1); then
-    echo "❌ Frontend build failed. Fix errors before deploying to prod."
-    exit 1
-  else
-    echo "✅ Frontend build OK."
-    rm -rf frontend/build
-  fi
+# --- Branch gate (runs first, before any SSH) ---
+CURRENT_BRANCH=$(git branch --show-current)
+if [[ "$CURRENT_BRANCH" == "main" ]]; then
+  echo "❌ BLOCKED: Cannot deploy directly from main branch."
+  echo "   Workflow: create feature branch → develop → merge to main → deploy."
+  exit 1
 fi
 
-# --check and --deploy pass-throughs skip backup/restore
-if [[ "$1" == "--check" || "$1" == "--deploy" ]]; then
+# --- Block --deploy mode (too dangerous on prod — skips backup) ---
+if [[ "$1" == "--deploy" ]]; then
+  echo "❌ --deploy is not allowed in the prod deploy script (skips backup — no data protection)."
+  echo "   Use the full deploy (no flags) or --check for validation only."
+  exit 1
+fi
+
+# --- check pass-through (no backup/restore needed) ---
+if [[ "$1" == "--check" ]]; then
   $SSH "
     set -e
     cd /home/ubuntu/CardStoard
     echo '--- Pulling latest from main ---'
     git pull origin main
-    echo '--- Running deploy ($1) ---'
-    ./utils/docker_deploy.sh $1
+    echo '--- Running validation (--check) ---'
+    ./utils/docker_deploy.sh --check
   "
   exit 0
 fi
 
-# Full deploy: backup → rebuild → restore
+# --- Frontend build check (runs locally before touching EC2) ---
+echo "--- Checking frontend build (ESLint + compile) ---"
+if ! command -v npm &>/dev/null; then
+  echo "⚠️  npm not found locally — skipping frontend build check."
+  echo "   Install Node.js locally to enable pre-deploy ESLint validation."
+elif ! (cd frontend && npm run build 2>&1); then
+  echo "❌ Frontend build failed. Fix errors before deploying to prod."
+  exit 1
+else
+  echo "✅ Frontend build OK."
+  rm -rf frontend/build
+fi
+
+# --- Verify DB container is running before attempting backup ---
+echo "--- Checking DB container is running before backup ---"
+if ! $SSH "docker ps --filter name=stoardb --filter status=running -q | grep -q ."; then
+  echo "❌ DB container 'stoardb' is not running — cannot take safe backup. Aborting."
+  echo "   A running database is required before any production deployment."
+  exit 1
+fi
+
+# --- Full deploy: backup → rebuild → restore ---
 echo "--- Backing up production database ---"
-$SSH "docker exec stoardb pg_dump -U postgres --data-only \
-  --exclude-table=dictionary_entries \
-  --exclude-table=schema_migrations \
-  cardstoardb > $BACKUP_FILE && echo 'Backup saved to $BACKUP_FILE'"
+$SSH "
+  set -e
+  mkdir -p $BACKUP_DIR
+
+  docker exec stoardb pg_dump -U postgres --data-only \
+    --exclude-table=schema_migrations \
+    cardstoardb > $BACKUP_FILE
+
+  BACKUP_SIZE=\$(stat -c%s $BACKUP_FILE 2>/dev/null || echo 0)
+  if [ \$BACKUP_SIZE -lt 10000 ]; then
+    rm -f $BACKUP_FILE
+    echo 'ERROR: Backup too small ('\$BACKUP_SIZE' bytes) — likely empty or corrupt'
+    exit 1
+  fi
+
+  ln -sf $BACKUP_FILE $LATEST_LINK
+  ls -t $BACKUP_DIR/cardstoard_*.sql 2>/dev/null | tail -n +8 | xargs rm -f 2>/dev/null || true
+  echo \"✅ Backup saved: $BACKUP_FILE (\${BACKUP_SIZE} bytes)\"
+"
 
 echo "--- Pulling latest from main ---"
 $SSH "cd /home/ubuntu/CardStoard && git pull origin main"
@@ -82,8 +120,8 @@ $SSH "cd /home/ubuntu/CardStoard && source ~/.cardstoard.env && ./utils/smoke_te
 echo ""
 echo "--- Deploy summary ---"
 if [[ $SMOKE_EXIT -eq 0 ]]; then
-  echo "✅ Deploy complete — smoke test: 14/14 passed"
+  echo "✅ Deploy complete — smoke test passed"
 else
-  echo "✅ Deploy steps complete — ⚠  smoke test exited $SMOKE_EXIT (review output above)"
+  echo "❌ Deploy steps complete — smoke test FAILED (exit $SMOKE_EXIT — review output above)"
 fi
 exit $SMOKE_EXIT

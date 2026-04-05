@@ -2,11 +2,13 @@
 # CardStoard Full Docker Cleanup Script
 # Completely resets Docker environment: containers, images, volumes, networks, cache
 
-echo ""
-echo "⚠️  WARNING: This will remove ALL Docker containers, images, volumes, and networks!"
-echo "    Your database and all stored data will be erased."
-echo ""
-read -p "Press ENTER to continue or Ctrl+C to cancel..."
+if [ -t 0 ]; then
+  echo ""
+  echo "⚠️  WARNING: This will remove ALL Docker containers, images, volumes, and networks!"
+  echo "    Your database and all stored data will be erased."
+  echo ""
+  read -p "Press ENTER to continue or Ctrl+C to cancel..."
+fi
 
 echo ""
 echo "🔻 Stopping all running containers..."
