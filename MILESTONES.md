@@ -20,6 +20,10 @@
 - **Dictionary data quality** — removed ~500 bogus non-player entries (empty names, Leaders, Checklist, All-Star, Team cards); `rookie_year` propagated/corrected across 13,000+ entries; HOF and star players (70+) filled across all eras including Eckersley, Drysdale, Gibson, Santo corrections
 - **DictionaryEdit save fix** — editing a dictionary entry with empty book value fields no longer fails (empty string → null coercion for `Optional[float]` Pydantic fields)
 
+### Patches
+- **Seed-from-cards creates missing entries** — `seed-values-from-cards` now creates a `DictionaryEntry` if none exists for that player/brand/year/card_number combo before writing the `DictionaryValue`; previously it silently skipped cards not already in the dictionary
+- **Scan page live dictionary re-query** — after AI vision scan, editing any extracted field (name, brand, year, card number) triggers a debounced re-query of the dictionary; the book value panel and Add-to-Collection payload update immediately, so a corrected name yields the right values without re-scanning
+
 ---
 
 ## v1.18 — Duplicate Code Refactor (March 2026)
