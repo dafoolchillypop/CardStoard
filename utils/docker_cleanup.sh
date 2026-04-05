@@ -20,8 +20,11 @@ docker rm -f $(docker ps -aq) 2>/dev/null || true
 echo "🧩 Removing all images..."
 docker rmi -f $(docker images -q) 2>/dev/null || true
 
-echo "📦 Removing all volumes..."
-docker volume rm $(docker volume ls -q) 2>/dev/null || true
+echo "📦 Removing volumes (preserving cards data)..."
+VOLUMES_TO_REMOVE=$(docker volume ls -q | grep -v 'cards')
+if [ -n "$VOLUMES_TO_REMOVE" ]; then
+  docker volume rm $VOLUMES_TO_REMOVE 2>/dev/null || true
+fi
 
 echo "🌐 Removing unused networks..."
 docker network prune -f >/dev/null
