@@ -604,8 +604,8 @@ export default function Admin() {
               </div>
             </div>
 
-            <div style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
-              <div>
+            <div style={{ marginTop: "1.5rem", display: "flex", flexDirection: "row", justifyContent: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: "200px", textAlign: "center" }}>
                 <button onClick={async () => {
                   if (!window.confirm("Recalculate valuation for ALL cards now?")) return;
                   try {
@@ -622,7 +622,7 @@ export default function Admin() {
                 </button>
                 <InfoIcon id="revalue" text="Recalculates the estimated value for every card in your collection using current factor settings." />
               </div>
-              <div>
+              <div style={{ flex: 1, minWidth: "200px", textAlign: "center" }}>
                 <button type="button" onClick={async () => {
                   if (!window.confirm("Reset the book freshness timer to today for all cards that have book values entered?")) return;
                   try {
