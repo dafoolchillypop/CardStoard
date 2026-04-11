@@ -3,11 +3,12 @@
  * ----------------
  * Application settings hub — all per-user configuration in one place.
  *
- * Tab layout:
- *   Settings   — Features (toggles), Nav Bar, General Settings, Row Colors
- *   Valuation  — Factor settings, Apply Global Valuation, Reset Book Value Timers
- *   Dictionary — Player Dictionary (dedup, invalid purge) + Value Dictionary (seed, import)
- *   Data       — Card Sets (visibility), Card Import, Data Management (export/backup/restore)
+ * Layout: pill tab bar (top) + accordion sections within each tab.
+ *
+ *   Settings   — Features, Nav Bar, General Settings, Row Colors (all open by default)
+ *   Valuation  — Factor settings, Apply Global Valuation, Reset Book Value Timers (flat, short)
+ *   Dictionary — Player Dictionary, Value Dictionary (both open by default)
+ *   Data       — Card Sets, Card Import, Data Management (Card Sets open by default)
  *
  * Save behavior:
  *   - Most fields: debouncedSave() — 1500ms after last change → PUT /settings/
@@ -29,9 +30,17 @@ const TABS = [
   { id: "data",       label: "Data"       },
 ];
 
+// Sections open by default per tab
+const DEFAULT_OPEN = new Set([
+  "s-features", "s-navbar", "s-general", "s-rowcolors",  // Settings — all open
+  "d-player", "d-value",                                  // Dictionary — both open
+  "data-sets",                                            // Data — Card Sets open
+]);
+
 export default function Admin() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("settings");
+  const [openSections, setOpenSections] = useState(new Set(DEFAULT_OPEN));
   const [settings, setSettings] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -57,6 +66,15 @@ export default function Admin() {
   const [invalidLoading, setInvalidLoading] = useState(false);
   const [invalidMsg, setInvalidMsg] = useState("");
   const [invalidConfirming, setInvalidConfirming] = useState(false);
+
+  const toggleSection = (id) => {
+    setOpenSections(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const fetchValuesStats = () => {
     api.get("/dictionary/values-stats")
@@ -275,7 +293,7 @@ export default function Admin() {
   };
 
   const InfoIcon = ({ id, text }) => (
-    <span style={{ position: "relative", display: "inline-block", marginLeft: "0.4rem" }}>
+    <span style={{ position: "relative", display: "inline-block", marginLeft: "0.4rem" }} onClick={e => e.stopPropagation()}>
       <span
         onMouseEnter={() => setDmTooltip(id)}
         onMouseLeave={() => setDmTooltip(null)}
@@ -299,6 +317,31 @@ export default function Admin() {
         </span>
       )}
     </span>
+  );
+
+  // Accordion section header — clickable h3 with animated chevron
+  const SectionHeader = ({ id, children }) => (
+    <h3
+      onClick={() => toggleSection(id)}
+      style={{
+        cursor: "pointer",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 0,
+        userSelect: "none",
+      }}
+    >
+      <span>{children}</span>
+      <span style={{
+        fontSize: "0.7rem",
+        color: "var(--text-muted)",
+        display: "inline-block",
+        transform: openSections.has(id) ? "rotate(180deg)" : "rotate(0deg)",
+        transition: "transform 0.2s",
+        marginLeft: "0.5rem",
+      }}>▼</span>
+    </h3>
   );
 
   // --- Set visibility helpers ---
@@ -396,66 +439,48 @@ export default function Admin() {
         </div>
 
         {/* ══════════════════════════════════════════
-            TAB: Settings
+            TAB: Settings  (4 accordion sections)
         ══════════════════════════════════════════ */}
         {activeTab === "settings" && (
           <>
             {/* Features */}
             <div className="card-section" style={{ marginBottom: "1rem" }}>
-              <h3>Features</h3>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <input
-                    type="checkbox"
-                    name="smart"
-                    checked={settings.enable_smart_fill}
-                    onChange={() => handleToggle("enable_smart_fill")}
-                    style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }}
-                  />
-                  <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
-                    Smart Fill
-                    <InfoIcon id="smartfill" text="Auto-populates card number and rookie flag when adding cards, using the Player Dictionary." />
+              <SectionHeader id="s-features">Features</SectionHeader>
+              {openSections.has("s-features") && (
+                <div style={{ marginTop: "0.75rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <input type="checkbox" checked={settings.enable_smart_fill} onChange={() => handleToggle("enable_smart_fill")}
+                      style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }} />
+                    <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
+                      Smart Fill
+                      <InfoIcon id="smartfill" text="Auto-populates card number and rookie flag when adding cards, using the Player Dictionary." />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <input type="checkbox" checked={settings.chatbot_enabled ?? false} onChange={() => handleToggle("chatbot_enabled")}
+                      style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }} />
+                    <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
+                      Collection Assistant (Chatbot)
+                      <InfoIcon id="chatbot" text="Enables the AI-powered chat assistant (💬) in the header. Requires an Anthropic API key to be configured." />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <input type="checkbox" checked={settings.enable_image_ai ?? false} onChange={() => handleToggle("enable_image_ai")}
+                      style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }} />
+                    <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
+                      Image AI (Scan)
+                      <InfoIcon id="imageai" text="Enable AI-powered card identification from photos and QR code scanning. Uses Claude Vision API — requires ANTHROPIC_API_KEY." />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "0.5rem" }}>
+                    <input type="checkbox" checked={settings.dark_mode ?? false} onChange={() => handleToggle("dark_mode")}
+                      style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }} />
+                    <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
+                      Dark Mode
+                    </div>
                   </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <input
-                    type="checkbox"
-                    name="chatbot"
-                    checked={settings.chatbot_enabled ?? false}
-                    onChange={() => handleToggle("chatbot_enabled")}
-                    style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }}
-                  />
-                  <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
-                    Collection Assistant (Chatbot)
-                    <InfoIcon id="chatbot" text="Enables the AI-powered chat assistant (💬) in the header. Requires an Anthropic API key to be configured." />
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <input
-                    type="checkbox"
-                    name="image_ai"
-                    checked={settings.enable_image_ai ?? false}
-                    onChange={() => handleToggle("enable_image_ai")}
-                    style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }}
-                  />
-                  <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
-                    Image AI (Scan)
-                    <InfoIcon id="imageai" text="Enable AI-powered card identification from photos and QR code scanning. Uses Claude Vision API — requires ANTHROPIC_API_KEY." />
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "0.5rem" }}>
-                  <input
-                    type="checkbox"
-                    name="dark_mode"
-                    checked={settings.dark_mode ?? false}
-                    onChange={() => handleToggle("dark_mode")}
-                    style={{ width: "16px", height: "16px", margin: 0, flexShrink: 0, cursor: "pointer" }}
-                  />
-                  <div style={{ display: "flex", alignItems: "center", fontSize: "0.9rem", fontWeight: "bold" }}>
-                    Dark Mode
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Nav Bar */}
@@ -471,109 +496,105 @@ export default function Admin() {
               ];
               const current = settings.nav_items ?? ALL_NAV.map(n => n.key);
               const toggle = (key) => {
-                const next = current.includes(key)
-                  ? current.filter(k => k !== key)
-                  : [...current, key];
+                const next = current.includes(key) ? current.filter(k => k !== key) : [...current, key];
                 const value = next.length === ALL_NAV.length ? null : next;
                 setSettings(prev => ({ ...prev, nav_items: value }));
                 debouncedSave({ nav_items: value });
               };
               return (
                 <div className="card-section" style={{ marginBottom: "1rem" }}>
-                  <h3>Nav Bar <InfoIcon id="navbar" text="Choose which buttons appear in the navigation bar. Changes take effect immediately." /></h3>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", alignItems: "center" }}>
-                    {[ALL_NAV.slice(0, 4), ALL_NAV.slice(4)].map((row, ri) => (
-                      <div key={ri} style={{ display: "flex", gap: "1.5rem" }}>
-                        {row.map(({ key, label }) => (
-                          <label key={key} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.9rem", fontWeight: "bold", cursor: "pointer" }}>
-                            <input
-                              type="checkbox"
-                              checked={current.includes(key)}
-                              onChange={() => toggle(key)}
-                              style={{ width: "16px", height: "16px", margin: 0, cursor: "pointer" }}
-                            />
-                            {label}
-                          </label>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
+                  <SectionHeader id="s-navbar">
+                    Nav Bar <InfoIcon id="navbar" text="Choose which buttons appear in the navigation bar. Changes take effect immediately." />
+                  </SectionHeader>
+                  {openSections.has("s-navbar") && (
+                    <div style={{ marginTop: "0.75rem", display: "flex", flexDirection: "column", gap: "0.6rem", alignItems: "center" }}>
+                      {[ALL_NAV.slice(0, 4), ALL_NAV.slice(4)].map((row, ri) => (
+                        <div key={ri} style={{ display: "flex", gap: "1.5rem" }}>
+                          {row.map(({ key, label }) => (
+                            <label key={key} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.9rem", fontWeight: "bold", cursor: "pointer" }}>
+                              <input type="checkbox" checked={current.includes(key)} onChange={() => toggle(key)}
+                                style={{ width: "16px", height: "16px", margin: 0, cursor: "pointer" }} />
+                              {label}
+                            </label>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })()}
 
             {/* General Settings */}
             <div className="card-section" style={{ marginBottom: "1rem" }}>
-              <h3>General Settings <InfoIcon id="generalsettings" text="Configure the list of card brands and grades available when adding cards." /></h3>
-              <ChipsInput
-                label="Card Makes"
-                values={settings.card_makes}
-                setValues={(vals) => {
-                  const updated = { ...settings, card_makes: vals };
-                  setSettings(updated);
-                  debouncedSave(updated);
-                }}
-              />
-              <div style={{ marginTop: "1rem" }}>
-                <label style={{ fontWeight: 750, color: "var(--text-secondary)", display: "block", marginBottom: "0.4rem", textAlign: "center" }}>
-                  Card Grades
-                  <InfoIcon id="cardgrades" text="Fixed by the CardStoard valuation formula — not user-configurable." />
-                </label>
-                <div style={{ display: "flex", flexWrap: "nowrap", gap: "0.4rem", justifyContent: "center" }}>
-                  {["3.0 MT", "1.5 NMMT", "1.0 EXMT", "0.8 VGEX", "0.4 GD", "0.2 PR"].map(g => (
-                    <span key={g} style={{
-                      background: "var(--bg-muted)", border: "1px solid var(--border)",
-                      borderRadius: "20px", padding: "0.25rem 0.75rem",
-                      fontSize: "0.85rem", color: "var(--text-muted)",
-                    }}>{g}</span>
-                  ))}
+              <SectionHeader id="s-general">
+                General Settings <InfoIcon id="generalsettings" text="Configure the list of card brands and grades available when adding cards." />
+              </SectionHeader>
+              {openSections.has("s-general") && (
+                <div style={{ marginTop: "0.75rem" }}>
+                  <ChipsInput
+                    label="Card Makes"
+                    values={settings.card_makes}
+                    setValues={(vals) => {
+                      const updated = { ...settings, card_makes: vals };
+                      setSettings(updated);
+                      debouncedSave(updated);
+                    }}
+                  />
+                  <div style={{ marginTop: "1rem" }}>
+                    <label style={{ fontWeight: 750, color: "var(--text-secondary)", display: "block", marginBottom: "0.4rem", textAlign: "center" }}>
+                      Card Grades
+                      <InfoIcon id="cardgrades" text="Fixed by the CardStoard valuation formula — not user-configurable." />
+                    </label>
+                    <div style={{ display: "flex", flexWrap: "nowrap", gap: "0.4rem", justifyContent: "center" }}>
+                      {["3.0 MT", "1.5 NMMT", "1.0 EXMT", "0.8 VGEX", "0.4 GD", "0.2 PR"].map(g => (
+                        <span key={g} style={{
+                          background: "var(--bg-muted)", border: "1px solid var(--border)",
+                          borderRadius: "20px", padding: "0.25rem 0.75rem",
+                          fontSize: "0.85rem", color: "var(--text-muted)",
+                        }}>{g}</span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Row Colors */}
-            <div className="card-section">
-              <h3>Row Colors <InfoIcon id="rowcolors" text="Background colors applied to rows on the My Cards page based on card condition." /></h3>
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "2rem", flexWrap: "nowrap", margin: "0.5rem 0" }}>
-                {[
-                  { label: "Rookie", name: "row_color_rookie" },
-                  { label: "Grade 3 (MT)", name: "row_color_grade3" },
-                  { label: "Rookie + Grade 3", name: "row_color_rookie_grade3" },
-                ].map(({ label, name }) => (
-                  <div key={name} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <label style={{ fontSize: "0.95rem", whiteSpace: "nowrap" }}>{label}</label>
-                    <input
-                      type="color"
-                      name={name}
-                      value={settings[name] || "#ffffff"}
-                      onChange={handleChange}
-                      style={{ width: "52px", height: "36px", padding: "2px", cursor: "pointer", border: "1px solid #ccc", borderRadius: "4px" }}
-                    />
+            <div className="card-section" style={{ marginBottom: "1rem" }}>
+              <SectionHeader id="s-rowcolors">
+                Row Colors <InfoIcon id="rowcolors" text="Background colors applied to rows on the My Cards page based on card condition." />
+              </SectionHeader>
+              {openSections.has("s-rowcolors") && (
+                <div style={{ marginTop: "0.75rem" }}>
+                  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "2rem", flexWrap: "nowrap", margin: "0.5rem 0" }}>
+                    {[
+                      { label: "Rookie", name: "row_color_rookie" },
+                      { label: "Grade 3 (MT)", name: "row_color_grade3" },
+                      { label: "Rookie + Grade 3", name: "row_color_rookie_grade3" },
+                    ].map(({ label, name }) => (
+                      <div key={name} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.95rem", whiteSpace: "nowrap" }}>{label}</label>
+                        <input type="color" name={name} value={settings[name] || "#ffffff"} onChange={handleChange}
+                          style={{ width: "52px", height: "36px", padding: "2px", cursor: "pointer", border: "1px solid #ccc", borderRadius: "4px" }} />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div style={{ textAlign: "center", marginTop: "0.5rem" }}>
-                <button
-                  type="button"
-                  className="nav-btn"
-                  onClick={() => {
-                    const defaults = {
-                      ...settings,
-                      row_color_rookie: "#fff3c4",
-                      row_color_grade3: "#e8dcff",
-                      row_color_rookie_grade3: "#b8d8f7",
-                    };
-                    setSettings(defaults);
-                    debouncedSave(defaults);
-                  }}
-                >
-                  Restore Default Colors
-                </button>
-              </div>
+                  <div style={{ textAlign: "center", marginTop: "0.5rem" }}>
+                    <button type="button" className="nav-btn" onClick={() => {
+                      const defaults = { ...settings, row_color_rookie: "#fff3c4", row_color_grade3: "#e8dcff", row_color_rookie_grade3: "#b8d8f7" };
+                      setSettings(defaults);
+                      debouncedSave(defaults);
+                    }}>
+                      Restore Default Colors
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Save */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", justifyContent: "center", marginTop: "1rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", justifyContent: "center", marginTop: "0.25rem" }}>
               <button type="button" onClick={handleSaveNow}>Save Now</button>
               {saveStatus === "saving" && <span style={{ fontSize: "0.85rem", color: "#888" }}>Saving...</span>}
               {saveStatus === "saved"  && <span style={{ fontSize: "0.85rem", color: "#28a745" }}>✓ Saved</span>}
@@ -583,50 +604,24 @@ export default function Admin() {
         )}
 
         {/* ══════════════════════════════════════════
-            TAB: Valuation
+            TAB: Valuation  (flat — short enough)
         ══════════════════════════════════════════ */}
         {activeTab === "valuation" && (
           <>
-            {/* Factor Settings */}
             <div className="card-section">
               <h3>Factor Settings <InfoIcon id="factorsettings" text="Multipliers applied to book value when calculating card value. Grade factors reflect condition; Rookie factor boosts rookie card value." /></h3>
               <div className="factor-group">
-                <div>
-                  <label>Rookie Factor</label>
-                  <input type="number" step="0.01" name="rookie_factor" value={settings.rookie_factor} onChange={handleChange} />
-                </div>
-                <div>
-                  <label>Auto Factor</label>
-                  <input type="number" step="0.01" name="auto_factor" value={settings.auto_factor} onChange={handleChange} />
-                </div>
-                <div>
-                  <label>MTGrade Factor</label>
-                  <input type="number" step="0.01" name="mtgrade_factor" value={settings.mtgrade_factor} onChange={handleChange} />
-                </div>
-                <div>
-                  <label>EXGrade Factor</label>
-                  <input type="number" step="0.01" name="exgrade_factor" value={settings.exgrade_factor} onChange={handleChange} />
-                </div>
-                <div>
-                  <label>VGGrade Factor</label>
-                  <input type="number" step="0.01" name="vggrade_factor" value={settings.vggrade_factor} onChange={handleChange} />
-                </div>
-                <div>
-                  <label>GDGrade Factor</label>
-                  <input type="number" step="0.01" name="gdgrade_factor" value={settings.gdgrade_factor} onChange={handleChange} />
-                </div>
-                <div>
-                  <label>FRGrade Factor</label>
-                  <input type="number" step="0.01" name="frgrade_factor" value={settings.frgrade_factor} onChange={handleChange} />
-                </div>
-                <div>
-                  <label>PRGrade Factor</label>
-                  <input type="number" step="0.01" name="prgrade_factor" value={settings.prgrade_factor} onChange={handleChange} />
-                </div>
+                <div><label>Rookie Factor</label><input type="number" step="0.01" name="rookie_factor" value={settings.rookie_factor} onChange={handleChange} /></div>
+                <div><label>Auto Factor</label><input type="number" step="0.01" name="auto_factor" value={settings.auto_factor} onChange={handleChange} /></div>
+                <div><label>MTGrade Factor</label><input type="number" step="0.01" name="mtgrade_factor" value={settings.mtgrade_factor} onChange={handleChange} /></div>
+                <div><label>EXGrade Factor</label><input type="number" step="0.01" name="exgrade_factor" value={settings.exgrade_factor} onChange={handleChange} /></div>
+                <div><label>VGGrade Factor</label><input type="number" step="0.01" name="vggrade_factor" value={settings.vggrade_factor} onChange={handleChange} /></div>
+                <div><label>GDGrade Factor</label><input type="number" step="0.01" name="gdgrade_factor" value={settings.gdgrade_factor} onChange={handleChange} /></div>
+                <div><label>FRGrade Factor</label><input type="number" step="0.01" name="frgrade_factor" value={settings.frgrade_factor} onChange={handleChange} /></div>
+                <div><label>PRGrade Factor</label><input type="number" step="0.01" name="prgrade_factor" value={settings.prgrade_factor} onChange={handleChange} /></div>
               </div>
             </div>
 
-            {/* Save */}
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", justifyContent: "center", marginTop: "1rem" }}>
               <button type="button" onClick={handleSaveNow}>Save Now</button>
               {saveStatus === "saving" && <span style={{ fontSize: "0.85rem", color: "#888" }}>Saving...</span>}
@@ -634,45 +629,37 @@ export default function Admin() {
               {saveStatus === "error"  && <span style={{ fontSize: "0.85rem", color: "#dc3545" }}>⚠ Error saving</span>}
             </div>
 
-            {/* Valuation Actions */}
             <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
-              <button
-                onClick={async () => {
-                  if (!window.confirm("Recalculate valuation for ALL cards now?")) return;
-                  try {
-                    const res = await api.post("/cards/revalue-all");
-                    setModalMessage(res.data.message || `💰 Revalued ${res.data.updated} cards.`);
-                    setShowModal(true);
-                  } catch (err) {
-                    console.error(err);
-                    setModalMessage("❌ Error applying valuation. See console for details.");
-                    setShowModal(true);
-                  }
-                }}
-                className="val-btn">
+              <button onClick={async () => {
+                if (!window.confirm("Recalculate valuation for ALL cards now?")) return;
+                try {
+                  const res = await api.post("/cards/revalue-all");
+                  setModalMessage(res.data.message || `💰 Revalued ${res.data.updated} cards.`);
+                  setShowModal(true);
+                } catch (err) {
+                  console.error(err);
+                  setModalMessage("❌ Error applying valuation. See console for details.");
+                  setShowModal(true);
+                }
+              }} className="val-btn">
                 💰 Apply Global Valuation 💰
               </button>
               <InfoIcon id="revalue" text="Recalculates the estimated value for every card in your collection using current factor settings." />
             </div>
 
             <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!window.confirm("Reset the book freshness timer to today for all cards that have book values entered?")) return;
-                  try {
-                    const res = await api.post("/cards/refresh-all-book-values");
-                    setModalMessage(res.data.message || `↻ Reset freshness for ${res.data.updated} cards.`);
-                    setShowModal(true);
-                  } catch (err) {
-                    console.error(err);
-                    setModalMessage("❌ Error resetting freshness timers. See console for details.");
-                    setShowModal(true);
-                  }
-                }}
-                className="val-btn"
-                style={{ background: "#0891b2" }}
-              >
+              <button type="button" onClick={async () => {
+                if (!window.confirm("Reset the book freshness timer to today for all cards that have book values entered?")) return;
+                try {
+                  const res = await api.post("/cards/refresh-all-book-values");
+                  setModalMessage(res.data.message || `↻ Reset freshness for ${res.data.updated} cards.`);
+                  setShowModal(true);
+                } catch (err) {
+                  console.error(err);
+                  setModalMessage("❌ Error resetting freshness timers. See console for details.");
+                  setShowModal(true);
+                }
+              }} className="val-btn" style={{ background: "#0891b2" }}>
                 ⏱️ Reset Book Value Timers ⏱️
               </button>
               <InfoIcon id="refreshbook" text="Marks today as the book-value update date for every card that has book values entered. Use this to establish a baseline after a bulk review." />
@@ -681,244 +668,222 @@ export default function Admin() {
         )}
 
         {/* ══════════════════════════════════════════
-            TAB: Dictionary
+            TAB: Dictionary  (2 accordion sections)
         ══════════════════════════════════════════ */}
         {activeTab === "dictionary" && (
           <>
             {/* Player Dictionary */}
-            <div className="card-section" style={{ marginBottom: "1rem", textAlign: "center" }}>
-              <h3>Player Dictionary <InfoIcon id="dictionary" text="A searchable database of players, brands, years, and card numbers used by Smart Fill and collection highlights." /></h3>
-              <p>Total entries: <strong>{dictCount !== null ? dictCount : "Loading..."}</strong></p>
-              <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-                <button className="nav-btn" onClick={() => navigate("/dictionary")}>📖 View / Edit</button>
-                <button className="nav-btn" onClick={() => navigate("/dictionary/import")}>📥 Import CSV</button>
-                <button className="nav-btn" onClick={() => navigate("/dictionary/add")}>➕ Add Entry</button>
-                <button className="nav-btn secondary" onClick={handleCheckDuplicates} disabled={dedupLoading}>
-                  {dedupLoading ? "Checking…" : "🔍 Check Duplicates"}
-                </button>
-              </div>
-              {dedupStats !== null && (
-                <div style={{ marginTop: "0.75rem" }}>
-                  {dedupStats.entries_to_remove === 0 ? (
-                    <p style={{ color: "#1a7a1a", fontSize: "0.9rem", margin: 0 }}>
-                      No duplicates found — dictionary is clean.
-                    </p>
-                  ) : (
-                    <>
-                      <p style={{ color: "#856404", fontSize: "0.9rem", margin: "0 0 0.5rem" }}>
-                        Found <strong>{dedupStats.duplicate_groups}</strong> duplicate {dedupStats.duplicate_groups === 1 ? "group" : "groups"} —{" "}
-                        <strong>{dedupStats.entries_to_remove}</strong> {dedupStats.entries_to_remove === 1 ? "entry" : "entries"} to remove.
-                        The record with the most recent book values will be kept.
-                      </p>
-                      {!dedupConfirming ? (
-                        <button
-                          className="nav-btn"
-                          style={{ background: "#dc3545", borderColor: "#dc3545" }}
-                          onClick={() => setDedupConfirming(true)}
-                        >
-                          🗑️ Remove Duplicates
-                        </button>
+            <div className="card-section" style={{ marginBottom: "1rem" }}>
+              <SectionHeader id="d-player">
+                Player Dictionary <InfoIcon id="dictionary" text="A searchable database of players, brands, years, and card numbers used by Smart Fill and collection highlights." />
+              </SectionHeader>
+              {openSections.has("d-player") && (
+                <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
+                  <p>Total entries: <strong>{dictCount !== null ? dictCount : "Loading..."}</strong></p>
+                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+                    <button className="nav-btn" onClick={() => navigate("/dictionary")}>📖 View / Edit</button>
+                    <button className="nav-btn" onClick={() => navigate("/dictionary/import")}>📥 Import CSV</button>
+                    <button className="nav-btn" onClick={() => navigate("/dictionary/add")}>➕ Add Entry</button>
+                    <button className="nav-btn secondary" onClick={handleCheckDuplicates} disabled={dedupLoading}>
+                      {dedupLoading ? "Checking…" : "🔍 Check Duplicates"}
+                    </button>
+                  </div>
+                  {dedupStats !== null && (
+                    <div style={{ marginTop: "0.75rem" }}>
+                      {dedupStats.entries_to_remove === 0 ? (
+                        <p style={{ color: "#1a7a1a", fontSize: "0.9rem", margin: 0 }}>No duplicates found — dictionary is clean.</p>
                       ) : (
-                        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", alignItems: "center" }}>
-                          <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Are you sure?</span>
-                          <button
-                            className="nav-btn"
-                            style={{ background: "#dc3545", borderColor: "#dc3545" }}
-                            onClick={handleDeduplicate}
-                            disabled={dedupLoading}
-                          >
-                            {dedupLoading ? "Removing…" : "Yes, Remove"}
-                          </button>
-                          <button className="nav-btn secondary" onClick={() => setDedupConfirming(false)}>Cancel</button>
-                        </div>
+                        <>
+                          <p style={{ color: "#856404", fontSize: "0.9rem", margin: "0 0 0.5rem" }}>
+                            Found <strong>{dedupStats.duplicate_groups}</strong> duplicate {dedupStats.duplicate_groups === 1 ? "group" : "groups"} —{" "}
+                            <strong>{dedupStats.entries_to_remove}</strong> {dedupStats.entries_to_remove === 1 ? "entry" : "entries"} to remove.
+                            The record with the most recent book values will be kept.
+                          </p>
+                          {!dedupConfirming ? (
+                            <button className="nav-btn" style={{ background: "#dc3545", borderColor: "#dc3545" }} onClick={() => setDedupConfirming(true)}>
+                              🗑️ Remove Duplicates
+                            </button>
+                          ) : (
+                            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", alignItems: "center" }}>
+                              <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Are you sure?</span>
+                              <button className="nav-btn" style={{ background: "#dc3545", borderColor: "#dc3545" }} onClick={handleDeduplicate} disabled={dedupLoading}>
+                                {dedupLoading ? "Removing…" : "Yes, Remove"}
+                              </button>
+                              <button className="nav-btn secondary" onClick={() => setDedupConfirming(false)}>Cancel</button>
+                            </div>
+                          )}
+                        </>
                       )}
-                    </>
+                    </div>
                   )}
-                </div>
-              )}
-              {dedupMsg && (
-                <p style={{ marginTop: "0.5rem", fontSize: "0.9rem", color: dedupMsg.startsWith("Dedup failed") || dedupMsg.startsWith("Check failed") ? "#dc3545" : "#1a7a1a" }}>
-                  {dedupMsg}
-                </p>
-              )}
+                  {dedupMsg && (
+                    <p style={{ marginTop: "0.5rem", fontSize: "0.9rem", color: dedupMsg.startsWith("Dedup failed") || dedupMsg.startsWith("Check failed") ? "#dc3545" : "#1a7a1a" }}>
+                      {dedupMsg}
+                    </p>
+                  )}
 
-              {/* Invalid brand/year entries */}
-              <div style={{ borderTop: "1px solid var(--border)", marginTop: "1rem", paddingTop: "0.75rem" }}>
-                <button className="nav-btn secondary" onClick={handleCheckInvalid} disabled={invalidLoading}>
-                  {invalidLoading ? "Checking…" : "🚫 Check Invalid Entries"}
-                </button>
-                <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "0.35rem 0 0" }}>
-                  Finds entries with brand/year combos that couldn't exist (e.g. Score 1952, Upper Deck 1975).
-                </p>
-              </div>
-              {invalidStats !== null && (
-                <div style={{ marginTop: "0.75rem" }}>
-                  {invalidStats.total === 0 ? (
-                    <p style={{ color: "#1a7a1a", fontSize: "0.9rem", margin: 0 }}>
-                      No invalid entries found — dictionary is clean.
+                  <div style={{ borderTop: "1px solid var(--border)", marginTop: "1rem", paddingTop: "0.75rem" }}>
+                    <button className="nav-btn secondary" onClick={handleCheckInvalid} disabled={invalidLoading}>
+                      {invalidLoading ? "Checking…" : "🚫 Check Invalid Entries"}
+                    </button>
+                    <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "0.35rem 0 0" }}>
+                      Finds entries with brand/year combos that couldn't exist (e.g. Score 1952, Upper Deck 1975).
                     </p>
-                  ) : (
-                    <>
-                      <p style={{ color: "#856404", fontSize: "0.9rem", margin: "0 0 0.25rem" }}>
-                        Found <strong>{invalidStats.total}</strong> invalid {invalidStats.total === 1 ? "entry" : "entries"}:
-                        {Object.entries(invalidStats.by_brand).map(([b, n]) => ` ${b} (${n})`).join(",")}
-                      </p>
-                      {!invalidConfirming ? (
-                        <button
-                          className="nav-btn"
-                          style={{ background: "#dc3545", borderColor: "#dc3545" }}
-                          onClick={() => setInvalidConfirming(true)}
-                        >
-                          🗑️ Purge Invalid Entries
-                        </button>
+                  </div>
+                  {invalidStats !== null && (
+                    <div style={{ marginTop: "0.75rem" }}>
+                      {invalidStats.total === 0 ? (
+                        <p style={{ color: "#1a7a1a", fontSize: "0.9rem", margin: 0 }}>No invalid entries found — dictionary is clean.</p>
                       ) : (
-                        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", alignItems: "center" }}>
-                          <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Are you sure?</span>
-                          <button
-                            className="nav-btn"
-                            style={{ background: "#dc3545", borderColor: "#dc3545" }}
-                            onClick={handlePurgeInvalid}
-                            disabled={invalidLoading}
-                          >
-                            {invalidLoading ? "Purging…" : "Yes, Purge"}
-                          </button>
-                          <button className="nav-btn secondary" onClick={() => setInvalidConfirming(false)}>Cancel</button>
-                        </div>
+                        <>
+                          <p style={{ color: "#856404", fontSize: "0.9rem", margin: "0 0 0.25rem" }}>
+                            Found <strong>{invalidStats.total}</strong> invalid {invalidStats.total === 1 ? "entry" : "entries"}:
+                            {Object.entries(invalidStats.by_brand).map(([b, n]) => ` ${b} (${n})`).join(",")}
+                          </p>
+                          {!invalidConfirming ? (
+                            <button className="nav-btn" style={{ background: "#dc3545", borderColor: "#dc3545" }} onClick={() => setInvalidConfirming(true)}>
+                              🗑️ Purge Invalid Entries
+                            </button>
+                          ) : (
+                            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", alignItems: "center" }}>
+                              <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Are you sure?</span>
+                              <button className="nav-btn" style={{ background: "#dc3545", borderColor: "#dc3545" }} onClick={handlePurgeInvalid} disabled={invalidLoading}>
+                                {invalidLoading ? "Purging…" : "Yes, Purge"}
+                              </button>
+                              <button className="nav-btn secondary" onClick={() => setInvalidConfirming(false)}>Cancel</button>
+                            </div>
+                          )}
+                        </>
                       )}
-                    </>
+                    </div>
+                  )}
+                  {invalidMsg && (
+                    <p style={{ marginTop: "0.5rem", fontSize: "0.9rem", color: invalidMsg.startsWith("Purge failed") || invalidMsg.startsWith("Check failed") ? "#dc3545" : "#1a7a1a" }}>
+                      {invalidMsg}
+                    </p>
                   )}
                 </div>
-              )}
-              {invalidMsg && (
-                <p style={{ marginTop: "0.5rem", fontSize: "0.9rem", color: invalidMsg.startsWith("Purge failed") || invalidMsg.startsWith("Check failed") ? "#dc3545" : "#1a7a1a" }}>
-                  {invalidMsg}
-                </p>
               )}
             </div>
 
             {/* Value Dictionary */}
-            <div className="card-section" style={{ textAlign: "center" }}>
-              <h3>Value Dictionary <InfoIcon id="valuedictionary" text="Admin-maintained book values (High → Low) keyed on brand + year + card number. Smart Fill auto-populates these when adding cards." /></h3>
-              <p>
-                Entries with values: <strong>{valuesStats ? valuesStats.values_count : "Loading..."}</strong>
-                {valuesStats?.last_imported_at && (
-                  <span style={{ marginLeft: "1rem", fontSize: "0.85rem", color: "var(--text-muted)" }}>
-                    Last import: {new Date(valuesStats.last_imported_at).toLocaleDateString()}
-                  </span>
-                )}
-              </p>
-              <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-                <button className="nav-btn" onClick={() => navigate("/dictionary/import-values")}>📥 Import Values CSV</button>
-                <button className="nav-btn" onClick={handleSeedFromCards} disabled={seedLoading}>
-                  {seedLoading ? "Seeding..." : "🌱 Seed from My Cards"}
-                </button>
-              </div>
-              {seedMsg && (
-                <p style={{ marginTop: "0.5rem", fontSize: "0.9rem", color: seedMsg.startsWith("Seed failed") ? "#dc3545" : "#1a7a1a" }}>
-                  {seedMsg}
-                </p>
+            <div className="card-section">
+              <SectionHeader id="d-value">
+                Value Dictionary <InfoIcon id="valuedictionary" text="Admin-maintained book values (High → Low) keyed on brand + year + card number. Smart Fill auto-populates these when adding cards." />
+              </SectionHeader>
+              {openSections.has("d-value") && (
+                <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
+                  <p>
+                    Entries with values: <strong>{valuesStats ? valuesStats.values_count : "Loading..."}</strong>
+                    {valuesStats?.last_imported_at && (
+                      <span style={{ marginLeft: "1rem", fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                        Last import: {new Date(valuesStats.last_imported_at).toLocaleDateString()}
+                      </span>
+                    )}
+                  </p>
+                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+                    <button className="nav-btn" onClick={() => navigate("/dictionary/import-values")}>📥 Import Values CSV</button>
+                    <button className="nav-btn" onClick={handleSeedFromCards} disabled={seedLoading}>
+                      {seedLoading ? "Seeding..." : "🌱 Seed from My Cards"}
+                    </button>
+                  </div>
+                  {seedMsg && (
+                    <p style={{ marginTop: "0.5rem", fontSize: "0.9rem", color: seedMsg.startsWith("Seed failed") ? "#dc3545" : "#1a7a1a" }}>
+                      {seedMsg}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           </>
         )}
 
         {/* ══════════════════════════════════════════
-            TAB: Data
+            TAB: Data  (3 accordion sections)
         ══════════════════════════════════════════ */}
         {activeTab === "data" && (
           <>
             {/* Card Sets */}
             <div className="card-section" style={{ marginBottom: "1rem" }}>
-              <h3 style={{ textAlign: "center" }}>Card Sets</h3>
-              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.75rem", textAlign: "center" }}>
-                Import global set master lists. Users can then track completion card-by-card.
-              </p>
-              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem", justifyContent: "center" }}>
-                <button className="nav-btn" onClick={() => navigate("/sets")}>🏗️ View Builds</button>
-                <button className="nav-btn" onClick={() => navigate("/sets/import")}>📥 Import Set CSV</button>
-              </div>
-
-              {allSets.length > 0 && (
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
-                    <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-secondary)" }}>Visible Sets</span>
-                    <div style={{ display: "flex", gap: "0.4rem" }}>
-                      <button type="button"
-                        onClick={() => { setSettings(prev => ({ ...prev, visible_set_ids: null })); debouncedSave({ visible_set_ids: null }); }}
-                        style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--border)", background: "var(--bg-input)", cursor: "pointer", color: "var(--text-secondary)" }}>
-                        Select All</button>
-                      <button type="button"
-                        onClick={() => { setSettings(prev => ({ ...prev, visible_set_ids: [] })); debouncedSave({ visible_set_ids: [] }); }}
-                        style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--border)", background: "var(--bg-input)", cursor: "pointer", color: "var(--text-secondary)" }}>
-                        Deselect All</button>
-                    </div>
+              <SectionHeader id="data-sets">Card Sets</SectionHeader>
+              {openSections.has("data-sets") && (
+                <div style={{ marginTop: "0.75rem" }}>
+                  <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.75rem", textAlign: "center" }}>
+                    Import global set master lists. Users can then track completion card-by-card.
+                  </p>
+                  <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem", justifyContent: "center" }}>
+                    <button className="nav-btn" onClick={() => navigate("/sets")}>🏗️ View Builds</button>
+                    <button className="nav-btn" onClick={() => navigate("/sets/import")}>📥 Import Set CSV</button>
                   </div>
 
-                  <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.4rem" }}>Brand</div>
-
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
-                    {brands.map(brand => {
-                      const total = setsByBrand[brand].length;
-                      const nVis = visibleCountForBrand(brand);
-                      const isActive = activeBrand === brand;
-                      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-                      const countColor = nVis === 0 ? "#dc2626" : nVis === total ? "#16a34a" : "#f59e0b";
-                      const bgColor = nVis === total
-                        ? (isDark ? "#052e16" : "#f0fdf4")
-                        : nVis === 0 ? "var(--bg-muted)" : "var(--bg-input)";
-                      return (
-                        <button key={brand} type="button"
-                          onClick={() => setActiveBrand(isActive ? null : brand)}
-                          style={{
-                            border: `2px solid ${isActive ? "#1976d2" : "var(--border)"}`,
-                            borderRadius: 20, padding: "0.35rem 0.9rem",
-                            background: bgColor,
-                            color: nVis === 0 ? "var(--text-muted)" : "var(--text-primary)",
-                            cursor: "pointer", fontSize: "0.85rem",
-                            fontWeight: isActive ? 700 : 500,
-                            transition: "border-color 0.15s",
-                          }}>
-                          {brand}{" "}
-                          <span style={{ color: countColor, fontSize: "0.78rem" }}>{nVis}/{total}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {activeBrand && setsByBrand[activeBrand] && (
-                    <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem" }}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                        <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                          Years — {activeBrand}
-                        </span>
+                  {allSets.length > 0 && (
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+                        <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-secondary)" }}>Visible Sets</span>
                         <div style={{ display: "flex", gap: "0.4rem" }}>
-                          <button type="button" onClick={() => selectAllForBrand(activeBrand)}
-                            style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--border)", background: "var(--bg-input)", cursor: "pointer", color: "var(--text-secondary)" }}>All</button>
-                          <button type="button" onClick={() => clearAllForBrand(activeBrand)}
-                            style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--border)", background: "var(--bg-input)", cursor: "pointer", color: "var(--text-secondary)" }}>None</button>
+                          <button type="button"
+                            onClick={() => { setSettings(prev => ({ ...prev, visible_set_ids: null })); debouncedSave({ visible_set_ids: null }); }}
+                            style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--border)", background: "var(--bg-input)", cursor: "pointer", color: "var(--text-secondary)" }}>
+                            Select All</button>
+                          <button type="button"
+                            onClick={() => { setSettings(prev => ({ ...prev, visible_set_ids: [] })); debouncedSave({ visible_set_ids: [] }); }}
+                            style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--border)", background: "var(--bg-input)", cursor: "pointer", color: "var(--text-secondary)" }}>
+                            Deselect All</button>
                         </div>
                       </div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                        {setsByBrand[activeBrand].map(s => {
-                          const vis = isSetVisible(s.id);
+                      <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.4rem" }}>Brand</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
+                        {brands.map(brand => {
+                          const total = setsByBrand[brand].length;
+                          const nVis = visibleCountForBrand(brand);
+                          const isActive = activeBrand === brand;
                           const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+                          const countColor = nVis === 0 ? "#dc2626" : nVis === total ? "#16a34a" : "#f59e0b";
+                          const bgColor = nVis === total ? (isDark ? "#052e16" : "#f0fdf4") : nVis === 0 ? "var(--bg-muted)" : "var(--bg-input)";
                           return (
-                            <button key={s.id} type="button"
-                              onClick={() => toggleYear(s.id)}
+                            <button key={brand} type="button" onClick={() => setActiveBrand(isActive ? null : brand)}
                               style={{
-                                border: `2px solid ${vis ? "#16a34a" : "var(--border)"}`,
-                                borderRadius: 20, padding: "0.25rem 0.65rem",
-                                background: vis ? (isDark ? "#052e16" : "#f0fdf4") : "var(--bg-muted)",
-                                color: vis ? "#16a34a" : "var(--text-muted)",
-                                cursor: "pointer", fontSize: "0.85rem",
-                                fontWeight: vis ? 600 : 400,
-                                transition: "all 0.1s",
+                                border: `2px solid ${isActive ? "#1976d2" : "var(--border)"}`,
+                                borderRadius: 20, padding: "0.35rem 0.9rem",
+                                background: bgColor, color: nVis === 0 ? "var(--text-muted)" : "var(--text-primary)",
+                                cursor: "pointer", fontSize: "0.85rem", fontWeight: isActive ? 700 : 500, transition: "border-color 0.15s",
                               }}>
-                              {s.year}
+                              {brand}{" "}<span style={{ color: countColor, fontSize: "0.78rem" }}>{nVis}/{total}</span>
                             </button>
                           );
                         })}
                       </div>
+                      {activeBrand && setsByBrand[activeBrand] && (
+                        <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                            <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Years — {activeBrand}</span>
+                            <div style={{ display: "flex", gap: "0.4rem" }}>
+                              <button type="button" onClick={() => selectAllForBrand(activeBrand)}
+                                style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--border)", background: "var(--bg-input)", cursor: "pointer", color: "var(--text-secondary)" }}>All</button>
+                              <button type="button" onClick={() => clearAllForBrand(activeBrand)}
+                                style={{ fontSize: "0.78rem", padding: "2px 10px", borderRadius: 20, border: "1px solid var(--border)", background: "var(--bg-input)", cursor: "pointer", color: "var(--text-secondary)" }}>None</button>
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                            {setsByBrand[activeBrand].map(s => {
+                              const vis = isSetVisible(s.id);
+                              const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+                              return (
+                                <button key={s.id} type="button" onClick={() => toggleYear(s.id)}
+                                  style={{
+                                    border: `2px solid ${vis ? "#16a34a" : "var(--border)"}`,
+                                    borderRadius: 20, padding: "0.25rem 0.65rem",
+                                    background: vis ? (isDark ? "#052e16" : "#f0fdf4") : "var(--bg-muted)",
+                                    color: vis ? "#16a34a" : "var(--text-muted)",
+                                    cursor: "pointer", fontSize: "0.85rem", fontWeight: vis ? 600 : 400, transition: "all 0.1s",
+                                  }}>
+                                  {s.year}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -926,142 +891,92 @@ export default function Admin() {
             </div>
 
             {/* Card Import */}
-            <div className="card-section" style={{ marginBottom: "1rem", textAlign: "center" }}>
-              <h3>
-                Card Import
-                <InfoIcon id="cardimport" text="Bulk import cards from a CSV file. See the Import Cards page for template and formatting guide." />
-              </h3>
-              <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>
-                Bulk import cards from a CSV file
-              </p>
-              <button className="nav-btn" onClick={() => navigate("/import-cards")}>📥 Import Cards</button>
+            <div className="card-section" style={{ marginBottom: "1rem" }}>
+              <SectionHeader id="data-import">
+                Card Import <InfoIcon id="cardimport" text="Bulk import cards from a CSV file. See the Import Cards page for template and formatting guide." />
+              </SectionHeader>
+              {openSections.has("data-import") && (
+                <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
+                  <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>Bulk import cards from a CSV file</p>
+                  <button className="nav-btn" onClick={() => navigate("/import-cards")}>📥 Import Cards</button>
+                </div>
+              )}
             </div>
 
             {/* Data Management */}
-            <div className="card-section" style={{ textAlign: "center" }}>
-              <h3 style={{ marginBottom: "1.5rem" }}>Data Management <InfoIcon id="datamanagement" text="Tools for extracting, backing up, and restoring your collection data." /></h3>
+            <div className="card-section">
+              <SectionHeader id="data-mgmt">
+                Data Management <InfoIcon id="datamanagement" text="Tools for extracting, backing up, and restoring your collection data." />
+              </SectionHeader>
+              {openSections.has("data-mgmt") && (
+                <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
+                  {/* Extract */}
+                  <div style={{ marginBottom: "1.5rem" }}>
+                    <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "0.25rem" }}>
+                      Extract Card Data <InfoIcon id="extract" text="Download your card data in CSV, TSV, or JSON format for use in other tools" />
+                    </div>
+                    <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>Card data only — open in Excel, Google Sheets, or any tool</p>
+                    <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", marginBottom: "0.75rem" }}>
+                      {["csv", "tsv", "json"].map(fmt => (
+                        <label key={fmt} style={{ display: "flex", alignItems: "center", gap: "0.35rem", cursor: "pointer" }}>
+                          <input type="radio" name="exportFormat" value={fmt} checked={exportFormat === fmt} onChange={e => setExportFormat(e.target.value)} />
+                          {fmt.toUpperCase()}
+                        </label>
+                      ))}
+                    </div>
+                    <button className="nav-btn" onClick={handleExport} disabled={dmLoading !== null} style={{ opacity: dmLoading !== null ? 0.65 : 1 }}>
+                      {dmLoading === "export" ? "Downloading..." : "Download"}
+                    </button>
+                  </div>
 
-              {/* Extract */}
-              <div style={{ marginBottom: "1.5rem" }}>
-                <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "0.25rem" }}>
-                  Extract Card Data
-                  <InfoIcon id="extract" text="Download your card data in CSV, TSV, or JSON format for use in other tools" />
-                </div>
-                <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>
-                  Card data only — open in Excel, Google Sheets, or any tool
-                </p>
-                <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", marginBottom: "0.75rem" }}>
-                  {["csv", "tsv", "json"].map(fmt => (
-                    <label key={fmt} style={{ display: "flex", alignItems: "center", gap: "0.35rem", cursor: "pointer" }}>
-                      <input
-                        type="radio"
-                        name="exportFormat"
-                        value={fmt}
-                        checked={exportFormat === fmt}
-                        onChange={e => setExportFormat(e.target.value)}
-                      />
-                      {fmt.toUpperCase()}
-                    </label>
-                  ))}
-                </div>
-                <button
-                  className="nav-btn"
-                  onClick={handleExport}
-                  disabled={dmLoading !== null}
-                  style={{ opacity: dmLoading !== null ? 0.65 : 1 }}
-                >
-                  {dmLoading === "export" ? "Downloading..." : "Download"}
-                </button>
-              </div>
+                  <hr style={{ border: "none", borderTop: "1px solid #e0e0e0", margin: "0 0 1.5rem 0" }} />
 
-              <hr style={{ border: "none", borderTop: "1px solid #e0e0e0", margin: "0 0 1.5rem 0" }} />
+                  {/* Backup */}
+                  <div style={{ marginBottom: "1.5rem" }}>
+                    <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "0.25rem" }}>
+                      Full Backup <InfoIcon id="backup" text="Download cards + settings as a JSON file you can restore from later" />
+                    </div>
+                    <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>Cards + settings — use this to restore your collection later</p>
+                    <button className="nav-btn" onClick={handleBackup} disabled={dmLoading !== null} style={{ opacity: dmLoading !== null ? 0.65 : 1 }}>
+                      {dmLoading === "backup" ? "Downloading..." : "Download Backup"}
+                    </button>
+                  </div>
 
-              {/* Backup */}
-              <div style={{ marginBottom: "1.5rem" }}>
-                <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "0.25rem" }}>
-                  Full Backup
-                  <InfoIcon id="backup" text="Download cards + settings as a JSON file you can restore from later" />
-                </div>
-                <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>
-                  Cards + settings — use this to restore your collection later
-                </p>
-                <button
-                  className="nav-btn"
-                  onClick={handleBackup}
-                  disabled={dmLoading !== null}
-                  style={{ opacity: dmLoading !== null ? 0.65 : 1 }}
-                >
-                  {dmLoading === "backup" ? "Downloading..." : "Download Backup"}
-                </button>
-              </div>
+                  <hr style={{ border: "none", borderTop: "1px solid #e0e0e0", margin: "0 0 1.5rem 0" }} />
 
-              <hr style={{ border: "none", borderTop: "1px solid #e0e0e0", margin: "0 0 1.5rem 0" }} />
-
-              {/* Restore */}
-              <div>
-                <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "0.25rem" }}>
-                  Restore from Backup
-                  <InfoIcon id="restore" text="Upload a backup file to replace your current collection" />
+                  {/* Restore */}
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: "1rem", marginBottom: "0.25rem" }}>
+                      Restore from Backup <InfoIcon id="restore" text="Upload a backup file to replace your current collection" />
+                    </div>
+                    <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>Replaces all current cards with data from a backup file</p>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
+                      <input type="file" accept=".json" onChange={e => { setRestoreFile(e.target.files[0]); setRestoreMsg(""); setRestoreError(""); }} />
+                      <button className="nav-btn" onClick={handleRestore} disabled={!restoreFile || dmLoading !== null}
+                        style={{ background: "#dc3545", opacity: (!restoreFile || dmLoading !== null) ? 0.65 : 1 }}>
+                        {dmLoading === "restore" ? "Restoring..." : "Restore"}
+                      </button>
+                    </div>
+                    {restoreMsg && <p style={{ color: "green", marginTop: "0.75rem" }}>{restoreMsg}</p>}
+                    {restoreError && <p style={{ color: "red", marginTop: "0.75rem" }}>{restoreError}</p>}
+                  </div>
                 </div>
-                <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>
-                  Replaces all current cards with data from a backup file
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={e => { setRestoreFile(e.target.files[0]); setRestoreMsg(""); setRestoreError(""); }}
-                  />
-                  <button
-                    className="nav-btn"
-                    onClick={handleRestore}
-                    disabled={!restoreFile || dmLoading !== null}
-                    style={{ background: "#dc3545", opacity: (!restoreFile || dmLoading !== null) ? 0.65 : 1 }}
-                  >
-                    {dmLoading === "restore" ? "Restoring..." : "Restore"}
-                  </button>
-                </div>
-                {restoreMsg && <p style={{ color: "green", marginTop: "0.75rem" }}>{restoreMsg}</p>}
-                {restoreError && <p style={{ color: "red", marginTop: "0.75rem" }}>{restoreError}</p>}
-              </div>
+              )}
             </div>
           </>
         )}
 
         {showModal && (
-          <div
-            className="modal-overlay"
-            role="button"
-            tabIndex={0}
-            style={{
-              position: "fixed",
-              top: 0, left: 0, width: "100%", height: "100%",
-              background: "rgba(0,0,0,0.4)",
-              display: "flex", justifyContent: "center", alignItems: "center",
-              zIndex: 9999,
-            }}
+          <div className="modal-overlay" role="button" tabIndex={0}
+            style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.4)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999 }}
             onClick={() => setShowModal(false)}
-            onKeyDown={(e) => { if (e.key === "Escape") setShowModal(false); }}
-          >
-            <div
-              className="modal-content"
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => e.stopPropagation()}
-              style={{
-                background: "#f9f9f9", borderRadius: "12px",
-                padding: "1.5rem 2rem", width: "320px",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.2)", textAlign: "center",
-              }}
-            >
+            onKeyDown={(e) => { if (e.key === "Escape") setShowModal(false); }}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}
+              style={{ background: "#f9f9f9", borderRadius: "12px", padding: "1.5rem 2rem", width: "320px", boxShadow: "0 4px 10px rgba(0,0,0,0.2)", textAlign: "center" }}>
               <h3 style={{ marginBottom: "0.75rem", color: "#333" }}>Valuation Complete</h3>
               <p style={{ color: "#444", marginBottom: "1.5rem" }}>{modalMessage}</p>
-              <button
-                onClick={() => setShowModal(false)}
-                style={{
-                  backgroundColor: "#007bff", color: "white", border: "none",
-                  borderRadius: "6px", padding: "0.4rem 1rem", cursor: "pointer",
-                }}
-              >
+              <button onClick={() => setShowModal(false)}
+                style={{ backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "6px", padding: "0.4rem 1rem", cursor: "pointer" }}>
                 OK
               </button>
             </div>
