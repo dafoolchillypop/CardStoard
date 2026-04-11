@@ -30,6 +30,13 @@ const TABS = [
   { id: "data",       label: "Data"       },
 ];
 
+// Accordion section IDs per tab (Valuation is flat — no entry)
+const TAB_SECTIONS = {
+  settings:   ["s-features", "s-navbar", "s-general", "s-rowcolors"],
+  dictionary: ["d-player", "d-value"],
+  data:       ["data-sets", "data-import", "data-mgmt"],
+};
+
 // Sections open by default per tab
 const DEFAULT_OPEN = new Set([
   "s-features", "s-navbar", "s-general", "s-rowcolors",  // Settings — all open
@@ -74,6 +81,16 @@ export default function Admin() {
       else next.add(id);
       return next;
     });
+  };
+
+  const expandCurrentTab = () => {
+    const sections = TAB_SECTIONS[activeTab] || [];
+    setOpenSections(prev => new Set([...prev, ...sections]));
+  };
+
+  const collapseCurrentTab = () => {
+    const sections = new Set(TAB_SECTIONS[activeTab] || []);
+    setOpenSections(prev => new Set([...prev].filter(s => !sections.has(s))));
   };
 
   const fetchValuesStats = () => {
@@ -437,6 +454,21 @@ export default function Admin() {
             </button>
           ))}
         </div>
+
+        {/* Expand / Collapse All (only for tabs with accordion sections) */}
+        {TAB_SECTIONS[activeTab] && (
+          <div style={{ textAlign: "right", marginBottom: "0.5rem" }}>
+            <button type="button" onClick={expandCurrentTab}
+              style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.8rem", cursor: "pointer", padding: "0 0.4rem" }}>
+              Expand All
+            </button>
+            <span style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>|</span>
+            <button type="button" onClick={collapseCurrentTab}
+              style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.8rem", cursor: "pointer", padding: "0 0.4rem" }}>
+              Collapse All
+            </button>
+          </div>
+        )}
 
         {/* ══════════════════════════════════════════
             TAB: Settings  (4 accordion sections)
