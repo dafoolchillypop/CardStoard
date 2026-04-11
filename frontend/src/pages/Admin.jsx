@@ -438,7 +438,7 @@ export default function Admin() {
           <>
             {/* Features */}
             <div className="card-section" style={{ marginBottom: "1rem" }}>
-              <SectionHeader id="s-features">Features</SectionHeader>
+              <SectionHeader id="s-features">Features <InfoIcon id="features" text="Toggle optional app features on or off. Changes take effect immediately." /></SectionHeader>
               {openSections.has("s-features") && (
                 <div style={{ marginTop: "0.75rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -784,7 +784,7 @@ export default function Admin() {
           <>
             {/* Card Sets */}
             <div className="card-section" style={{ marginBottom: "1rem" }}>
-              <SectionHeader id="data-sets">Card Sets</SectionHeader>
+              <SectionHeader id="data-sets">Card Sets <InfoIcon id="cardsets" text="Control which set checklists appear in the Builds page. Import new sets or toggle visibility by brand and year." /></SectionHeader>
               {openSections.has("data-sets") && (
                 <div style={{ marginTop: "0.75rem" }}>
                   <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.75rem", textAlign: "center" }}>
