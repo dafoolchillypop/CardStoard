@@ -604,40 +604,41 @@ export default function Admin() {
               </div>
             </div>
 
-            <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
-              <button onClick={async () => {
-                if (!window.confirm("Recalculate valuation for ALL cards now?")) return;
-                try {
-                  const res = await api.post("/cards/revalue-all");
-                  setModalMessage(res.data.message || `💰 Revalued ${res.data.updated} cards.`);
-                  setShowModal(true);
-                } catch (err) {
-                  console.error(err);
-                  setModalMessage("❌ Error applying valuation. See console for details.");
-                  setShowModal(true);
-                }
-              }} className="val-btn">
-                💰 Apply Global Valuation 💰
-              </button>
-              <InfoIcon id="revalue" text="Recalculates the estimated value for every card in your collection using current factor settings." />
-            </div>
-
-            <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
-              <button type="button" onClick={async () => {
-                if (!window.confirm("Reset the book freshness timer to today for all cards that have book values entered?")) return;
-                try {
-                  const res = await api.post("/cards/refresh-all-book-values");
-                  setModalMessage(res.data.message || `↻ Reset freshness for ${res.data.updated} cards.`);
-                  setShowModal(true);
-                } catch (err) {
-                  console.error(err);
-                  setModalMessage("❌ Error resetting freshness timers. See console for details.");
-                  setShowModal(true);
-                }
-              }} className="val-btn">
-                ⏱️ Reset Book Value Timers ⏱️
-              </button>
-              <InfoIcon id="refreshbook" text="Marks today as the book-value update date for every card that has book values entered. Use this to establish a baseline after a bulk review." />
+            <div style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
+              <div>
+                <button onClick={async () => {
+                  if (!window.confirm("Recalculate valuation for ALL cards now?")) return;
+                  try {
+                    const res = await api.post("/cards/revalue-all");
+                    setModalMessage(res.data.message || `💰 Revalued ${res.data.updated} cards.`);
+                    setShowModal(true);
+                  } catch (err) {
+                    console.error(err);
+                    setModalMessage("❌ Error applying valuation. See console for details.");
+                    setShowModal(true);
+                  }
+                }} className="val-btn" style={{ width: "100%" }}>
+                  💰 Apply Global Valuation 💰
+                </button>
+                <InfoIcon id="revalue" text="Recalculates the estimated value for every card in your collection using current factor settings." />
+              </div>
+              <div>
+                <button type="button" onClick={async () => {
+                  if (!window.confirm("Reset the book freshness timer to today for all cards that have book values entered?")) return;
+                  try {
+                    const res = await api.post("/cards/refresh-all-book-values");
+                    setModalMessage(res.data.message || `↻ Reset freshness for ${res.data.updated} cards.`);
+                    setShowModal(true);
+                  } catch (err) {
+                    console.error(err);
+                    setModalMessage("❌ Error resetting freshness timers. See console for details.");
+                    setShowModal(true);
+                  }
+                }} className="val-btn" style={{ width: "100%" }}>
+                  ⏱️ Reset Book Value Timers ⏱️
+                </button>
+                <InfoIcon id="refreshbook" text="Marks today as the book-value update date for every card that has book values entered. Use this to establish a baseline after a bulk review." />
+              </div>
             </div>
           </>
         )}
