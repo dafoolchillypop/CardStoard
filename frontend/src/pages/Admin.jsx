@@ -604,8 +604,8 @@ export default function Admin() {
               </div>
             </div>
 
-            <div style={{ marginTop: "1.5rem", display: "flex", flexDirection: "row", justifyContent: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-              <div style={{ flex: 1, minWidth: "200px", textAlign: "center" }}>
+            <div style={{ marginTop: "1.5rem", display: "flex", justifyContent: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+              <div style={{ textAlign: "center" }}>
                 <button onClick={async () => {
                   if (!window.confirm("Recalculate valuation for ALL cards now?")) return;
                   try {
@@ -617,12 +617,12 @@ export default function Admin() {
                     setModalMessage("❌ Error applying valuation. See console for details.");
                     setShowModal(true);
                   }
-                }} className="val-btn" style={{ width: "100%" }}>
+                }} className="val-btn">
                   💰 Apply Global Valuation 💰
                 </button>
                 <InfoIcon id="revalue" text="Recalculates the estimated value for every card in your collection using current factor settings." />
               </div>
-              <div style={{ flex: 1, minWidth: "200px", textAlign: "center" }}>
+              <div style={{ textAlign: "center" }}>
                 <button type="button" onClick={async () => {
                   if (!window.confirm("Reset the book freshness timer to today for all cards that have book values entered?")) return;
                   try {
@@ -634,7 +634,7 @@ export default function Admin() {
                     setModalMessage("❌ Error resetting freshness timers. See console for details.");
                     setShowModal(true);
                   }
-                }} className="val-btn" style={{ width: "100%" }}>
+                }} className="val-btn">
                   ⏱️ Reset Book Value Timers ⏱️
                 </button>
                 <InfoIcon id="refreshbook" text="Marks today as the book-value update date for every card that has book values entered. Use this to establish a baseline after a bulk review." />
