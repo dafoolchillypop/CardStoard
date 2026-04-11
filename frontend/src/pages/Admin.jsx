@@ -53,6 +53,10 @@ export default function Admin() {
   const [dedupLoading, setDedupLoading] = useState(false);
   const [dedupMsg, setDedupMsg] = useState("");
   const [dedupConfirming, setDedupConfirming] = useState(false);
+  const [invalidStats, setInvalidStats] = useState(null);
+  const [invalidLoading, setInvalidLoading] = useState(false);
+  const [invalidMsg, setInvalidMsg] = useState("");
+  const [invalidConfirming, setInvalidConfirming] = useState(false);
 
   const fetchValuesStats = () => {
     api.get("/dictionary/values-stats")
@@ -124,6 +128,37 @@ export default function Admin() {
       setDedupMsg("Dedup failed: " + (err.response?.data?.detail || err.message));
     } finally {
       setDedupLoading(false);
+    }
+  };
+
+  const handleCheckInvalid = async () => {
+    setInvalidLoading(true);
+    setInvalidMsg("");
+    setInvalidStats(null);
+    setInvalidConfirming(false);
+    try {
+      const res = await api.get("/dictionary/invalid-stats");
+      setInvalidStats(res.data);
+    } catch (err) {
+      setInvalidMsg("Check failed: " + (err.response?.data?.detail || err.message));
+    } finally {
+      setInvalidLoading(false);
+    }
+  };
+
+  const handlePurgeInvalid = async () => {
+    setInvalidLoading(true);
+    setInvalidMsg("");
+    try {
+      const res = await api.post("/dictionary/purge-invalid");
+      setInvalidMsg(res.data.message);
+      setInvalidStats(null);
+      setInvalidConfirming(false);
+      api.get("/dictionary/count").then(r => setDictCount(r.data.count)).catch(() => {});
+    } catch (err) {
+      setInvalidMsg("Purge failed: " + (err.response?.data?.detail || err.message));
+    } finally {
+      setInvalidLoading(false);
     }
   };
 
@@ -664,6 +699,59 @@ export default function Admin() {
           {dedupMsg && (
             <p style={{ marginTop: "0.5rem", fontSize: "0.9rem", color: dedupMsg.startsWith("Dedup failed") || dedupMsg.startsWith("Check failed") ? "#dc3545" : "#1a7a1a" }}>
               {dedupMsg}
+            </p>
+          )}
+
+          {/* Invalid brand/year entries */}
+          <div style={{ borderTop: "1px solid var(--border)", marginTop: "1rem", paddingTop: "0.75rem" }}>
+            <button className="nav-btn secondary" onClick={handleCheckInvalid} disabled={invalidLoading}>
+              {invalidLoading ? "Checking…" : "🚫 Check Invalid Entries"}
+            </button>
+            <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "0.35rem 0 0" }}>
+              Finds entries with brand/year combos that couldn't exist (e.g. Score 1952, Upper Deck 1975).
+            </p>
+          </div>
+          {invalidStats !== null && (
+            <div style={{ marginTop: "0.75rem" }}>
+              {invalidStats.total === 0 ? (
+                <p style={{ color: "#1a7a1a", fontSize: "0.9rem", margin: 0 }}>
+                  No invalid entries found — dictionary is clean.
+                </p>
+              ) : (
+                <>
+                  <p style={{ color: "#856404", fontSize: "0.9rem", margin: "0 0 0.25rem" }}>
+                    Found <strong>{invalidStats.total}</strong> invalid {invalidStats.total === 1 ? "entry" : "entries"}:
+                    {Object.entries(invalidStats.by_brand).map(([b, n]) => ` ${b} (${n})`).join(",")}
+                  </p>
+                  {!invalidConfirming ? (
+                    <button
+                      className="nav-btn"
+                      style={{ background: "#dc3545", borderColor: "#dc3545" }}
+                      onClick={() => setInvalidConfirming(true)}
+                    >
+                      🗑️ Purge Invalid Entries
+                    </button>
+                  ) : (
+                    <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", alignItems: "center" }}>
+                      <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Are you sure?</span>
+                      <button
+                        className="nav-btn"
+                        style={{ background: "#dc3545", borderColor: "#dc3545" }}
+                        onClick={handlePurgeInvalid}
+                        disabled={invalidLoading}
+                      >
+                        {invalidLoading ? "Purging…" : "Yes, Purge"}
+                      </button>
+                      <button className="nav-btn secondary" onClick={() => setInvalidConfirming(false)}>Cancel</button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+          {invalidMsg && (
+            <p style={{ marginTop: "0.5rem", fontSize: "0.9rem", color: invalidMsg.startsWith("Purge failed") || invalidMsg.startsWith("Check failed") ? "#dc3545" : "#1a7a1a" }}>
+              {invalidMsg}
             </p>
           )}
         </div>

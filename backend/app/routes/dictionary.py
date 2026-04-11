@@ -659,3 +659,64 @@ def deduplicate_entries(
         "removed": removed,
         "message": f"Removed {removed} duplicate {'entry' if removed == 1 else 'entries'}. Dictionary is now clean.",
     }
+
+
+# ---------------------------------------------------------------------------
+# Historically impossible brand/year combinations
+# Score didn't exist until 1988; Upper Deck 1989; Donruss/Fleer 1981;
+# Fleer ran 1959-1963 then stopped until 1981; Bowman ran 1948-1955 then
+# stopped until 1989. Entries outside these windows are garbage — typically
+# created by the card auto-seed when a card was saved with a wrong brand.
+# ---------------------------------------------------------------------------
+_INVALID_BRAND_SQL = """
+    LOWER(brand) = 'score'      AND year < 1988  OR
+    LOWER(brand) = 'upper deck' AND year < 1989  OR
+    LOWER(brand) = 'donruss'    AND year < 1981  OR
+    LOWER(brand) = 'fleer'      AND year < 1959  OR
+    LOWER(brand) = 'fleer'      AND year > 1963 AND year < 1981  OR
+    LOWER(brand) = 'bowman'     AND year > 1955 AND year < 1989
+"""
+
+
+# GET /dictionary/invalid-stats  — count historically impossible entries
+@router.get("/invalid-stats")
+def get_invalid_stats(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    row = db.execute(text(f"""
+        SELECT COUNT(*) AS total,
+               COUNT(*) FILTER (WHERE LOWER(brand) = 'score')      AS score_count,
+               COUNT(*) FILTER (WHERE LOWER(brand) = 'upper deck') AS upper_deck_count,
+               COUNT(*) FILTER (WHERE LOWER(brand) = 'donruss')    AS donruss_count,
+               COUNT(*) FILTER (WHERE LOWER(brand) = 'fleer')      AS fleer_count,
+               COUNT(*) FILTER (WHERE LOWER(brand) = 'bowman')     AS bowman_count
+        FROM dictionary_entries
+        WHERE {_INVALID_BRAND_SQL}
+    """)).fetchone()
+    by_brand = {}
+    if row[1]: by_brand["Score"]      = int(row[1])
+    if row[2]: by_brand["Upper Deck"] = int(row[2])
+    if row[3]: by_brand["Donruss"]    = int(row[3])
+    if row[4]: by_brand["Fleer"]      = int(row[4])
+    if row[5]: by_brand["Bowman"]     = int(row[5])
+    return {"total": int(row[0]), "by_brand": by_brand}
+
+
+# POST /dictionary/purge-invalid  — delete all historically impossible entries
+@router.post("/purge-invalid")
+def purge_invalid_entries(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    result = db.execute(text(f"""
+        DELETE FROM dictionary_entries
+        WHERE {_INVALID_BRAND_SQL}
+        RETURNING id
+    """))
+    removed = len(result.fetchall())
+    db.commit()
+    return {
+        "removed": removed,
+        "message": f"Removed {removed} invalid {'entry' if removed == 1 else 'entries'}. Dictionary is now clean.",
+    }
