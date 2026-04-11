@@ -610,7 +610,10 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           <h3 style={h3Style}>14. Admin Settings</h3>
 
           <p style={{ marginTop: 0 }}>
-            All administrative tools are consolidated on the <Link to="/admin" style={{ color: "var(--link)" }}>Admin</Link> page.
+            All administrative tools are consolidated on the <Link to="/admin" style={{ color: "var(--link)" }}>Admin</Link> page,
+            organised into four tabs: <strong>Settings</strong>, <strong>Valuation</strong>, <strong>Dictionary</strong>, and <strong>Data</strong>.
+            Each tab contains collapsible sections — click a section header to expand or collapse it.
+            Use the <strong>Expand All / Collapse All</strong> links to open or close all sections at once.
           </p>
 
           <p style={h4Style}>Feature toggles</p>
@@ -661,7 +664,11 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
 
           <p style={h4Style}>Dictionary tools</p>
           <ul style={{ marginTop: 0 }}>
-            <li>View/Edit dictionary, Import CSV, Add Entry — all accessible directly from Admin.</li>
+            <li>View/Edit dictionary, Import CSV, Add Entry — all accessible from the <strong>Dictionary</strong> tab.</li>
+            <li><strong>Check Duplicates</strong> — scans for duplicate entries (same player + brand + year + card number). If found, shows a count and offers a one-click remove; the record with the most recent book values is kept.</li>
+            <li><strong>Check Invalid Entries</strong> — finds entries with brand/year combinations that couldn't exist historically (e.g. Score 1952, Upper Deck 1975). If found, shows a count by brand and offers a one-click purge.</li>
+            <li><strong>Seed from My Cards</strong> — populates book values on dictionary entries using the book values entered on your cards.</li>
+            <li><strong>Import Values CSV</strong> — bulk import book values from a CSV file (Brand, Year, CardNumber, BookHigh, BookHighMid, BookMid, BookLowMid, BookLow).</li>
           </ul>
 
           <p style={h4Style}>Card Import</p>

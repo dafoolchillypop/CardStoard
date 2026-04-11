@@ -61,6 +61,21 @@ from app.services.card_value import calculate_card_value, calculate_market_facto
 
 router = APIRouter(prefix="/cards", tags=["cards"])
 
+# ---------------------------------------------------------------------------
+# Brand/year plausibility guard
+# Only applies to the six known major brands. Unknown/custom brands pass
+# through so user-added brands are never blocked.
+# ---------------------------------------------------------------------------
+def _brand_year_valid(brand: str, year: int) -> bool:
+    b = brand.lower().strip()
+    if b == "topps":      return year >= 1951
+    if b == "bowman":     return 1948 <= year <= 1955 or year >= 1989
+    if b == "fleer":      return 1959 <= year <= 1963 or year >= 1981
+    if b == "donruss":    return year >= 1981
+    if b == "score":      return year >= 1988
+    if b == "upper deck": return year >= 1989
+    return True  # unknown brand — allow
+
 # Photo upload location
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_DIR = os.path.join(BASE_DIR, "static", "cards")
@@ -340,9 +355,11 @@ def create_card(
             db.commit()
             db.refresh(db_card)
 
-        # Auto-populate dictionary if card has all required fields
+        # Auto-populate dictionary if card has all required fields and the
+        # brand/year combination is historically plausible.
         if (db_card.card_number and db_card.first_name and db_card.last_name
-                and db_card.brand and db_card.year):
+                and db_card.brand and db_card.year
+                and _brand_year_valid(db_card.brand, db_card.year)):
             existing = db.query(DictionaryEntry).filter(
                 func.lower(DictionaryEntry.first_name) == db_card.first_name.lower(),
                 func.lower(DictionaryEntry.last_name) == db_card.last_name.lower(),

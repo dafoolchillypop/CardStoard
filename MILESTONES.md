@@ -23,6 +23,9 @@
 ### Patches
 - **Seed-from-cards creates missing entries** — `seed-values-from-cards` now creates a `DictionaryEntry` if none exists for that player/brand/year/card_number combo before writing the `DictionaryValue`; previously it silently skipped cards not already in the dictionary
 - **Scan page live dictionary re-query** — after AI vision scan, editing any extracted field (name, brand, year, card number) triggers a debounced re-query of the dictionary; the book value panel and Add-to-Collection payload update immediately, so a corrected name yields the right values without re-scanning
+- **Dictionary dedup tool** — Admin → Dictionary tab: "Check Duplicates" scans for entries with identical player/brand/year/card_number; shows group/entry counts and offers one-click removal; keeps the record with the most recent book values (tiebreak: highest id)
+- **Dictionary invalid-entry tool** — Admin → Dictionary tab: "Check Invalid Entries" finds entries with historically impossible brand/year combos (Score pre-1988, Upper Deck pre-1989, Donruss pre-1981, Fleer outside 1959–63/1981+, Bowman outside 1948–55/1989+); shows count by brand and offers one-click purge; auto-create guard added to `cards.py` prevents future invalid entries
+- **Admin page redesigned** — tabbed layout with pill tab bar (Settings / Valuation / Dictionary / Data); collapsible accordion sections within each tab; Expand All / Collapse All per tab; all sections collapsed by default
 
 ---
 

@@ -4,7 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, text
 
 from app import models, schemas
 from app.database import get_db
@@ -597,4 +597,126 @@ def seed_values_from_cards(
         "updated": updated,
         "created": created,
         "message": f"Seeded {updated + created} dictionary entries ({updated} updated, {created} created).",
+    }
+
+
+# ---------------------------------------------------------------------------
+# GET /dictionary/duplicate-stats  — count duplicate entry groups + rows to remove
+# Duplicates defined as same (lower first_name, lower last_name, lower brand,
+# year, lower card_number). Returns counts without making any changes.
+# ---------------------------------------------------------------------------
+@router.get("/duplicate-stats")
+def get_duplicate_stats(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    row = db.execute(text("""
+        SELECT
+            COUNT(*)                  AS duplicate_groups,
+            COALESCE(SUM(cnt - 1), 0) AS entries_to_remove
+        FROM (
+            SELECT COUNT(*) AS cnt
+            FROM dictionary_entries
+            GROUP BY LOWER(first_name), LOWER(last_name), LOWER(brand), year, LOWER(card_number)
+            HAVING COUNT(*) > 1
+        ) sub
+    """)).fetchone()
+    return {
+        "duplicate_groups":  int(row[0]),
+        "entries_to_remove": int(row[1]),
+    }
+
+
+# ---------------------------------------------------------------------------
+# POST /dictionary/deduplicate  — remove duplicate entries, keeping the one
+# with the most recent book_values_imported_at (tiebreak: highest id).
+# ---------------------------------------------------------------------------
+@router.post("/deduplicate")
+def deduplicate_entries(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    result = db.execute(text("""
+        WITH ranked AS (
+            SELECT id,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY LOWER(first_name), LOWER(last_name), LOWER(brand),
+                                    year, LOWER(card_number)
+                       ORDER BY book_values_imported_at DESC NULLS LAST, id DESC
+                   ) AS rn
+            FROM dictionary_entries
+        ),
+        to_delete AS (
+            SELECT id FROM ranked WHERE rn > 1
+        )
+        DELETE FROM dictionary_entries
+        WHERE id IN (SELECT id FROM to_delete)
+        RETURNING id
+    """))
+    removed = len(result.fetchall())
+    db.commit()
+    return {
+        "removed": removed,
+        "message": f"Removed {removed} duplicate {'entry' if removed == 1 else 'entries'}. Dictionary is now clean.",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Historically impossible brand/year combinations
+# Score didn't exist until 1988; Upper Deck 1989; Donruss/Fleer 1981;
+# Fleer ran 1959-1963 then stopped until 1981; Bowman ran 1948-1955 then
+# stopped until 1989. Entries outside these windows are garbage — typically
+# created by the card auto-seed when a card was saved with a wrong brand.
+# ---------------------------------------------------------------------------
+_INVALID_BRAND_SQL = """
+    LOWER(brand) = 'score'      AND year < 1988  OR
+    LOWER(brand) = 'upper deck' AND year < 1989  OR
+    LOWER(brand) = 'donruss'    AND year < 1981  OR
+    LOWER(brand) = 'fleer'      AND year < 1959  OR
+    LOWER(brand) = 'fleer'      AND year > 1963 AND year < 1981  OR
+    LOWER(brand) = 'bowman'     AND year > 1955 AND year < 1989
+"""
+
+
+# GET /dictionary/invalid-stats  — count historically impossible entries
+@router.get("/invalid-stats")
+def get_invalid_stats(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    row = db.execute(text(f"""
+        SELECT COUNT(*) AS total,
+               COUNT(*) FILTER (WHERE LOWER(brand) = 'score')      AS score_count,
+               COUNT(*) FILTER (WHERE LOWER(brand) = 'upper deck') AS upper_deck_count,
+               COUNT(*) FILTER (WHERE LOWER(brand) = 'donruss')    AS donruss_count,
+               COUNT(*) FILTER (WHERE LOWER(brand) = 'fleer')      AS fleer_count,
+               COUNT(*) FILTER (WHERE LOWER(brand) = 'bowman')     AS bowman_count
+        FROM dictionary_entries
+        WHERE {_INVALID_BRAND_SQL}
+    """)).fetchone()
+    by_brand = {}
+    if row[1]: by_brand["Score"]      = int(row[1])
+    if row[2]: by_brand["Upper Deck"] = int(row[2])
+    if row[3]: by_brand["Donruss"]    = int(row[3])
+    if row[4]: by_brand["Fleer"]      = int(row[4])
+    if row[5]: by_brand["Bowman"]     = int(row[5])
+    return {"total": int(row[0]), "by_brand": by_brand}
+
+
+# POST /dictionary/purge-invalid  — delete all historically impossible entries
+@router.post("/purge-invalid")
+def purge_invalid_entries(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    result = db.execute(text(f"""
+        DELETE FROM dictionary_entries
+        WHERE {_INVALID_BRAND_SQL}
+        RETURNING id
+    """))
+    removed = len(result.fetchall())
+    db.commit()
+    return {
+        "removed": removed,
+        "message": f"Removed {removed} invalid {'entry' if removed == 1 else 'entries'}. Dictionary is now clean.",
     }

@@ -116,6 +116,50 @@ button[type="submit"]:hover {
   background-color: #2e7d32;
 }
 
+/* ── Pill tab bar ── */
+.admin-tab-bar {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+  background: var(--border-light);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.admin-tab-btn {
+  flex: 1;
+  padding: 0.45rem 0.5rem;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  background: transparent;
+  color: var(--text-faint);
+}
+
+.admin-tab-btn.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+}
+
+[data-theme="dark"] .admin-tab-bar {
+  background: #1a1a1a;
+}
+
+[data-theme="dark"] .admin-tab-btn {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .admin-tab-btn.active {
+  background: #3a3a3a;
+  color: var(--text-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
 .modal-overlay {
   animation: fadeIn 0.2s ease-in-out;
 }
