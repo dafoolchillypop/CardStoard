@@ -423,32 +423,13 @@ export default function Admin() {
         <h2 className="page-header">Admin Settings</h2>
 
         {/* ── Tab bar ── */}
-        <div style={{
-          display: "flex",
-          gap: "0.35rem",
-          marginBottom: "1.25rem",
-          background: "var(--bg-muted)",
-          borderRadius: "10px",
-          padding: "4px",
-        }}>
+        <div className="admin-tab-bar">
           {TABS.map(tab => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              style={{
-                flex: 1,
-                padding: "0.45rem 0.5rem",
-                border: "none",
-                borderRadius: "7px",
-                fontSize: "0.85rem",
-                fontWeight: activeTab === tab.id ? 700 : 500,
-                cursor: "pointer",
-                transition: "background 0.15s, color 0.15s, box-shadow 0.15s",
-                background: activeTab === tab.id ? "var(--bg-card, #fff)" : "transparent",
-                color: activeTab === tab.id ? "var(--text-primary)" : "var(--text-muted)",
-                boxShadow: activeTab === tab.id ? "0 1px 4px rgba(0,0,0,0.12)" : "none",
-              }}
+              className={`admin-tab-btn${activeTab === tab.id ? " active" : ""}`}
             >
               {tab.label}
             </button>
