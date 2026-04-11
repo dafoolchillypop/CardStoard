@@ -659,8 +659,13 @@ export default function Admin() {
                     <button className="nav-btn" onClick={() => navigate("/dictionary")}>📖 View / Edit</button>
                     <button className="nav-btn" onClick={() => navigate("/dictionary/import")}>📥 Import CSV</button>
                     <button className="nav-btn" onClick={() => navigate("/dictionary/add")}>➕ Add Entry</button>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem", justifyContent: "center", flexWrap: "wrap" }}>
                     <button className="nav-btn secondary" onClick={handleCheckDuplicates} disabled={dedupLoading}>
                       {dedupLoading ? "Checking…" : "🔍 Check Duplicates"}
+                    </button>
+                    <button className="nav-btn secondary" onClick={handleCheckInvalid} disabled={invalidLoading}>
+                      {invalidLoading ? "Checking…" : "🚫 Check Invalid Entries"}
                     </button>
                   </div>
                   {dedupStats !== null && (
@@ -697,14 +702,9 @@ export default function Admin() {
                     </p>
                   )}
 
-                  <div style={{ borderTop: "1px solid var(--border)", marginTop: "1rem", paddingTop: "0.75rem" }}>
-                    <button className="nav-btn secondary" onClick={handleCheckInvalid} disabled={invalidLoading}>
-                      {invalidLoading ? "Checking…" : "🚫 Check Invalid Entries"}
-                    </button>
-                    <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "0.35rem 0 0" }}>
-                      Finds entries with brand/year combos that couldn't exist (e.g. Score 1952, Upper Deck 1975).
-                    </p>
-                  </div>
+                  <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "0.35rem 0 0" }}>
+                    Invalid entries: brand/year combos that couldn't exist (e.g. Score 1952, Upper Deck 1975).
+                  </p>
                   {invalidStats !== null && (
                     <div style={{ marginTop: "0.75rem" }}>
                       {invalidStats.total === 0 ? (
