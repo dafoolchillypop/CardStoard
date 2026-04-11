@@ -634,7 +634,7 @@ export default function Admin() {
                   setModalMessage("❌ Error resetting freshness timers. See console for details.");
                   setShowModal(true);
                 }
-              }} className="val-btn" style={{ background: "#0891b2" }}>
+              }} className="val-btn">
                 ⏱️ Reset Book Value Timers ⏱️
               </button>
               <InfoIcon id="refreshbook" text="Marks today as the book-value update date for every card that has book values entered. Use this to establish a baseline after a bulk review." />
