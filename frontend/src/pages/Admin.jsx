@@ -58,7 +58,6 @@ export default function Admin() {
   const [restoreError, setRestoreError] = useState("");
   const [dmTooltip, setDmTooltip] = useState(null);
   const [dmLoading, setDmLoading] = useState(null);
-  const [saveStatus, setSaveStatus] = useState("");
   const debounceRef = useRef(null);
   const [allSets, setAllSets] = useState([]);
   const [activeBrand, setActiveBrand] = useState(null);
@@ -200,16 +199,12 @@ export default function Admin() {
   const debouncedSave = (updatedSettings) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
-      setSaveStatus("saving");
       try {
         const res = await api.put("/settings/", updatedSettings);
         setSettings(res.data);
         window.dispatchEvent(new Event("settings-changed"));
-        setSaveStatus("saved");
-        setTimeout(() => setSaveStatus(""), 2000);
       } catch (err) {
         console.error(err);
-        setSaveStatus("error");
       }
     }, 1500);
   };
@@ -219,21 +214,6 @@ export default function Admin() {
     const updated = { ...settings, [name]: value };
     setSettings(updated);
     debouncedSave(updated);
-  };
-
-  const handleSaveNow = async () => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    setSaveStatus("saving");
-    try {
-      const res = await api.put("/settings/", settings);
-      setSettings(res.data);
-      window.dispatchEvent(new Event("settings-changed"));
-      setSaveStatus("saved");
-      setTimeout(() => setSaveStatus(""), 2000);
-    } catch (err) {
-      console.error(err);
-      setSaveStatus("error");
-    }
   };
 
   const handleToggle = async (field) => {
@@ -606,13 +586,6 @@ export default function Admin() {
               )}
             </div>
 
-            {/* Save */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", justifyContent: "center", marginTop: "0.25rem" }}>
-              <button type="button" onClick={handleSaveNow}>Save Now</button>
-              {saveStatus === "saving" && <span style={{ fontSize: "0.85rem", color: "#888" }}>Saving...</span>}
-              {saveStatus === "saved"  && <span style={{ fontSize: "0.85rem", color: "#28a745" }}>✓ Saved</span>}
-              {saveStatus === "error"  && <span style={{ fontSize: "0.85rem", color: "#dc3545" }}>⚠ Error saving</span>}
-            </div>
           </>
         )}
 
@@ -633,13 +606,6 @@ export default function Admin() {
                 <div><label>FRGrade Factor</label><input type="number" step="0.01" name="frgrade_factor" value={settings.frgrade_factor} onChange={handleChange} /></div>
                 <div><label>PRGrade Factor</label><input type="number" step="0.01" name="prgrade_factor" value={settings.prgrade_factor} onChange={handleChange} /></div>
               </div>
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", justifyContent: "center", marginTop: "1rem" }}>
-              <button type="button" onClick={handleSaveNow}>Save Now</button>
-              {saveStatus === "saving" && <span style={{ fontSize: "0.85rem", color: "#888" }}>Saving...</span>}
-              {saveStatus === "saved"  && <span style={{ fontSize: "0.85rem", color: "#28a745" }}>✓ Saved</span>}
-              {saveStatus === "error"  && <span style={{ fontSize: "0.85rem", color: "#dc3545" }}>⚠ Error saving</span>}
             </div>
 
             <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
