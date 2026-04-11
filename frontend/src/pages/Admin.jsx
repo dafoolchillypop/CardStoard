@@ -37,12 +37,8 @@ const TAB_SECTIONS = {
   data:       ["data-sets", "data-import", "data-mgmt"],
 };
 
-// Sections open by default per tab
-const DEFAULT_OPEN = new Set([
-  "s-features", "s-navbar", "s-general", "s-rowcolors",  // Settings — all open
-  "d-player", "d-value",                                  // Dictionary — both open
-  "data-sets",                                            // Data — Card Sets open
-]);
+// All sections collapsed by default
+const DEFAULT_OPEN = new Set();
 
 export default function Admin() {
   const navigate = useNavigate();
