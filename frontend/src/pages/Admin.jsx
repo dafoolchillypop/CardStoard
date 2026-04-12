@@ -34,7 +34,7 @@ const TABS = [
 const TAB_SECTIONS = {
   settings:   ["s-features", "s-navbar", "s-general", "s-rowcolors"],
   dictionary: ["d-player", "d-value"],
-  data:       ["data-sets", "data-import", "data-mgmt"],
+  data:       ["data-sets", "data-import", "data-bulkimg", "data-mgmt"],
 };
 
 // All sections collapsed by default
@@ -68,6 +68,9 @@ export default function Admin() {
   const [invalidLoading, setInvalidLoading] = useState(false);
   const [invalidMsg, setInvalidMsg] = useState("");
   const [invalidConfirming, setInvalidConfirming] = useState(false);
+  const [bulkImgFile, setBulkImgFile] = useState(null);
+  const [bulkImgLoading, setBulkImgLoading] = useState(false);
+  const [bulkImgResult, setBulkImgResult] = useState(null);
 
   const toggleSection = (id) => {
     setOpenSections(prev => {
@@ -189,6 +192,25 @@ export default function Admin() {
       setInvalidMsg("Purge failed: " + (err.response?.data?.detail || err.message));
     } finally {
       setInvalidLoading(false);
+    }
+  };
+
+  const handleBulkImageImport = async () => {
+    if (!bulkImgFile) return;
+    setBulkImgLoading(true);
+    setBulkImgResult(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", bulkImgFile);
+      const res = await api.post("/admin/bulk-image-import", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setBulkImgResult(res.data);
+      setBulkImgFile(null);
+    } catch (err) {
+      setBulkImgResult({ error: err.response?.data?.detail || "Import failed." });
+    } finally {
+      setBulkImgLoading(false);
     }
   };
 
@@ -875,6 +897,56 @@ export default function Admin() {
                 <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
                   <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>Bulk import cards from a CSV file</p>
                   <button className="nav-btn" onClick={() => navigate("/import-cards")}>📥 Import Cards</button>
+                </div>
+              )}
+            </div>
+
+            {/* Bulk Image Import */}
+            <div className="card-section" style={{ marginBottom: "1rem" }}>
+              <SectionHeader id="data-bulkimg">
+                Bulk Image Import <InfoIcon id="bulkimgimport" text="Upload a ZIP of card photos. Files must be named: {card_id}_{front|back}_{anything}.jpg" />
+              </SectionHeader>
+              {openSections.has("data-bulkimg") && (
+                <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
+                  <p style={{ fontSize: "0.8rem", color: "#777", marginBottom: "0.75rem" }}>
+                    Name files <code>{"{card_id}_{front|back}_{anything}.jpg"}</code> and zip them.
+                    Batch capture sessions (<a href="/batch-capture" style={{ color: "var(--accent-blue)" }}>Batch Capture</a>) are the recommended workflow for in-app photos.
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
+                    <input
+                      type="file"
+                      accept=".zip"
+                      onChange={e => { setBulkImgFile(e.target.files[0]); setBulkImgResult(null); }}
+                    />
+                    <button
+                      className="nav-btn"
+                      onClick={handleBulkImageImport}
+                      disabled={!bulkImgFile || bulkImgLoading}
+                      style={{ opacity: (!bulkImgFile || bulkImgLoading) ? 0.65 : 1 }}
+                    >
+                      {bulkImgLoading ? "Importing…" : "📥 Import Photos"}
+                    </button>
+                  </div>
+                  {bulkImgResult && !bulkImgResult.error && (
+                    <div style={{ marginTop: "0.75rem" }}>
+                      <p style={{ color: "#1a7a1a", fontSize: "0.9rem", margin: "0 0 0.4rem" }}>
+                        ✓ Imported {bulkImgResult.imported} photo{bulkImgResult.imported !== 1 ? "s" : ""}.
+                      </p>
+                      {bulkImgResult.errors?.length > 0 && (
+                        <details style={{ textAlign: "left", fontSize: "0.82rem", color: "#856404" }}>
+                          <summary style={{ cursor: "pointer" }}>
+                            {bulkImgResult.errors.length} warning{bulkImgResult.errors.length > 1 ? "s" : ""}
+                          </summary>
+                          <ul style={{ margin: "0.4rem 0 0", paddingLeft: "1.2rem" }}>
+                            {bulkImgResult.errors.map((e, i) => <li key={i}>{e}</li>)}
+                          </ul>
+                        </details>
+                      )}
+                    </div>
+                  )}
+                  {bulkImgResult?.error && (
+                    <p style={{ color: "#dc3545", fontSize: "0.9rem", marginTop: "0.75rem" }}>{bulkImgResult.error}</p>
+                  )}
                 </div>
               )}
             </div>

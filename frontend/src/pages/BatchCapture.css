@@ -1,0 +1,8 @@
+/* BatchCapturePage styles */
+/* Most styling is inline; this file holds only structural rules */
+
+/* Queue list scroll area */
+.batch-queue-list {
+  max-height: 60vh;
+  overflow-y: auto;
+}

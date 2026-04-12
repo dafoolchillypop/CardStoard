@@ -116,6 +116,9 @@ export default function AppHeader() {
             📷 Scan
           </button>
         )}
+        <button className="header-btn" onClick={() => navigate("/batch-capture")} title="Batch Photo Capture">
+          📸 Capture
+        </button>
       </div>
 
       {/* --- Right: admin, chat, about, logout --- */}
