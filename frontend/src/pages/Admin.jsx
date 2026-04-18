@@ -68,6 +68,9 @@ export default function Admin() {
   const [invalidLoading, setInvalidLoading] = useState(false);
   const [invalidMsg, setInvalidMsg] = useState("");
   const [invalidConfirming, setInvalidConfirming] = useState(false);
+  const [bulkImgFile, setBulkImgFile] = useState(null);
+  const [bulkImgLoading, setBulkImgLoading] = useState(false);
+  const [bulkImgResult, setBulkImgResult] = useState(null);
 
   const toggleSection = (id) => {
     setOpenSections(prev => {
@@ -189,6 +192,25 @@ export default function Admin() {
       setInvalidMsg("Purge failed: " + (err.response?.data?.detail || err.message));
     } finally {
       setInvalidLoading(false);
+    }
+  };
+
+  const handleBulkImageImport = async () => {
+    if (!bulkImgFile) return;
+    setBulkImgLoading(true);
+    setBulkImgResult(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", bulkImgFile);
+      const res = await api.post("/admin/bulk-image-import", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setBulkImgResult(res.data);
+      setBulkImgFile(null);
+    } catch (err) {
+      setBulkImgResult({ error: err.response?.data?.detail || "Import failed." });
+    } finally {
+      setBulkImgLoading(false);
     }
   };
 

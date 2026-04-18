@@ -49,6 +49,7 @@ import PackLabel from "./pages/PackLabel.jsx";
 import PackView from "./pages/PackView.jsx";
 import UserGuide from "./pages/UserGuide.jsx";
 import ScanPage from "./pages/ScanPage.jsx";
+import BatchCapturePage from "./pages/BatchCapturePage.jsx";
 
 import "./index.css";
 
@@ -117,6 +118,7 @@ function AppRouter() {
           <Route path="/batch-labels" element={<ProtectedRoute><BatchLabels /></ProtectedRoute>} />
           <Route path="/user-guide" element={<ProtectedRoute><UserGuide /></ProtectedRoute>} />
           <Route path="/scan" element={<ProtectedRoute><ScanPage /></ProtectedRoute>} />
+          <Route path="/batch-capture" element={<ProtectedRoute><BatchCapturePage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </>
       )}

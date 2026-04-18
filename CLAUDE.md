@@ -12,6 +12,8 @@
 ## Branching
 - **Always create a branch before making changes.** Never commit directly to `main`.
 - Branch naming: `feature/<description>`, `fix/<description>`, `dev/v<version>-<description>`
+- **Branch names must describe the work being done** — be specific, not generic (e.g. `feature/batch-capture`, not `fix/admin-tab-ui` for batch capture work).
+- **Never reuse a branch after it has been merged to main.** Once merged, create a fresh branch for new work. Do not add new commits to a previously-merged branch without explicit user authorization.
 - Merge to `main` only when the work is tested and ready.
 
 ## Testing Before Deploy

@@ -279,9 +279,59 @@ export default function UserGuide() {
           </p>
         </div>
 
-        {/* 6. Valuation Engine */}
+        {/* 6. Batch Capture */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>6. Valuation Engine</h3>
+          <h3 style={h3Style}>6. Batch Capture — Bulk Photo Session</h3>
+
+          <p style={{ marginTop: 0 }}>
+            Batch Capture (📸 in the nav bar) lets you step through your entire collection and photograph
+            each card front and back in one session. It's designed for bulk photo days — set up the queue,
+            shoot each card, and let the app handle saving the images as you go.
+          </p>
+
+          <p style={h4Style}>Session setup</p>
+          <ol style={{ marginTop: 0 }}>
+            <li>Choose a <strong>Filter</strong> — "Missing photos" (only cards without a front or back image) or "All cards".</li>
+            <li>Choose a <strong>Sort order</strong> — Player name, Year, Brand, or Card #. Match your physical stack order.</li>
+            <li>The card count updates to show how many cards will be in the session.</li>
+            <li>Click <strong>Start Session →</strong> to build the queue.</li>
+          </ol>
+
+          <p style={h4Style}>Queue review</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Review the full ordered list before shooting. Use <strong>▲ / ▼</strong> to reorder cards to match your physical stack.</li>
+            <li>Cards with identical player/brand/year/card# are flagged with a <strong>⚠</strong> badge. The warning banner lists each duplicate group and their queue positions — reorder them to be adjacent so you can shoot them together.</li>
+            <li>Click <strong>Begin Capture →</strong> when ready.</li>
+          </ul>
+
+          <p style={h4Style}>Capturing photos</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Each card shows Front and Back capture areas. Click <strong>📷 Camera</strong> to use your device camera, or <strong>📂 File</strong> to upload from your device.</li>
+            <li>After selecting or snapping a photo, the <strong>ImageEditor</strong> opens: drag the crop box to frame the card, use <strong>↺ CCW</strong> / <strong>CW ↻</strong> to rotate, <strong>Reset</strong> to undo, then click <strong>Use Photo</strong> to save.</li>
+            <li>Photos upload immediately — no separate Save step.</li>
+            <li>Click <strong>Next Card →</strong> to advance, or <strong>Skip</strong> to move on without uploading.</li>
+            <li>Use <strong>⚠ Next Dupe →</strong> to jump directly to the next duplicate card in the queue.</li>
+            <li>Click <strong>⏸ Pause &amp; Exit</strong> at any time — your progress is saved. Return to /batch-capture to resume.</li>
+          </ul>
+
+          <p style={h4Style}>Duplicate resolution</p>
+          <p style={{ marginTop: 0 }}>
+            If two or more cards in a duplicate group both have front photos, a <strong>Resolution screen</strong> appears after
+            capture completes. Each group is shown side-by-side with thumbnails. Click <strong>⇄ Swap</strong> to exchange
+            the front photos between two duplicates (e.g. if you shot the wrong card first). Click{" "}
+            <strong>Confirm Assignments →</strong> when done.
+          </p>
+
+          <p style={h4Style}>Summary</p>
+          <p style={{ marginTop: 0, marginBottom: 0 }}>
+            The summary screen shows photographed, skipped, and duplicate group counts.
+            Click <strong>View My Cards</strong> to go back to your collection, or <strong>Start New Session</strong> to run another pass.
+          </p>
+        </div>
+
+        {/* 7. Valuation Engine */}
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>7. Valuation Engine</h3>
 
           <p style={{ marginTop: 0 }}>
             Every card's value is computed server-side each time you save. The formula is:
@@ -337,9 +387,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 7. Player Dictionary & Smart Fill */}
+        {/* 9. Player Dictionary & Smart Fill */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>7. Player Dictionary &amp; Smart Fill</h3>
+          <h3 style={h3Style}>8. Player Dictionary &amp; Smart Fill</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/dictionary" style={{ color: "var(--link)" }}>Player Dictionary</Link> is a reference
@@ -376,9 +426,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </ul>
         </div>
 
-        {/* 8. Sets */}
+        {/* 10. Sets */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>8. Sets</h3>
+          <h3 style={h3Style}>9. Sets</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/sets" style={{ color: "var(--link)" }}>Sets</Link> page lets you browse global set
@@ -408,9 +458,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 9. Sets/Binders */}
+        {/* 11. Sets/Binders */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>9. Sets/Binders</h3>
+          <h3 style={h3Style}>10. Sets/Binders</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/boxes" style={{ color: "var(--link)" }}>Sets/Binders</Link> page tracks complete
@@ -455,9 +505,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 10. Auto Balls */}
+        {/* 12. Auto Balls */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>10. Auto Balls</h3>
+          <h3 style={h3Style}>11. Auto Balls</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/balls" style={{ color: "var(--link)" }}>Auto Balls</Link> page tracks autographed
@@ -495,9 +545,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 11. Wax Boxes */}
+        {/* 13. Wax Boxes */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>11. Wax Boxes</h3>
+          <h3 style={h3Style}>12. Wax Boxes</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/wax" style={{ color: "var(--link)" }}>Wax Boxes</Link> page tracks sealed wax boxes
@@ -534,9 +584,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 12. Wax Packs */}
+        {/* 14. Wax Packs */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>12. Wax Packs</h3>
+          <h3 style={h3Style}>13. Wax Packs</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/packs" style={{ color: "var(--link)" }}>Wax Packs</Link> page tracks individual wax packs
@@ -573,9 +623,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 13. Analytics */}
+        {/* 15. Analytics */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>13. Analytics</h3>
+          <h3 style={h3Style}>14. Analytics</h3>
 
           <p style={{ marginTop: 0 }}>
             The <Link to="/analytics" style={{ color: "var(--link)" }}>Analytics</Link> dashboard gives you a high-level
@@ -605,9 +655,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </p>
         </div>
 
-        {/* 14. Admin */}
+        {/* 16. Admin */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>14. Admin Settings</h3>
+          <h3 style={h3Style}>15. Admin Settings</h3>
 
           <p style={{ marginTop: 0 }}>
             All administrative tools are consolidated on the <Link to="/admin" style={{ color: "var(--link)" }}>Admin</Link> page,
@@ -686,9 +736,9 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           </ul>
         </div>
 
-        {/* 15. Account & Security */}
+        {/* 17. Account & Security */}
         <div style={sectionStyle}>
-          <h3 style={h3Style}>15. Account &amp; Security</h3>
+          <h3 style={h3Style}>16. Account &amp; Security</h3>
 
           <p style={{ marginTop: 0 }}>
             Access your account settings by clicking your username in the top-right of the navigation bar.

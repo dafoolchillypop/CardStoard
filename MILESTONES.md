@@ -4,6 +4,28 @@
 
 **<->**
 
+## v1.20 — Batch Photo Capture (April 2026)
+**Status:** Complete
+**Focus:** Bulk card photography workflow — step through your collection card-by-card, capture front and back photos, handle duplicates, and save all images in one session
+
+### Deliverables
+- **BatchCapturePage (`/batch-capture`)** — full session workflow: setup → queue review → capture → duplicate resolution → summary
+- **Session setup** — filter cards by "Missing photos" or "All cards"; sort by player/year/brand/card#; card count displayed before starting
+- **Queue screen** — review ordered card list before capturing; ▲/▼ reorder buttons; duplicate groups flagged with ⚠ badge and listed with queue positions; "Skip to next duplicate" jump button during capture
+- **Capture screen** — per-card front + back capture via camera (live viewfinder + snap) or file input; progress bar; "Pause & Exit" saves session to localStorage; "⚠ Next Dupe →" jumps to next duplicate in queue
+- **ImageEditor component** — crop/rotate modal for every captured or uploaded photo; aspect ratio locked to 2.5×3.5 (standard card); CW/CCW rotate buttons; Reset; Save/Cancel; overlay click to dismiss; used in both Batch Capture and inline edit
+- **Session persistence** — session state (queue, cursor, photo URLs) saved to localStorage; resume banner on next visit with Resume/Discard options
+- **Duplicate resolution screen** — after session completes, shows all duplicate groups with front photo thumbnails side-by-side; ⇄ Swap button exchanges photos between duplicate cards (with cache-busting to force re-render)
+- **Summary screen** — photographed / skipped / duplicate group counts; navigate to My Cards or start a new session
+- **Inline image upload in edit row** — always-on (no feature flag needed); front/back upload links in the edit row on My Cards; immediate upload on file select; independent of card save
+- **AppHeader** — 📸 Batch Capture nav button (always visible, not AI-gated)
+
+### Notes
+- Bulk ZIP import (`POST /admin/bulk-image-import`) was built but disabled from the UI pending UX improvements (users need card IDs to name files; CSV export helper and file-matching UI deferred to backlog)
+- Delete card image feature deferred to backlog
+
+---
+
 ## v1.19 — AI Vision & Dictionary Expansion (April 2026)
 **Status:** Complete
 **Focus:** AI-powered card identification from photos, and full Topps 1952–1990 dictionary coverage
