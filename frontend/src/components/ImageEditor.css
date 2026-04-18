@@ -21,7 +21,7 @@
   max-width: 560px;
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
+  height: 90vh;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
@@ -53,9 +53,9 @@
 
 .image-editor-crop-area {
   flex: 1;
-  min-height: 280px;
-  max-height: 50vh;
+  min-height: 0;
   background: #111;
+  overflow: hidden;
 }
 
 .image-editor-controls {

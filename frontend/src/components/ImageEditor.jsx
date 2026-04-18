@@ -76,13 +76,16 @@ export default function ImageEditor({ file, onSave, onCancel, title = "Edit Phot
             style={{ height: "100%", width: "100%" }}
             aspectRatio={2.5 / 3.5}
             viewMode={1}
-            autoCropArea={0.9}
+            autoCropArea={0.6}
             rotatable={true}
             scalable={false}
             zoomable={true}
             guides={true}
             background={false}
             responsive={true}
+            ready={() => {
+              cropperRef.current?.cropper?.reset();
+            }}
           />
         </div>
 

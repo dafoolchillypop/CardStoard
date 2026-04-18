@@ -352,10 +352,11 @@ export default function BatchCapturePage() {
       // In dev: proxy is http://localhost:8000; in prod: https://cardstoard.com/api + /static/...
       // Use window.location.origin for static assets in production, backend for dev
       const makeUrl = (relPath) => {
+        const cleanPath = relPath.split("?")[0]; // strip any cache-busting params
         if (window.location.hostname === "localhost") {
-          return "http://localhost:8000" + relPath;
+          return "http://localhost:8000" + cleanPath;
         }
-        return "https://cardstoard.com" + relPath;
+        return "https://cardstoard.com" + cleanPath;
       };
 
       const [respA, respB] = await Promise.all([
@@ -377,11 +378,12 @@ export default function BatchCapturePage() {
         api.post(`/cards/${cardA.id}/upload-front`, formB, { headers: { "Content-Type": "multipart/form-data" } }),
       ]);
 
-      // Update queue with swapped URLs
+      // Update queue with swapped URLs — append timestamp to bust browser cache
+      const t = Date.now();
       setQueue(prev => {
         const newQ = [...prev];
-        newQ[idxA] = { ...newQ[idxA], frontUrl: resA.data.front_image };
-        newQ[idxB] = { ...newQ[idxB], frontUrl: resB.data.front_image };
+        newQ[idxA] = { ...newQ[idxA], frontUrl: `${resA.data.front_image}?t=${t}` };
+        newQ[idxB] = { ...newQ[idxB], frontUrl: `${resB.data.front_image}?t=${t}` };
         return newQ;
       });
     } catch (err) {
@@ -423,7 +425,7 @@ export default function BatchCapturePage() {
   const renderSetup = () => (
     <div>
       {resumeData && (
-        <div className="card-section" style={{ marginBottom: "1rem", background: "var(--bg-warn-light, #fffbf0)" }}>
+        <div className="card-section" style={{ marginBottom: "1rem", background: "var(--bg-warn-light, #fffbf0)", color: "#7a5c00", border: "1px solid #f0c040" }}>
           <p style={{ margin: "0 0 0.5rem", fontWeight: 600 }}>
             You have a saved session ({resumeData.queue.length} cards, cursor at {resumeData.cursor}).
           </p>
@@ -504,9 +506,16 @@ export default function BatchCapturePage() {
         </div>
 
         {Object.keys(dupeGroups).length > 0 && (
-          <div className="card-section" style={{ marginBottom: "1rem", background: "var(--bg-warn-light, #fffbf0)", fontSize: "0.88rem" }}>
+          <div className="card-section" style={{ marginBottom: "1rem", background: "var(--bg-warn-light, #fffbf0)", fontSize: "0.88rem", color: "#7a5c00", border: "1px solid #f0c040" }}>
             <strong>⚠ {Object.keys(dupeGroups).length} duplicate group{Object.keys(dupeGroups).length > 1 ? "s" : ""} detected.</strong>{" "}
             Reorder cards to match your physical stack. Photos will be assigned in queue order.
+            <ul style={{ margin: "0.5rem 0 0", paddingLeft: "1.25rem" }}>
+              {Object.values(dupeGroups).map((idxs, i) => (
+                <li key={i}>
+                  {cardTitle(queue[idxs[0]])} — {idxs.length} copies (queue positions: {idxs.map(n => n + 1).join(", ")})
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
@@ -584,7 +593,7 @@ export default function BatchCapturePage() {
 
         {/* Duplicate group banner */}
         {isFirstInDupeGroup && (
-          <div className="card-section" style={{ marginBottom: "1rem", background: "var(--bg-warn-light, #fffbf0)", fontSize: "0.88rem" }}>
+          <div className="card-section" style={{ marginBottom: "1rem", background: "var(--bg-warn-light, #fffbf0)", fontSize: "0.88rem", color: "#7a5c00", border: "1px solid #f0c040" }}>
             ⚠ <strong>Duplicate group ({dupeGroupIdxs.length} copies)</strong> — shoot in queue order.
             You can swap photo assignments after the session.
           </div>
@@ -713,6 +722,26 @@ export default function BatchCapturePage() {
             <button className="nav-btn secondary" onClick={() => handleAdvance(true)}>
               Skip
             </button>
+            {(() => {
+              const nextDupeIdx = queue.findIndex((item, i) => {
+                if (i <= cursor) return false;
+                const k = dupeKey(item);
+                return dupeGroups[k] && dupeGroups[k].length >= 2;
+              });
+              return nextDupeIdx !== -1 ? (
+                <button
+                  className="nav-btn secondary"
+                  title={`Jump to next duplicate (card ${nextDupeIdx + 1})`}
+                  onClick={() => {
+                    saveSession(queue, nextDupeIdx);
+                    setCursor(nextDupeIdx);
+                    setUploadError(null);
+                  }}
+                >
+                  ⚠ Next Dupe →
+                </button>
+              ) : null;
+            })()}
             <button className="nav-btn secondary" onClick={() => {
               saveSession(queue, cursor);
               navigate("/list-cards");
@@ -835,15 +864,18 @@ export default function BatchCapturePage() {
     <>
       <AppHeader />
       <div className="container" style={{ maxWidth: 640, margin: "0 auto", padding: "1rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.5rem" }}>
-          <button
-            className="nav-btn secondary"
-            style={{ fontSize: "0.82rem", padding: "0.25rem 0.6rem" }}
-            onClick={() => navigate(-1)}
-          >
-            ← Back
-          </button>
-          <h2 className="page-header" style={{ margin: 0 }}>Batch Capture</h2>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: "1.5rem" }}>
+          <div style={{ flex: 1 }}>
+            <button
+              className="nav-btn secondary"
+              style={{ fontSize: "0.82rem", padding: "0.25rem 0.6rem" }}
+              onClick={() => navigate(-1)}
+            >
+              ← Back
+            </button>
+          </div>
+          <h2 className="page-header" style={{ margin: 0 }}>📸 Batch Capture</h2>
+          <div style={{ flex: 1 }} />
         </div>
 
         {phase === "setup"      && renderSetup()}

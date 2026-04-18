@@ -56,6 +56,7 @@ export default function About() {
             <li><strong>📈 Analytics</strong> — charts and trends across your collection</li>
             <li><strong>⚙️</strong> (gear icon) — Admin: settings, valuation factors, player dictionary, card import, and data management</li>
             <li><strong>Your username</strong> — account settings, password changes, and multi-factor authentication</li>
+            <li><strong>📸 Batch Capture</strong> — bulk photo session to photograph your collection card-by-card</li>
             <li><strong>💬</strong> (chat icon, if enabled) — AI-powered Collection Assistant</li>
             <li><strong>📘 About</strong> — this page</li>
           </ul>
@@ -72,6 +73,7 @@ export default function About() {
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>Collection Management</p>
           <ul style={{ marginTop: 0 }}>
             <li>Add, edit, and delete cards with front &amp; back image uploads</li>
+            <li><strong>Batch Capture</strong> — step-through photo session for bulk card photography; camera or file input; crop/rotate editor; duplicate detection with photo swap; session auto-saves and resumes</li>
             <li>Inline editing directly in the card list — no page navigation required</li>
             <li>Bulk <Link to="/import-help" style={{ color: "var(--link)", fontWeight: 600 }}>import</Link> from CSV</li>
             <li>Filter by player, brand, year, grade, and rookie status</li>
@@ -135,12 +137,18 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.19</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.20</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.20 (April 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Batch Capture — step through your collection card-by-card to photograph front and back; camera or file input; crop/rotate editor; duplicate detection with photo swap; session saves and resumes automatically</li>
+            <li>Inline image upload — add or replace front/back photos directly from the card edit row in My Cards</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.19 (April 2026)</p>
           <ul style={{ marginTop: 0 }}>

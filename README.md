@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.19
+# 🧾 CardStoard — v1.20
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -33,6 +33,7 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 
 ### Collection Management
 - Add, edit, and delete cards with front & back image uploads
+- **Batch Capture** — step-through photo session to photograph hundreds of cards front+back; filter by missing photos or all cards; sort by player/year/brand/card#; camera or file input per card; session persists to localStorage for resume across page close; duplicate detection with photo swap after session; crop/rotate editor (ImageEditor) with 2.5×3.5 card aspect ratio
 - **Inline editing** — edit any card field directly in the card list without leaving the page
 - **Card Detail page** — full card view with label ID, value change indicator, book freshness, notes, duplicate count, and print label; prev/next navigation steps through the collection in sort order
 - **Book freshness quick-edit** — "Book: never updated" label on Card Detail is clickable and navigates directly to that card in edit mode in the list
@@ -250,6 +251,7 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.20** | Apr 2026 | Batch Capture: step-through photo session for bulk card photography (front+back); camera + file input per card; crop/rotate editor (ImageEditor) with 2.5×3.5 card aspect ratio; duplicate detection with photo swap resolution screen; session persistence to localStorage with resume; inline image upload in edit row |
 | **v1.19** | Apr 2026 | AI Image Recognition: photograph or upload a card — AI identifies player/brand/year/card number and pre-fills the Add Card form; camera capture in browser; dictionary expanded to 28,800+ entries (Topps 1952–1990 full checklist); dictionary data quality pass: bogus entries removed, rookie_year populated for 70+ HOF/star players; scan page live dictionary re-query on field edit; seed-from-cards creates missing dictionary entries; dictionary dedup + invalid-entry detection and purge tools; Admin page redesigned as tabbed layout (Settings / Valuation / Dictionary / Data) with collapsible accordion sections |
 | **v1.18** | Mar 2026 | Duplicate code refactor: extracted `GenericItemLabel`, `GenericItemView`, and `cardUtils` shared modules; eliminated ~138 SonarCloud-flagged duplicate lines across 13 components |
 | **v1.17** | Mar 2026 | SonarCloud code quality remediations pass 2: datetime lambda fix, sort localeCompare, React hooks ordering, accessibility (keyboard/role/tabIndex), credential variable rename; 0 bugs, 0 vulnerabilities |
