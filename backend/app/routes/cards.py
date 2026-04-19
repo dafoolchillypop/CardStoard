@@ -518,11 +518,11 @@ Return ONLY the complete JSON object with all fields including the ones above.""
 
 _VALID_MEDIA_TYPES = {"image/jpeg", "image/png", "image/jpg"}
 _MAX_IMAGE_BYTES = 5 * 1024 * 1024  # 5MB
-_MAX_IMAGE_DIM = 1024
+_MAX_IMAGE_DIM = 2100
 
 
 def _resize_image(content: bytes, media_type: str) -> tuple[bytes, str]:
-    """Resize image to max 1024px on longest side. Returns (bytes, media_type)."""
+    """Resize image to max 2100px on longest side. Returns (bytes, media_type)."""
     img = PILImage.open(io.BytesIO(content))
     # Convert RGBA or palette to RGB for JPEG compatibility
     if img.mode not in ("RGB", "L"):
