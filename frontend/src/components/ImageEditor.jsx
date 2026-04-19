@@ -1,7 +1,7 @@
 /**
  * components/ImageEditor.jsx
  * ---------------------------
- * Crop + rotate modal for card photos, used in BatchCapturePage.
+ * Crop + rotate + adjust modal for card photos, used in BatchCapturePage and ScanPage.
  *
  * Props:
  *   file      — File object (from camera capture or file input)
@@ -12,8 +12,13 @@
  * Uses react-cropper (cropperjs v1 wrapper) for:
  *   - EXIF rotation handling (preserves phone portrait orientation)
  *   - Pinch-zoom / drag on mobile
- *   - Aspect ratio lock to standard card (2.5 × 3.5)
+ *   - Aspect ratio lock to standard card (2.5 × 3.5) or landscape (3.5 × 2.5)
  *   - Rotate CW / CCW buttons
+ *
+ * Additional controls:
+ *   - Portrait / Landscape toggle (updates aspect ratio live)
+ *   - Brightness, Contrast, Saturation sliders (applied to export canvas)
+ *   - Output always exported at 1500×2100 (portrait) or 2100×1500 (landscape)
  */
 import React, { useRef, useState, useEffect } from "react";
 import Cropper from "react-cropper";
@@ -24,6 +29,10 @@ export default function ImageEditor({ file, onSave, onCancel, title = "Edit Phot
   const cropperRef = useRef(null);
   const [objectUrl, setObjectUrl] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [orientation, setOrientation] = useState("portrait");
+  const [brightness, setBrightness] = useState(100);
+  const [contrast, setContrast] = useState(100);
+  const [saturation, setSaturation] = useState(100);
 
   // Create an object URL for the file and revoke on cleanup
   useEffect(() => {
@@ -38,16 +47,48 @@ export default function ImageEditor({ file, onSave, onCancel, title = "Edit Phot
     if (cropper) cropper.rotate(deg);
   };
 
+  const toggleOrientation = () => {
+    setOrientation(prev => {
+      const next = prev === "portrait" ? "landscape" : "portrait";
+      cropperRef.current?.cropper?.setAspectRatio(next === "portrait" ? 2.5 / 3.5 : 3.5 / 2.5);
+      return next;
+    });
+  };
+
   const handleReset = () => {
     const cropper = cropperRef.current?.cropper;
     if (cropper) cropper.reset();
+    setBrightness(100);
+    setContrast(100);
+    setSaturation(100);
   };
 
   const handleSave = () => {
     const cropper = cropperRef.current?.cropper;
     if (!cropper) return;
     setSaving(true);
-    cropper.getCroppedCanvas().toBlob(
+
+    const dims = orientation === "portrait"
+      ? { width: 1500, height: 2100 }
+      : { width: 2100, height: 1500 };
+
+    const croppedCanvas = cropper.getCroppedCanvas(dims);
+    if (!croppedCanvas) { setSaving(false); return; }
+
+    const filterStr = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+    const needsFilter = brightness !== 100 || contrast !== 100 || saturation !== 100;
+
+    const exportCanvas = needsFilter ? (() => {
+      const filtered = document.createElement("canvas");
+      filtered.width = croppedCanvas.width;
+      filtered.height = croppedCanvas.height;
+      const ctx = filtered.getContext("2d");
+      ctx.filter = filterStr;
+      ctx.drawImage(croppedCanvas, 0, 0);
+      return filtered;
+    })() : croppedCanvas;
+
+    exportCanvas.toBlob(
       (blob) => {
         if (!blob) { setSaving(false); return; }
         const editedFile = new File([blob], file.name || "card-photo.jpg", { type: "image/jpeg" });
@@ -61,6 +102,8 @@ export default function ImageEditor({ file, onSave, onCancel, title = "Edit Phot
 
   if (!objectUrl) return null;
 
+  const filterStyle = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+
   return (
     <div className="image-editor-overlay" onClick={onCancel}>
       <div className="image-editor-modal" onClick={(e) => e.stopPropagation()}>
@@ -70,23 +113,40 @@ export default function ImageEditor({ file, onSave, onCancel, title = "Edit Phot
         </div>
 
         <div className="image-editor-crop-area">
-          <Cropper
-            ref={cropperRef}
-            src={objectUrl}
-            style={{ height: "100%", width: "100%" }}
-            aspectRatio={2.5 / 3.5}
-            viewMode={1}
-            autoCropArea={0.6}
-            rotatable={true}
-            scalable={false}
-            zoomable={true}
-            guides={true}
-            background={false}
-            responsive={true}
-            ready={() => {
-              cropperRef.current?.cropper?.reset();
-            }}
-          />
+          <div style={{ filter: filterStyle, height: "100%" }}>
+            <Cropper
+              ref={cropperRef}
+              src={objectUrl}
+              style={{ height: "100%", width: "100%" }}
+              aspectRatio={2.5 / 3.5}
+              viewMode={1}
+              autoCropArea={0.6}
+              rotatable={true}
+              scalable={false}
+              zoomable={true}
+              guides={true}
+              background={false}
+              responsive={true}
+              ready={() => {
+                cropperRef.current?.cropper?.reset();
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="image-editor-adjustments">
+          <label>
+            Bright
+            <input type="range" min="50" max="150" value={brightness} onChange={e => setBrightness(+e.target.value)} />
+          </label>
+          <label>
+            Contrast
+            <input type="range" min="50" max="150" value={contrast} onChange={e => setContrast(+e.target.value)} />
+          </label>
+          <label>
+            Sat
+            <input type="range" min="0" max="200" value={saturation} onChange={e => setSaturation(+e.target.value)} />
+          </label>
         </div>
 
         <div className="image-editor-controls">
@@ -96,8 +156,11 @@ export default function ImageEditor({ file, onSave, onCancel, title = "Edit Phot
           <button className="nav-btn secondary" onClick={() => rotate(90)} title="Rotate clockwise">
             CW ↻
           </button>
-          <button className="nav-btn secondary" onClick={handleReset} title="Reset crop and rotation">
+          <button className="nav-btn secondary" onClick={handleReset} title="Reset crop, rotation, and adjustments">
             Reset
+          </button>
+          <button className="nav-btn secondary" onClick={toggleOrientation} title="Toggle portrait/landscape">
+            {orientation === "portrait" ? "↔ Landscape" : "↕ Portrait"}
           </button>
           <div style={{ flex: 1 }} />
           <button className="nav-btn secondary" onClick={onCancel}>

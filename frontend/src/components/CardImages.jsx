@@ -22,10 +22,12 @@ const CardImages = ({ card, onClose }) => {
         background: "rgba(0, 0, 0, 0.8)",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
+        justifyContent: zoomed ? "flex-start" : "center",
+        alignItems: zoomed ? "flex-start" : "center",
         zIndex: 1000,
-        overflow: "auto", // allow scrolling when zoomed
+        overflow: "auto",
+        padding: zoomed ? "1rem" : 0,
+        boxSizing: "border-box",
       }}
       onClick={onClose}
       onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
@@ -46,49 +48,40 @@ const CardImages = ({ card, onClose }) => {
         }}
         onClick={(e) => {
           e.stopPropagation();
-          toggleZoom(); // click toggles zoom
+          toggleZoom();
         }}
         onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); toggleZoom(); } }}
       />
 
-      {/* Links */}
+      {/* Fixed bottom toolbar — always visible regardless of scroll/zoom */}
       <div
         style={{
-          marginTop: "20px",
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          width: "100%",
           display: "flex",
           justifyContent: "center",
           gap: "30px",
+          padding: "0.75rem 1rem",
+          background: "rgba(0, 0, 0, 0.55)",
+          zIndex: 1001,
+          boxSizing: "border-box",
         }}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
         <a
           href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            toggleImage();
-          }}
-          style={{
-            color: "#fff",
-            textDecoration: "underline",
-            fontSize: "18px",
-            cursor: "pointer",
-          }}
+          onClick={(e) => { e.preventDefault(); toggleImage(); }}
+          style={{ color: "#fff", textDecoration: "underline", fontSize: "18px", cursor: "pointer" }}
         >
           {showBack ? "Front" : "Back"}
         </a>
         <a
           href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            onClose();
-          }}
-          style={{
-            color: "#fff",
-            textDecoration: "underline",
-            fontSize: "18px",
-            cursor: "pointer",
-          }}
+          onClick={(e) => { e.preventDefault(); onClose(); }}
+          style={{ color: "#fff", textDecoration: "underline", fontSize: "18px", cursor: "pointer" }}
         >
           Close
         </a>

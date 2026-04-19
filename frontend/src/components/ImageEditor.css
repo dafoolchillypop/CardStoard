@@ -58,6 +58,30 @@
   overflow: hidden;
 }
 
+.image-editor-adjustments {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.4rem 1rem 0.5rem;
+  border-top: 1px solid var(--border, #e0e0e0);
+  flex-shrink: 0;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #555);
+}
+
+.image-editor-adjustments label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  flex: 1;
+}
+
+.image-editor-adjustments input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent-blue, #2563eb);
+}
+
 .image-editor-controls {
   display: flex;
   align-items: center;

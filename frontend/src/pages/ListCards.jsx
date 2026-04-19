@@ -132,6 +132,8 @@ export default function ListCards() {
   const [total, setTotal] = useState(0);
   const [settings, setSettings] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [hoverCard, setHoverCard] = useState(null);
+  const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
   const [lastNameFilter, setLastNameFilter] = useState(returnState.lastNameFilter ?? "");
   const [brandFilter, setBrandFilter] = useState(returnState.brandFilter ?? "");
   const [gradeFilter, setGradeFilter] = useState(returnState.gradeFilter ?? "");
@@ -1320,6 +1322,16 @@ export default function ListCards() {
                             tabIndex={0}
                             onClick={() => setSelectedCard(card)}
                             onKeyDown={(e) => { if (e.key === "Enter") setSelectedCard(card); }}
+                            onMouseEnter={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setHoverPos({ x: rect.right + 8, y: rect.top });
+                              setHoverCard(card);
+                            }}
+                            onMouseMove={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setHoverPos({ x: rect.right + 8, y: rect.top });
+                            }}
+                            onMouseLeave={() => setHoverCard(null)}
                           />
                         ) : (
                           <span style={{ color: "#aaa" }}>No Image</span>
@@ -1389,6 +1401,28 @@ export default function ListCards() {
       )}
       {selectedCard && (
         <CardImages card={selectedCard} onClose={() => { setSelectedCard(null); tableSectionRef.current?.focus(); }} />
+      )}
+      {hoverCard?.front_image && (
+        <div
+          style={{
+            position: "fixed",
+            left: hoverPos.x,
+            top: hoverPos.y,
+            zIndex: 2000,
+            pointerEvents: "none",
+            borderRadius: 8,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.35)",
+            background: "var(--bg-card, #fff)",
+            padding: "4px",
+            border: "1px solid var(--border, #e0e0e0)",
+          }}
+        >
+          <img
+            src={hoverCard.front_image}
+            alt="Preview"
+            style={{ width: 220, height: "auto", display: "block", borderRadius: 5 }}
+          />
+        </div>
       )}
       <LabelPreviewModal
         labelData={labelData}

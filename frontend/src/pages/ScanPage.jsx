@@ -16,6 +16,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import AppHeader from "../components/AppHeader";
+import ImageEditor from "../components/ImageEditor";
 
 const GRADE_LABELS = {
   3.0: "MT",
@@ -65,6 +66,7 @@ export default function ScanPage() {
   // --- Camera capture state ---
   const [showCamera, setShowCamera] = useState(false);
   const [cameraError, setCameraError] = useState(null);
+  const [editorFile, setEditorFile] = useState(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
@@ -155,7 +157,7 @@ export default function ScanPage() {
     setCameraError(null);
     setShowCamera(true);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 4096 }, height: { ideal: 4096 } } });
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -175,26 +177,32 @@ export default function ScanPage() {
     canvas.getContext("2d").drawImage(video, 0, 0);
     canvas.toBlob(blob => {
       const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(blob));
-      setIdentifyResult(null);
-      setIdentifyError(null);
-      setEditedFields({});
-      setAddResult(null);
       stopCamera();
+      setEditorFile(file);
     }, "image/jpeg", 0.92);
   };
 
   const handleFileChange = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    setImageFile(f);
-    setImagePreview(URL.createObjectURL(f));
+    setEditorFile(f);
     setIdentifyResult(null);
     setIdentifyError(null);
     setEditedFields({});
     setAddResult(null);
   };
+
+  const handleEditorSave = (editedFile) => {
+    setEditorFile(null);
+    setImageFile(editedFile);
+    setImagePreview(URL.createObjectURL(editedFile));
+    setIdentifyResult(null);
+    setIdentifyError(null);
+    setEditedFields({});
+    setAddResult(null);
+  };
+
+  const handleEditorCancel = () => setEditorFile(null);
 
   const handleIdentify = async () => {
     if (!imageFile) return;
@@ -718,6 +726,10 @@ export default function ScanPage() {
           </>
         )}
       </div>
+
+      {editorFile && (
+        <ImageEditor file={editorFile} onSave={handleEditorSave} onCancel={handleEditorCancel} title="Adjust Photo" />
+      )}
     </>
   );
 }

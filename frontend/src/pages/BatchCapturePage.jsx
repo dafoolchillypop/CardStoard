@@ -199,7 +199,7 @@ export default function BatchCapturePage() {
     setShowCamera(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: { facingMode: "environment", width: { ideal: 4096 }, height: { ideal: 4096 } },
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -398,6 +398,11 @@ export default function BatchCapturePage() {
     filter === "missing" ? (!c.front_image || !c.back_image) : true
   ).length;
 
+  const previewQueue = React.useMemo(
+    () => buildQueue(allCards, filter, sortBy).slice(0, 5),
+    [allCards, filter, sortBy]
+  );
+
   const currentCard = queue[cursor];
   const isDupeCard = (idx) => {
     if (!queue[idx]) return false;
@@ -475,6 +480,24 @@ export default function BatchCapturePage() {
             <p style={{ fontSize: "1.1rem", fontWeight: 600, margin: "0 0 1rem" }}>
               {filteredCount} card{filteredCount !== 1 ? "s" : ""} selected
             </p>
+            {previewQueue.length > 0 && (
+              <div style={{
+                textAlign: "left", margin: "0 auto 1rem", maxWidth: 360,
+                background: "var(--bg-muted, #f8f8f8)", borderRadius: 8,
+                padding: "0.6rem 0.85rem", fontSize: "0.85rem", color: "var(--text-secondary, #555)",
+              }}>
+                <div style={{ fontWeight: 600, marginBottom: "0.3rem", color: "var(--text-primary)" }}>
+                  First {previewQueue.length} in queue:
+                </div>
+                <ol style={{ margin: 0, paddingLeft: "1.25rem" }}>
+                  {previewQueue.map((c, i) => (
+                    <li key={c.id ?? i} style={{ marginBottom: "0.15rem" }}>
+                      {cardTitle(c)}{c.card_number ? ` #${c.card_number}` : ""}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
             <button
               className="nav-btn"
               disabled={filteredCount === 0}
