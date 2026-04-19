@@ -137,12 +137,24 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.20</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.21</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.21 (April 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>ImageEditor: portrait/landscape toggle — flip crop aspect ratio for horizontal cards</li>
+            <li>ImageEditor: brightness, contrast, and saturation sliders with real-time preview; baked into saved photo</li>
+            <li>ImageEditor: fixed 1500×2100 (portrait) / 2100×1500 (landscape) export resolution regardless of source size</li>
+            <li>Camera upgraded to 4K ideal resolution in Batch Capture and Scan</li>
+            <li>Scan page: photo editing/cropping now applied to both camera capture and file upload before AI identification</li>
+            <li>Zoom modal: full image reachable by scrolling — no more truncation at edges; Front/Back/Close toolbar fixed at bottom</li>
+            <li>Batch Capture setup: "First 5 in queue" preview shows card order before starting, updates live with filter/sort changes</li>
+            <li>My Cards: hover over any thumbnail to see a floating 220px preview without clicking</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.20 (April 2026)</p>
           <ul style={{ marginTop: 0 }}>

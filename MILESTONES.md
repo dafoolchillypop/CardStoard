@@ -4,6 +4,23 @@
 
 **<->**
 
+## v1.21 — Image UX Enhancements (April 2026)
+**Status:** Complete
+**Focus:** Post-production polish on the image capture workflow — higher resolution output, orientation flexibility, photo adjustments, zoom fix, and hover preview in the card list
+
+### Deliverables
+- **ImageEditor: portrait/landscape toggle** — "↔ Landscape" / "↕ Portrait" button toggles aspect ratio between 2.5:3.5 and 3.5:2.5 live via `setAspectRatio`
+- **ImageEditor: brightness/contrast/saturation sliders** — three range sliders with real-time CSS filter preview; filters baked into the exported canvas on save; Reset resets sliders along with crop/rotation
+- **ImageEditor: fixed output resolution** — exports at exactly 1500×2100px (portrait) or 2100×1500px (landscape) regardless of source image size; manual canvas draw replaces unreliable getCroppedCanvas width/height option
+- **Camera resolution upgrade** — both BatchCapturePage and ScanPage now request `{ ideal: 4096 }` via getUserMedia constraints; browser negotiates best available hardware resolution
+- **ScanPage: ImageEditor wiring** — both camera capture and file upload on the Identify Card tab now route through ImageEditor before the photo is set; file input key reset on cancel prevents stale-input re-selection bug
+- **CardImages zoom fix** — when zoomed, overlay switches to flex-start alignment so image anchors top-left and all edges are reachable by scrolling; fixed bottom toolbar (Front/Back/Close) always visible at `zIndex 1001`
+- **Batch Capture sort preview** — "First N in queue" list below card count on setup screen; updates live as filter/sort dropdowns change
+- **Hover zoom in My Cards** — hovering any thumbnail shows a floating 220px preview to the right; `pointerEvents: none` so hover never blocks click; clicking still opens full CardImages modal
+- **Backend image cap raised** — `_MAX_IMAGE_DIM` raised from 1024 to 2100px to preserve hi-res card exports
+
+---
+
 ## v1.20 — Batch Photo Capture (April 2026)
 **Status:** Complete
 **Focus:** Bulk card photography workflow — step through your collection card-by-card, capture front and back photos, handle duplicates, and save all images in one session
