@@ -67,6 +67,7 @@ export default function ScanPage() {
   const [showCamera, setShowCamera] = useState(false);
   const [cameraError, setCameraError] = useState(null);
   const [editorFile, setEditorFile] = useState(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
@@ -202,7 +203,7 @@ export default function ScanPage() {
     setAddResult(null);
   };
 
-  const handleEditorCancel = () => setEditorFile(null);
+  const handleEditorCancel = () => { setEditorFile(null); setFileInputKey(k => k + 1); };
 
   const handleIdentify = async () => {
     if (!imageFile) return;
@@ -458,6 +459,7 @@ export default function ScanPage() {
                           </div>
                         )}
                         <input
+                          key={fileInputKey}
                           type="file"
                           accept="image/*"
                           style={{ display: "none" }}

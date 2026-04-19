@@ -68,27 +68,25 @@ export default function ImageEditor({ file, onSave, onCancel, title = "Edit Phot
     if (!cropper) return;
     setSaving(true);
 
-    const dims = orientation === "portrait"
-      ? { width: 1500, height: 2100 }
-      : { width: 2100, height: 1500 };
+    const targetW = orientation === "portrait" ? 1500 : 2100;
+    const targetH = orientation === "portrait" ? 2100 : 1500;
 
-    const croppedCanvas = cropper.getCroppedCanvas(dims);
-    if (!croppedCanvas) { setSaving(false); return; }
+    // Get natural-size crop first, then draw into a fixed-dimension canvas.
+    // getCroppedCanvas width/height options don't reliably upscale in all cropperjs builds.
+    const naturalCanvas = cropper.getCroppedCanvas();
+    if (!naturalCanvas) { setSaving(false); return; }
 
     const filterStr = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
     const needsFilter = brightness !== 100 || contrast !== 100 || saturation !== 100;
 
-    const exportCanvas = needsFilter ? (() => {
-      const filtered = document.createElement("canvas");
-      filtered.width = croppedCanvas.width;
-      filtered.height = croppedCanvas.height;
-      const ctx = filtered.getContext("2d");
-      ctx.filter = filterStr;
-      ctx.drawImage(croppedCanvas, 0, 0);
-      return filtered;
-    })() : croppedCanvas;
+    const exportCanvas = document.createElement("canvas");
+    exportCanvas.width = targetW;
+    exportCanvas.height = targetH;
+    const ctx = exportCanvas.getContext("2d");
+    if (needsFilter) ctx.filter = filterStr;
+    ctx.drawImage(naturalCanvas, 0, 0, targetW, targetH);
 
-    exportCanvas.toBlob(
+    exportCanvas.toBlob(  // always 1500×2100 (portrait) or 2100×1500 (landscape)
       (blob) => {
         if (!blob) { setSaving(false); return; }
         const editedFile = new File([blob], file.name || "card-photo.jpg", { type: "image/jpeg" });
