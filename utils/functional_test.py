@@ -4,15 +4,15 @@ utils/functional_test.py
 --------------------------
 CardStoard Full Functional Test Suite
 
-Covers 41 tests across all inventory types and auth flows:
-  AUTH (5)  — gating checks, login, /auth/me, logout
-  CARDS (9) — full CRUD + validate-csv + export + count
-  BALLS (5) — full CRUD
-  WAX (5)   — full CRUD (wax boxes)
-  PACKS (5) — full CRUD (wax packs)
-  BOXES (5) — full CRUD (boxes/binders)
-  DICT (3)  — list, count, search
-  ANALYTICS (1) — summary
+Covers 44 tests across all inventory types and auth flows:
+  AUTH (5)    — gating checks, login, /auth/me, logout
+  CARDS (12)  — full CRUD + image upload (front+back) + duplicate-count + validate-csv + export + count
+  BALLS (5)   — full CRUD
+  WAX (5)     — full CRUD (wax boxes)
+  PACKS (5)   — full CRUD (wax packs)
+  BOXES (5)   — full CRUD (boxes/binders)
+  DICT (3)    — list, count, search
+  ANALYTICS (1) — summary (7-key structure check)
   SETTINGS (2)  — get + update roundtrip
 
 Usage:
@@ -29,6 +29,7 @@ Seed strategy: creates test items, tracks their IDs, deletes them in a
 Exit code: 0 = all pass, 1 = any failure.
 """
 import argparse
+import base64
 import json
 import os
 import shutil
@@ -38,6 +39,18 @@ import urllib.parse
 import urllib.request
 from datetime import datetime
 from http.cookiejar import CookieJar
+
+# ─── Minimal 1×1 JPEG for image upload tests ─────────────────────────────────
+# A valid 1×1 white-pixel JPEG (~280 bytes). Used to test upload-front/back
+# endpoints without depending on a real image file on disk.
+MINIMAL_JPEG = base64.b64decode(
+    "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoH"
+    "BwYIDAoMCwsKCwsNCxAQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQME"
+    "BAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU"
+    "FBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/"
+    "EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAA"
+    "AAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/ACWQAP/Z"
+)
 
 # ─── Defaults ────────────────────────────────────────────────────────────────
 DEFAULT_EMAIL    = "smoketest@cardstoard.dev"
@@ -168,8 +181,12 @@ class TestRunner:
             data = json.dumps(json_body).encode("utf-8")
             headers["Content-Type"] = "application/json"
         elif multipart is not None:
-            file_name, file_content = multipart
-            data, ct = _multipart_body(file_name, file_content)
+            if len(multipart) == 3:
+                file_name, file_content, mp_ct = multipart
+            else:
+                file_name, file_content = multipart
+                mp_ct = "text/csv"
+            data, ct = _multipart_body(file_name, file_content, mp_ct)
             headers["Content-Type"] = ct
 
         req = urllib.request.Request(url, data=data, headers=headers, method=method)
@@ -391,9 +408,44 @@ class TestRunner:
                 "CARDS", "Value recalc", ok,
                 f"value={body.get('value')}" if ok else f"HTTP {status}",
             )
+            # Upload front image
+            status, body = self.api(
+                "POST", f"/cards/{card_id}/upload-front",
+                multipart=("test-front.jpg", MINIMAL_JPEG, "image/jpeg"),
+            )
+            ok = status == 200 and isinstance(body, dict) and "front_image" in body
+            self.record(
+                "CARDS", "Upload front image", ok,
+                body.get("front_image", "")[-30:] if ok else f"HTTP {status}",
+            )
+
+            # Upload back image
+            status, body = self.api(
+                "POST", f"/cards/{card_id}/upload-back",
+                multipart=("test-back.jpg", MINIMAL_JPEG, "image/jpeg"),
+            )
+            ok = status == 200 and isinstance(body, dict) and "back_image" in body
+            self.record(
+                "CARDS", "Upload back image", ok,
+                body.get("back_image", "")[-30:] if ok else f"HTTP {status}",
+            )
+
+            # Duplicate count
+            status, body = self.api("GET", f"/cards/{card_id}/duplicate-count")
+            ok = (
+                status == 200
+                and isinstance(body, dict)
+                and isinstance(body.get("duplicate_count"), int)
+            )
+            self.record(
+                "CARDS", "Duplicate count", ok,
+                f"duplicate_count={body.get('duplicate_count')}" if ok else f"HTTP {status}",
+            )
+
         else:
             # Skip CRUD tests that require a card ID
-            for name in ("Get card", "List cards", "Count", "Update card", "Value recalc"):
+            for name in ("Get card", "List cards", "Count", "Update card", "Value recalc",
+                         "Upload front image", "Upload back image", "Duplicate count"):
                 self.record("CARDS", name, False, "skipped (create failed)")
 
         # Validate CSV — independent of card_id
@@ -686,12 +738,23 @@ class TestRunner:
         )
 
     def suite_analytics(self):
-        """Confirm analytics summary returns expected top-level keys."""
+        """Confirm analytics summary returns all expected top-level keys."""
         status, body = self.api("GET", "/analytics/")
-        ok = status == 200 and isinstance(body, dict) and "total_cards" in body
+        expected_keys = {
+            "total_cards", "total_value", "by_brand", "by_year",
+            "by_player", "trend_inventory", "trend_valuation",
+        }
+        ok = (
+            status == 200
+            and isinstance(body, dict)
+            and expected_keys.issubset(body.keys())
+        )
+        missing = expected_keys - set(body.keys()) if isinstance(body, dict) else expected_keys
         self.record(
             "ANALYTICS", "Summary", ok,
-            f"total_cards={body.get('total_cards')}" if ok else f"HTTP {status}",
+            f"total_cards={body.get('total_cards')}" if ok
+            else f"missing: {missing}" if status == 200
+            else f"HTTP {status}",
         )
 
     def suite_settings(self):
