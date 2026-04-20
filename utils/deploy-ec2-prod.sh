@@ -71,7 +71,7 @@ $SSH "
   set -e
   mkdir -p $BACKUP_DIR
 
-  docker exec stoardb pg_dump -U postgres --data-only \
+  docker exec stoardb pg_dump -U postgres --data-only --clean \
     --exclude-table=schema_migrations \
     cardstoardb > $BACKUP_FILE
 
@@ -104,6 +104,9 @@ $SSH "
 
 echo "--- Restoring database ---"
 $SSH "docker exec -i stoardb psql -U postgres --set ON_ERROR_STOP=on cardstoardb < $BACKUP_FILE && echo 'Restore complete'"
+
+echo "--- Seeding reference data (sets) ---"
+$SSH "docker exec stoarback python seed_sets.py"
 
 echo "--- Verifying restore ---"
 CARD_COUNT=$($SSH "docker exec stoardb psql -U postgres cardstoardb -t -c 'SELECT COUNT(*) FROM cards;' | tr -d ' \n'")
