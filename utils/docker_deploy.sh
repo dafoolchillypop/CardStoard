@@ -164,11 +164,6 @@ echo -e "\n${BLUE}🗄️  Running database migrations...${NC}"
 docker exec stoarback python migrate.py
 echo -e "${GREEN}✅ Migrations complete.${NC}"
 
-# --- 5c️⃣ Seed reference data (sets / set entries) ---
-echo -e "\n${BLUE}📋 Seeding set reference data...${NC}"
-docker exec stoarback python seed_sets.py
-echo -e "${GREEN}✅ Set seeding complete.${NC}"
-
 # --- DEPLOY-ONLY MODE ---
 if [ "$DEPLOY_ONLY" = true ]; then
   echo -e "\n${GREEN}✅ Deploy-only mode complete — skipping validation checks.${NC}"

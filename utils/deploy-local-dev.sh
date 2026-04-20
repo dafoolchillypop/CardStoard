@@ -97,6 +97,10 @@ rebuild() {
   echo "--- Running migrations ---"
   docker exec stoarback python migrate.py
   echo "✅ Migrations complete."
+
+  echo "--- Seeding reference data (sets) ---"
+  docker exec stoarback python seed_sets.py
+  echo "✅ Set seeding complete."
 }
 
 case "$FLAG" in
