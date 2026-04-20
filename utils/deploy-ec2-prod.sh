@@ -102,9 +102,9 @@ $SSH "
   done
 "
 
-echo "--- Clearing startup-seeded reference tables before restore ---"
+echo "--- Clearing all tables before restore (ensures clean slate) ---"
 $SSH "docker exec stoardb psql -U postgres cardstoardb -c \
-  'TRUNCATE dictionary_entries RESTART IDENTITY; TRUNCATE sets CASCADE;'"
+  'TRUNCATE users CASCADE; TRUNCATE dictionary_entries RESTART IDENTITY; TRUNCATE sets CASCADE;'"
 
 echo "--- Restoring database ---"
 $SSH "docker exec -i stoardb psql -U postgres --set ON_ERROR_STOP=on cardstoardb < $BACKUP_FILE && echo 'Restore complete'"
