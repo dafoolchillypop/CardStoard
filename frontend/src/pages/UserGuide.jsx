@@ -241,6 +241,8 @@ export default function UserGuide() {
               <strong>Choose a photo</strong> — tap the upload area to select an image from your device,
               or click <strong>📷 Use Camera</strong> to capture a photo directly in the browser (front-facing or rear camera).
               Either way, the <strong>ImageEditor</strong> opens so you can crop, rotate, and adjust the photo before identifying.
+              For best identification accuracy, import a full-resolution JPG from your camera rather than using live capture —
+              the in-app camera is limited to your device's video stream resolution (see resolution note in Batch Capture section).
             </li>
             <li>
               Optionally check <strong>Include condition assessment</strong> to have the AI estimate the card's grade.
@@ -309,6 +311,15 @@ export default function UserGuide() {
           <ul style={{ marginTop: 0 }}>
             <li>Each card shows Front and Back capture areas. Click <strong>📷 Camera</strong> to use your device camera, or <strong>📂 File</strong> to upload from your device.</li>
             <li>After selecting or snapping a photo, the <strong>ImageEditor</strong> opens: drag the crop box to frame the card, use <strong>↺ CCW</strong> / <strong>CW ↻</strong> to rotate, click <strong>↔ Landscape</strong> / <strong>↕ Portrait</strong> to toggle the crop aspect ratio for horizontal cards, adjust <strong>Bright / Contrast / Sat</strong> sliders for lighting corrections, <strong>Reset</strong> to undo all, then click <strong>Use Photo</strong> to save at full resolution.</li>
+            <li>
+              <strong>Camera vs. file import — resolution note:</strong> The in-app camera captures from your
+              device's live video stream (typically 1080p or lower), which is the ceiling the OS/driver exposes
+              to the browser regardless of the camera's native sensor resolution. A dedicated camera like a
+              DSLR or mirrorless connected via USB will produce a lower-resolution in-app snap than a native
+              JPG imported from the same camera's SD card. For archival-quality images, use <strong>📂 File</strong>
+              to import the full-resolution JPG directly from the camera. Use <strong>📷 Camera</strong> when
+              convenience matters more than maximum resolution.
+            </li>
             <li>Photos upload immediately — no separate Save step.</li>
             <li>Click <strong>Next Card →</strong> to advance, or <strong>Skip</strong> to move on without uploading.</li>
             <li>Use <strong>⚠ Next Dupe →</strong> to jump directly to the next duplicate card in the queue.</li>
