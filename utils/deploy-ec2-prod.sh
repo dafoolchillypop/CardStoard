@@ -71,7 +71,7 @@ $SSH "
   set -e
   mkdir -p $BACKUP_DIR
 
-  docker exec stoardb pg_dump -U postgres --data-only --clean \
+  docker exec stoardb pg_dump -U postgres --data-only \
     --exclude-table=schema_migrations \
     cardstoardb > $BACKUP_FILE
 
@@ -101,6 +101,10 @@ $SSH "
     sleep 3
   done
 "
+
+echo "--- Clearing startup-seeded reference tables before restore ---"
+$SSH "docker exec stoardb psql -U postgres cardstoardb -c \
+  'TRUNCATE dictionary_entries RESTART IDENTITY; TRUNCATE sets CASCADE;'"
 
 echo "--- Restoring database ---"
 $SSH "docker exec -i stoardb psql -U postgres --set ON_ERROR_STOP=on cardstoardb < $BACKUP_FILE && echo 'Restore complete'"

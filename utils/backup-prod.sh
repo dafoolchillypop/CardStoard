@@ -22,7 +22,7 @@ if ! docker ps --filter name=stoardb --filter status=running -q | grep -q .; the
   exit 1
 fi
 
-docker exec stoardb pg_dump -U postgres --data-only --clean \
+docker exec stoardb pg_dump -U postgres --data-only \
   --exclude-table=schema_migrations \
   cardstoardb > "$BACKUP_FILE"
 
