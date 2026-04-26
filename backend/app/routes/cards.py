@@ -27,6 +27,7 @@ Key endpoints:
   POST /cards/restore              Restore from backup JSON (replaces all cards)
   POST /cards/revalue-all          Recompute all values, snapshot ValuationHistory
   POST /cards/refresh-all-book-values  Touch book freshness for all cards with values
+  POST /cards/clear-book-freshness     Nullify book freshness timestamp for all cards
   PATCH /cards/propagate-book-values   Spread book values to all duplicate cards
 """
 # Standard library
@@ -1291,6 +1292,22 @@ def refresh_all_book_values(
     )
     db.commit()
     return {"updated": updated, "message": f"Reset freshness timer for {updated} cards."}
+
+
+# Nullify book freshness timers for all cards (mark all as never reviewed)
+@router.post("/clear-book-freshness")
+def clear_book_freshness(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    """Set book_values_updated_at to NULL for every card owned by the user."""
+    updated = (
+        db.query(models.Card)
+        .filter(models.Card.user_id == current.id)
+        .update({"book_values_updated_at": None}, synchronize_session=False)
+    )
+    db.commit()
+    return {"updated": updated, "message": f"Cleared freshness timer for {updated} cards."}
 
 
 # Recalculate All Card Values

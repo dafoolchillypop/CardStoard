@@ -1283,7 +1283,7 @@ export default function ListCards() {
                           const bM  = Number(card.book_mid)       || null;
                           const bLM = Number(card.book_low_mid)   || null;
                           let valueClass = "book-low";
-                          if (bH  && v > bH)  valueClass = "value-above-book";
+                          if (bH  && v > bH)   valueClass = "value-above-book";
                           else if (bH  && v >= bH)  valueClass = "book-high";
                           else if (bHM && v >= bHM) valueClass = "book-highmid";
                           else if (bM  && v >= bM)  valueClass = "book-mid";
