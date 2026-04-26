@@ -52,11 +52,12 @@ export function calcCardValue(card, settings) {
     }
   }
 
-  let valueClass = "value-low";
+  let valueClass = "book-low";
   if (cardValue !== null) {
-    if (cardValue >= 500) valueClass = "value-high";
-    else if (cardValue >= 200) valueClass = "value-mid";
-    else if (cardValue >= 50) valueClass = "value-lowmid";
+    if (cardValue >= 500) valueClass = "book-high";
+    else if (cardValue >= 200) valueClass = "book-highmid";
+    else if (cardValue >= 50) valueClass = "book-mid";
+    else if (cardValue >= 10) valueClass = "book-lowmid";
   }
 
   return { isRookie, g, gradeClass, cardValue, valueClass };

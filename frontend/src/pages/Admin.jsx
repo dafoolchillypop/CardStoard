@@ -661,6 +661,23 @@ export default function Admin() {
                 </button>
                 <InfoIcon id="refreshbook" text="Marks today as the book-value update date for every card that has book values entered. Use this to establish a baseline after a bulk review." />
               </div>
+              <div style={{ textAlign: "center" }}>
+                <button type="button" onClick={async () => {
+                  if (!window.confirm("Clear the book freshness timer for ALL cards? Every card will be flagged as needing a book value review.")) return;
+                  try {
+                    const res = await api.post("/cards/clear-book-freshness");
+                    setModalMessage(res.data.message || `Cleared freshness timer for ${res.data.updated} cards.`);
+                    setShowModal(true);
+                  } catch (err) {
+                    console.error(err);
+                    setModalMessage("❌ Error clearing freshness timers. See console for details.");
+                    setShowModal(true);
+                  }
+                }} className="val-btn">
+                  🔴 Clear Book Value Timers 🔴
+                </button>
+                <InfoIcon id="clearbook" text="Clears the book-value update date for every card, flagging all cards as needing a price review. Use this before a bulk repricing session." />
+              </div>
             </div>
           </>
         )}
