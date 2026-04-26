@@ -4,6 +4,16 @@
 
 **<->**
 
+## v1.22 — Bug Fixes: Book Freshness & Inline Edit Scroll (April 2026)
+**Status:** Complete
+**Focus:** Two targeted bug fixes in the card list — book freshness indicators not showing on cards without book values, and scroll-to-top when saving inline edits on cards with duplicates
+
+### Deliverables
+- **Book freshness indicator fix** — cards with no book values now always show the red left border and `!` indicator in the Book column, even if `book_values_updated_at` was erroneously set (e.g. from CSV import with empty book columns). CSV import no longer stamps the timestamp when all 5 book value columns are empty. Frontend freshness logic now checks for missing values first, independent of the timestamp.
+- **Inline edit scroll-to-top fix** — saving a card whose book values changed and has duplicates no longer causes the table to jump back to the top. Root cause: `setRefreshTick` triggered a full `GET /cards/` re-fetch, which called `setCards()` and then `tableSectionRef.focus()` on the scroll container — resetting `scrollTop` to 0 in some browsers. Fix: `PATCH /propagate-book-values` now returns the updated card objects; frontend patches state directly from the response with no full re-fetch.
+
+---
+
 ## v1.21 — Image UX Enhancements (April 2026)
 **Status:** Complete
 **Focus:** Post-production polish on the image capture workflow — higher resolution output, orientation flexibility, photo adjustments, zoom fix, and hover preview in the card list
