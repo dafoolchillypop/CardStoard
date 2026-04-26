@@ -178,6 +178,12 @@ def _build_card_from_row(row, rownum, user_id):
             f"Row {rownum} ({row['First']} {row['Last']}): invalid grade '{row['Grade']}'"
             f" — must be one of {sorted(VALID_GRADES)}"
         )
+    bh  = _to_float(row["BookHi"])
+    bhm = _to_float(row["BookHiMid"])
+    bm  = _to_float(row["BookMid"])
+    blm = _to_float(row["BookLowMid"])
+    bl  = _to_float(row["BookLow"])
+    book_ts = datetime.now(timezone.utc) if any([bh, bhm, bm, blm, bl]) else None
     return models.Card(
         first_name=(row["First"] or "").strip(),
         last_name=(row["Last"] or "").strip(),
@@ -185,14 +191,14 @@ def _build_card_from_row(row, rownum, user_id):
         brand=(row["Brand"] or "").strip(),
         rookie=_to_rookie(row["Rookie"]),
         card_number=(row["Card Number"] or "").strip(),
-        book_high=_to_float(row["BookHi"]),
-        book_high_mid=_to_float(row["BookHiMid"]),
-        book_mid=_to_float(row["BookMid"]),
-        book_low_mid=_to_float(row["BookLowMid"]),
-        book_low=_to_float(row["BookLow"]),
+        book_high=bh,
+        book_high_mid=bhm,
+        book_mid=bm,
+        book_low_mid=blm,
+        book_low=bl,
         grade=grade,
         user_id=user_id,
-        book_values_updated_at=datetime.now(timezone.utc),
+        book_values_updated_at=book_ts,
     )
 
 # Import cards
@@ -1120,7 +1126,9 @@ def propagate_book_values(
             card.value = calculate_card_value(avg_book, float(card.grade) if card.grade else None, factor)
 
     db.commit()
-    return {"updated": len(cards)}
+    for card in cards:
+        db.refresh(card)
+    return {"updated": len(cards), "cards": [schemas.Card.model_validate(c) for c in cards]}
 
 
 # Delete a card
