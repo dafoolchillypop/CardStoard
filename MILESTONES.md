@@ -4,6 +4,16 @@
 
 **<->**
 
+## v1.23 — Badge Color Consistency & Clear Book Freshness (April 2026)
+**Status:** Complete
+**Focus:** Visual consistency in the card value badge color scheme and a new admin action to bulk-clear book freshness timestamps
+
+### Deliverables
+- **Badge color consistency** — card value badges (the colored chip showing calculated card value in the list) now use the same darker=lower/brighter=higher green gradient as book value badges: `book-low` (darkest green) → `book-lowmid` → `book-mid` → `book-highmid` → `book-high` (brightest). Previously card value used a separate `value-*` CSS class set with an inconsistent scale. Amber (`value-above-book`) is preserved for card values that exceed the book-high figure.
+- **Clear Book Value Timers** — new Admin action (red "🔴 Clear Book Value Timers 🔴" button under Valuation tab) that nullifies the `book_values_updated_at` timestamp for every card in the user's collection. All cards are immediately flagged with a red freshness border, signaling a full price-review pass is needed. This is the inverse of the existing "Reset to Today" action. Backed by a new `POST /cards/clear-book-freshness` endpoint.
+
+---
+
 ## v1.22 — Bug Fixes: Book Freshness & Inline Edit Scroll (April 2026)
 **Status:** Complete
 **Focus:** Two targeted bug fixes in the card list — book freshness indicators not showing on cards without book values, and scroll-to-top when saving inline edits on cards with duplicates

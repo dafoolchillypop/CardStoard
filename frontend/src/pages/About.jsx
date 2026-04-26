@@ -137,12 +137,18 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.22</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.23</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.23 (April 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Card value badge colors now match book value badge colors — darker green = lower value, brighter green = higher value; amber badge preserved for values above book-high</li>
+            <li>New Admin action: "Clear Book Value Timers" — nullifies book freshness timestamps on all cards, flagging your entire collection for a price review pass</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.22 (April 2026)</p>
           <ul style={{ marginTop: 0 }}>
