@@ -1058,6 +1058,8 @@ export default function ListCards() {
                       style={(() => {
                         // Book freshness left border
                         const freshnessColor = (() => {
+                          const hasValues = card.book_high || card.book_high_mid || card.book_mid || card.book_low_mid || card.book_low;
+                          if (!hasValues) return "#dc2626";
                           if (!card.book_values_updated_at) return "#dc2626";
                           const d = (Date.now() - new Date(card.book_values_updated_at)) / (1000 * 60 * 60 * 24);
                           if (d < 30) return null;
@@ -1240,7 +1242,7 @@ export default function ListCards() {
                                 </div>
                               ))}
                             </div>
-                          : (!card.book_values_updated_at && !card.book_high && !card.book_mid && !card.book_low)
+                          : (!card.book_high && !card.book_high_mid && !card.book_mid && !card.book_low_mid && !card.book_low)
                             ? <span style={{ color: "#dc2626", fontWeight: 700, fontSize: "0.95rem" }} title="Book values never entered">!</span>
                             : <>
                                 {card.book_high && <span className="book-badge book-high" title="High (NM-MT+)">{card.book_high}</span>}
