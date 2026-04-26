@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.21
+# 🧾 CardStoard — v1.22
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.

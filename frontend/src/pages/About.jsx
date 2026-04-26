@@ -137,12 +137,18 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.21</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.22</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.22 (April 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Book freshness indicator now correctly flags cards with no book values, even when the timestamp was set by CSV import</li>
+            <li>Fixed scroll-to-top when saving inline edits on cards with duplicates — table now stays in place after book value propagation</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.21 (April 2026)</p>
           <ul style={{ marginTop: 0 }}>
