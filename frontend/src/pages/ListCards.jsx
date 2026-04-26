@@ -369,7 +369,8 @@ export default function ListCards() {
             const bulkRes = await api.patch("/cards/propagate-book-values", null, { params });
             if (bulkRes.data.updated > 1) {
               showToast(`Book values updated for all ${bulkRes.data.updated} matching cards`);
-              setRefreshTick(t => t + 1);
+              const byId = Object.fromEntries(bulkRes.data.cards.map(c => [c.id, c]));
+              setCards(prev => prev.map(c => byId[c.id] ?? c));
             }
           } catch (bulkErr) {
             console.error("Book value propagation failed:", bulkErr);

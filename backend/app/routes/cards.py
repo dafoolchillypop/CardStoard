@@ -1126,7 +1126,9 @@ def propagate_book_values(
             card.value = calculate_card_value(avg_book, float(card.grade) if card.grade else None, factor)
 
     db.commit()
-    return {"updated": len(cards)}
+    for card in cards:
+        db.refresh(card)
+    return {"updated": len(cards), "cards": [schemas.Card.model_validate(c) for c in cards]}
 
 
 # Delete a card
