@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.22
+# 🧾 CardStoard — v1.23
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -44,7 +44,7 @@ It combines a **FastAPI backend** with a **React frontend**, fully containerized
 - **Advanced multi-column sort** — configure up to 9 sort levels with direction; save as default sort order per user
 - Row color coding: Mint (lavender), Rookie (gold), Rookie + Mint (rose) — colors customizable in Admin
 - **Book value propagation** — updating book values on one card automatically updates all matching cards (same player/brand/year/card#); propagation now also resets the freshness timer on all updated duplicates
-- **Book freshness refresh** — ↻ button per row (and on Card Detail) resets the freshness timer without opening edit mode; Admin has a bulk "Reset Book Value Timers" action to baseline your entire collection at once
+- **Book freshness refresh** — ↻ button per row (and on Card Detail) resets the freshness timer without opening edit mode; Admin has a bulk "Reset Book Value Timers" action to baseline your entire collection at once; "Clear Book Value Timers" action to nullify all timestamps and flag every card as needing a price review
 - **Pin / bookmark** — pin any row with the 📌 icon; the pin persists across sessions (stored in your account profile in the database); auto-pins after every save; jump to your pinned row from the 📌 button in the table header; clone/edit operations preserve table scroll position
 
 ### Sets (Checklists & Collection Tracking)
@@ -253,6 +253,8 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.23** | Apr 2026 | Badge color consistency: card value badges now use same darker=lower/brighter=higher green scale as book value badges; amber preserved for values above book-high; "Clear Book Value Timers" Admin action — nullifies all book freshness timestamps to flag every card as needing a price review |
+| **v1.22** | Apr 2026 | Book freshness indicator fix: red border and `!` now always show on cards with no book values regardless of timestamp; CSV import no longer stamps timestamp on empty book columns; fixed scroll-to-top when saving inline edits on cards with duplicates |
 | **v1.21** | Apr 2026 | ImageEditor: portrait/landscape toggle, brightness/contrast/saturation sliders, fixed 1500×2100 export resolution, 4K camera; ImageEditor wired into Scan page; zoom modal scroll fix + fixed bottom toolbar; hover-zoom thumbnail preview in My Cards; Batch Capture sort preview |
 | **v1.20** | Apr 2026 | Batch Capture: step-through photo session for bulk card photography (front+back); camera + file input per card; crop/rotate editor (ImageEditor) with 2.5×3.5 card aspect ratio; duplicate detection with photo swap resolution screen; session persistence to localStorage with resume; inline image upload in edit row |
 | **v1.19** | Apr 2026 | AI Image Recognition: photograph or upload a card — AI identifies player/brand/year/card number and pre-fills the Add Card form; camera capture in browser; dictionary expanded to 28,800+ entries (Topps 1952–1990 full checklist); dictionary data quality pass: bogus entries removed, rookie_year populated for 70+ HOF/star players; scan page live dictionary re-query on field edit; seed-from-cards creates missing dictionary entries; dictionary dedup + invalid-entry detection and purge tools; Admin page redesigned as tabbed layout (Settings / Valuation / Dictionary / Data) with collapsible accordion sections |
