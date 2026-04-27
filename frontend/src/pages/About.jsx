@@ -137,12 +137,19 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.23</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.24</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.24 (April 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Book freshness indicator moved to the left border of the Book cell (was on the far-left row edge)</li>
+            <li>Delete confirmation is now an inline modal — row above the target card pins immediately on click so you can see where you'll land</li>
+            <li>"Back to List" from Card Detail scrolls back to the card you were viewing with a yellow highlight</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.23 (April 2026)</p>
           <ul style={{ marginTop: 0 }}>
