@@ -287,7 +287,10 @@ export default function CardDetail() {
         >
           {labelLoading ? "Loading…" : "🖨️ Print Label"}
         </button>
-        <Link to="/list-cards" className="nav-btn secondary">⬅ Back to List</Link>
+        <button
+          className="nav-btn secondary"
+          onClick={() => navigate("/list-cards", { state: { scrollToCardId: Number(id), highlightCardId: Number(id) } })}
+        >⬅ Back to List</button>
       </div>
 
       {/* Prev / Next navigation */}
