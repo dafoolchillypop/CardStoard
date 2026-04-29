@@ -141,6 +141,7 @@ export default function ListCards() {
   const [sortConfig, setSortConfig] = React.useState(Array.isArray(returnState.sortConfig) ? returnState.sortConfig : []);
   const [showSortModal, setShowSortModal] = useState(false);
   const [returnCardId, setReturnCardId] = useState(returnState.returnCardId ?? null);
+  const [highlightCardId, setHighlightCardId] = useState(returnState.highlightCardId ?? null);
   const [pinnedCard, setPinnedCard] = useState(null);
   const [editingCardId, setEditingCardId] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -162,6 +163,8 @@ export default function ListCards() {
   const skipNextFetchRef = React.useRef(false);
   const defaultSortApplied = useRef(false);
   const tableSectionRef = useRef(null);
+  const [deleteConfirmCard, setDeleteConfirmCard] = useState(null);
+  const deleteAnchorIdRef = useRef(null);
   const origBookVals = useRef({});
   const autoEditRef = useRef(false);
   const [toast, setToast] = useState(null);
@@ -246,7 +249,7 @@ export default function ListCards() {
       .catch(() => setPinnedCard(null));
   }, [returnCardId]);
 
-  const clearPin = () => { setReturnCardId(null); setPinnedCard(null); };
+  const clearPin = () => { setReturnCardId(null); setPinnedCard(null); setHighlightCardId(null); };
   const clearCloneAnchor = () => { setCloningCardId(null); setCloningParentId(null); setDisplaySnapshot(null); };
   const handlePinRow = (cardId) => {
     setPinnedRowId(prev => {
@@ -270,9 +273,13 @@ export default function ListCards() {
   }, [cards, pinnedCard]);
 
   // Focus the scroll container whenever cards load/refresh so arrow keys work immediately.
-  // preventScroll avoids browsers resetting the container's scroll position on focus.
+  // After a delete, scroll the anchor row (row above the deleted one) into view.
   useEffect(() => {
-    tableSectionRef.current?.focus({ preventScroll: true });
+    const el = tableSectionRef.current;
+    if (!el) return;
+    const savedTop = el.scrollTop;
+    el.focus({ preventScroll: true });
+    el.scrollTop = savedTop;
   }, [cards]);
 
 
@@ -471,13 +478,24 @@ export default function ListCards() {
     }
   };
 
-  const handleDelete = async (card) => {
-    if (!window.confirm(`Delete ${card.first_name} ${card.last_name}?`)) return;
+  const handleDelete = (card) => {
+    const idx = displayedCards.findIndex(c => c.id === card.id);
+    const anchorId = idx > 0 ? displayedCards[idx - 1].id : null;
+    deleteAnchorIdRef.current = anchorId;
+    if (anchorId) setPinnedRowId(anchorId);
+    setDeleteConfirmCard(card);
+  };
+
+  const confirmDelete = async () => {
+    const card = deleteConfirmCard;
+    const anchorId = deleteAnchorIdRef.current;
+    setDeleteConfirmCard(null);
     try {
       await api.delete(`/cards/${card.id}`);
       setCards(prev => prev.filter(c => c.id !== card.id));
       setTotal(prev => prev - 1);
       if (pinnedCard?.id === card.id) setPinnedCard(null);
+      if (anchorId) setFocusCardId(anchorId);
     } catch (err) {
       console.error("Error deleting card:", err);
       alert("Failed to delete card.");
@@ -1057,35 +1075,23 @@ export default function ListCards() {
                       key={card.id}
                       ref={el => { if (el) rowRefsMap.current[card.id] = el; else delete rowRefsMap.current[card.id]; }}
                       style={(() => {
-                        // Book freshness left border
-                        const freshnessColor = (() => {
-                          const hasValues = card.book_high || card.book_high_mid || card.book_mid || card.book_low_mid || card.book_low;
-                          if (!hasValues) return "#dc2626";
-                          if (!card.book_values_updated_at) return "#dc2626";
-                          const d = (Date.now() - new Date(card.book_values_updated_at)) / (1000 * 60 * 60 * 24);
-                          if (d < 30) return null;
-                          if (d < 90) return "#f59e0b";
-                          return "#dc2626";
-                        })();
-                        const freshnessBorder = freshnessColor ? { borderLeft: `4px solid ${freshnessColor}` } : {};
-
-                        if (isEditing) return { backgroundColor: "#f0f7ff", outline: "2px solid #1976d2", ...freshnessBorder };
-                        if (selectedIds.has(card.id)) return { backgroundColor: "#dceeff", ...freshnessBorder };
-                        if (Number(card.id) === Number(returnCardId))
-                          return { backgroundColor: "#fffde7", outline: "2px solid #ffc107", transition: "background-color 0.5s", ...freshnessBorder };
+                        if (isEditing) return { backgroundColor: "#f0f7ff", outline: "2px solid #1976d2" };
+                        if (selectedIds.has(card.id)) return { backgroundColor: "#dceeff" };
+                        if (Number(card.id) === Number(returnCardId) || Number(card.id) === Number(highlightCardId))
+                          return { backgroundColor: "#fffde7", outline: "2px solid #ffc107", transition: "background-color 0.5s" };
                         if (Number(card.id) === Number(pinnedRowId))
-                          return { backgroundColor: "#6b7280", outline: "2px solid #374151", ...freshnessBorder };
+                          return { backgroundColor: "#6b7280", outline: "2px solid #374151" };
                         const isDark = document.documentElement.getAttribute("data-theme") === "dark";
                         const def = isDark
                           ? { rg3: "#1d6090", g3: "#5f3d96", r: "#b8ad00" }
                           : { rg3: "#b8d8f7", g3: "#e8dcff", r: "#fff3c4" };
                         if (rookieVal && g === 3)
-                          return { backgroundColor: isDark ? def.rg3 : (settings?.row_color_rookie_grade3 || def.rg3), ...freshnessBorder };
+                          return { backgroundColor: isDark ? def.rg3 : (settings?.row_color_rookie_grade3 || def.rg3) };
                         if (g === 3)
-                          return { backgroundColor: isDark ? def.g3 : (settings?.row_color_grade3 || def.g3), ...freshnessBorder };
+                          return { backgroundColor: isDark ? def.g3 : (settings?.row_color_grade3 || def.g3) };
                         if (rookieVal)
-                          return { backgroundColor: isDark ? def.r : (settings?.row_color_rookie || def.r), ...freshnessBorder };
-                        return freshnessBorder;
+                          return { backgroundColor: isDark ? def.r : (settings?.row_color_rookie || def.r) };
+                        return {};
                       })()}
                     >
                       {/* Checkbox — only in selection mode */}
@@ -1229,8 +1235,19 @@ export default function ListCards() {
                           : card.grade && <span className={`badge badge-grade ${gradeClass}`}>{card.grade}</span>}
                       </td>
 
-                      {/* Book — freshness shown via row left border */}
-                      <td className="book-col" style={{ textAlign: "center" }} title={card.book_values_updated_at
+                      {/* Book — freshness shown via left border on this cell */}
+                      <td className="book-col" style={(() => {
+                        const hasValues = card.book_high || card.book_high_mid || card.book_mid || card.book_low_mid || card.book_low;
+                        const freshnessColor = (() => {
+                          if (!hasValues) return "#dc2626";
+                          if (!card.book_values_updated_at) return "#dc2626";
+                          const d = (Date.now() - new Date(card.book_values_updated_at)) / (1000 * 60 * 60 * 24);
+                          if (d < 30) return null;
+                          if (d < 90) return "#f59e0b";
+                          return "#dc2626";
+                        })();
+                        return { textAlign: "center", ...(freshnessColor ? { borderLeft: `4px solid ${freshnessColor}` } : {}) };
+                      })()} title={card.book_values_updated_at
                         ? `Book values updated: ${new Date(card.book_values_updated_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`
                         : "Book values never updated"
                       }>
@@ -1400,6 +1417,27 @@ export default function ListCards() {
               </tbody>
             </table>
 
+        </div>
+      )}
+      {deleteConfirmCard && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 3000,
+          display: "flex", alignItems: "center", justifyContent: "center"
+        }}>
+          <div style={{
+            background: "var(--bg-card, #fff)", color: "var(--text, #1a1a1a)",
+            border: "1px solid var(--border, #ddd)",
+            borderRadius: 10, padding: "1.5rem 2rem",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.35)", minWidth: 280, textAlign: "center"
+          }}>
+            <p style={{ margin: "0 0 1.25rem", fontSize: "1rem", fontWeight: 600, color: "var(--text, #1a1a1a)" }}>
+              Delete {deleteConfirmCard.first_name} {deleteConfirmCard.last_name}?
+            </p>
+            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
+              <button className="nav-btn secondary" onClick={() => setDeleteConfirmCard(null)}>Cancel</button>
+              <button className="nav-btn" style={{ background: "#dc3545", borderColor: "#dc3545" }} onClick={confirmDelete}>Delete</button>
+            </div>
+          </div>
         </div>
       )}
       {selectedCard && (
