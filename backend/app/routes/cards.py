@@ -29,6 +29,7 @@ Key endpoints:
   POST /cards/refresh-all-book-values  Touch book freshness for all cards with values
   POST /cards/clear-book-freshness     Nullify book freshness timestamp for all cards
   PATCH /cards/propagate-book-values   Spread book values to all duplicate cards
+  PATCH /cards/propagate-attributes    Spread card_attributes to all duplicate cards
 """
 # Standard library
 import io, os, csv, re, shutil, json, base64, qrcode
@@ -1125,6 +1126,42 @@ def propagate_book_values(
             factor = calculate_market_factor(card, settings)
             card.market_factor = factor
             card.value = calculate_card_value(avg_book, float(card.grade) if card.grade else None, factor)
+
+    db.commit()
+    for card in cards:
+        db.refresh(card)
+    return {"updated": len(cards), "cards": [schemas.Card.model_validate(c) for c in cards]}
+
+
+# Propagate card_attributes to all duplicate cards (same player/brand/year/card_number)
+@router.patch("/propagate-attributes")
+def propagate_attributes(
+    first_name: str,
+    last_name: str,
+    brand: str,
+    year: int,
+    card_number: str,
+    attributes: str,  # JSON-encoded dict passed as query param
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    import json as _json
+    try:
+        attrs = _json.loads(attributes)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid attributes JSON")
+
+    cards = db.query(models.Card).filter(
+        models.Card.user_id == current.id,
+        func.lower(models.Card.first_name) == first_name.lower().strip(),
+        func.lower(models.Card.last_name) == last_name.lower().strip(),
+        func.lower(models.Card.brand) == brand.lower().strip(),
+        models.Card.year == year,
+        models.Card.card_number == card_number,
+    ).all()
+
+    for card in cards:
+        card.card_attributes = attrs
 
     db.commit()
     for card in cards:

@@ -424,6 +424,26 @@ export default function ListCards() {
       const res = await api.put(`/cards/${cardId}`, { card_attributes: variantForm });
       setCards(prev => prev.map(c => c.id === cardId ? res.data : c));
       closeVariant();
+
+      // Propagate attributes to all duplicate cards (same player/brand/year/card_number)
+      const card = cards.find(c => c.id === cardId);
+      if (card?.brand && card?.year && card?.card_number) {
+        try {
+          const params = {
+            first_name: card.first_name, last_name: card.last_name,
+            brand: card.brand, year: card.year, card_number: card.card_number,
+            attributes: JSON.stringify(variantForm),
+          };
+          const bulkRes = await api.patch("/cards/propagate-attributes", null, { params });
+          if (bulkRes.data.updated > 1) {
+            showToast(`Attributes updated for all ${bulkRes.data.updated} matching cards`);
+            const byId = Object.fromEntries(bulkRes.data.cards.map(c => [c.id, c]));
+            setCards(prev => prev.map(c => byId[c.id] ?? c));
+          }
+        } catch (bulkErr) {
+          console.error("Attribute propagation failed:", bulkErr);
+        }
+      }
     } catch (err) {
       console.error("Variant save error:", err);
     }
