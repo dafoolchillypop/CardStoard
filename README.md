@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.23
+# 🧾 CardStoard — v1.24
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -253,6 +253,7 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.24** | Apr 2026 | Card list UX polish: book freshness indicator moved to left border of Book cell; delete confirmation replaced with inline modal; row above deleted card auto-pins on ✕ click; "Back to List" from Card Detail scrolls back to the card with yellow highlight |
 | **v1.23** | Apr 2026 | Badge color consistency: card value badges now use same darker=lower/brighter=higher green scale as book value badges; amber preserved for values above book-high; "Clear Book Value Timers" Admin action — nullifies all book freshness timestamps to flag every card as needing a price review |
 | **v1.22** | Apr 2026 | Book freshness indicator fix: red border and `!` now always show on cards with no book values regardless of timestamp; CSV import no longer stamps timestamp on empty book columns; fixed scroll-to-top when saving inline edits on cards with duplicates |
 | **v1.21** | Apr 2026 | ImageEditor: portrait/landscape toggle, brightness/contrast/saturation sliders, fixed 1500×2100 export resolution, 4K camera; ImageEditor wired into Scan page; zoom modal scroll fix + fixed bottom toolbar; hover-zoom thumbnail preview in My Cards; Batch Capture sort preview |

@@ -4,6 +4,17 @@
 
 **<->**
 
+## v1.24 — Card List UX Polish (April 2026)
+**Status:** Complete
+**Focus:** Three targeted UX improvements to the card list — freshness indicator placement, delete confirmation, and scroll restoration from Card Detail
+
+### Deliverables
+- **Book freshness indicator relocated** — the red/amber left border indicating stale book values moved from the far-left row edge to the left border of the Book value cell specifically, making the indicator more contextually placed
+- **Delete confirmation modal** — replaced `window.confirm()` browser dialog with an inline React modal; clicking ✕ immediately pins the row above the target card (dark grey highlight) so the user can see where they'll land; confirming deletion scrolls to that pinned row
+- **Return from Card Detail** — "Back to List" button now navigates back with `scrollToCardId` state, scrolling the list instantly to the card that was being viewed and applying a yellow highlight
+
+---
+
 ## v1.23 — Badge Color Consistency & Clear Book Freshness (April 2026)
 **Status:** Complete
 **Focus:** Visual consistency in the card value badge color scheme and a new admin action to bulk-clear book freshness timestamps
