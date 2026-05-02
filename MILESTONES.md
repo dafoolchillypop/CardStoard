@@ -4,6 +4,19 @@
 
 **<->**
 
+## v1.25 — Variant-Aware Valuation (May 2026)
+**Status:** Complete
+**Focus:** Prevent book value propagation from overwriting variant-specific pricing, and split the autograph/rookie-MT valuation factors
+
+### Deliverables
+- **Variant-aware price propagation** — `PATCH /cards/propagate-book-values` now matches on `card_attributes` in addition to player/brand/year/card#. Base card price updates no longer overwrite refractor, parallel, or autograph-specific book values on duplicate cards.
+- **Autograph factor** — cards with the `autograph` attribute now use `auto_factor` for valuation regardless of grade or rookie status (highest priority in factor selection).
+- **Rookie MT Factor** — new `rookie_mt_factor` setting (migration 027, default 1.00) separates Rookie+MT valuation from the autograph factor. Previously both used `auto_factor`. Both are now independently configurable in Admin → Valuation.
+- **editForm sync on variant save** — saving card attributes via the variant panel now keeps the inline edit form in sync, preventing the next inline save from reverting the variant.
+- **Return-from-detail highlight timeout** — yellow highlight applied when returning from Card Detail now auto-clears after 10 seconds.
+
+---
+
 ## v1.24 — Card List UX Polish (April 2026)
 **Status:** Complete
 **Focus:** Three targeted UX improvements to the card list — freshness indicator placement, delete confirmation, and scroll restoration from Card Detail
