@@ -613,10 +613,11 @@ export default function Admin() {
         {activeTab === "valuation" && (
           <>
             <div className="card-section">
-              <h3>Factor Settings <InfoIcon id="factorsettings" text="Multipliers applied to book value when calculating card value. Grade factors reflect condition; Rookie factor boosts rookie card value." /></h3>
+              <h3>Factor Settings <InfoIcon id="factorsettings" text="Multipliers applied to book value when calculating card value. Auto Factor applies to autograph cards. Rookie MT Factor applies to Rookie + Mint grade cards. Grade factors reflect condition." /></h3>
               <div className="factor-group">
                 <div><label>Rookie Factor</label><input type="number" step="0.01" name="rookie_factor" value={settings.rookie_factor} onChange={handleChange} /></div>
                 <div><label>Auto Factor</label><input type="number" step="0.01" name="auto_factor" value={settings.auto_factor} onChange={handleChange} /></div>
+                <div><label>Rookie MT Factor</label><input type="number" step="0.01" name="rookie_mt_factor" value={settings.rookie_mt_factor ?? 1.00} onChange={handleChange} /></div>
                 <div><label>MTGrade Factor</label><input type="number" step="0.01" name="mtgrade_factor" value={settings.mtgrade_factor} onChange={handleChange} /></div>
                 <div><label>EXGrade Factor</label><input type="number" step="0.01" name="exgrade_factor" value={settings.exgrade_factor} onChange={handleChange} /></div>
                 <div><label>VGGrade Factor</label><input type="number" step="0.01" name="vggrade_factor" value={settings.vggrade_factor} onChange={handleChange} /></div>

@@ -113,9 +113,10 @@ class GlobalSettings(Base):
     card_makes = Column(JSON, default=["Bowman","Donruss","Fleer","Score","Topps","Upper Deck"])
     card_grades = Column(JSON, default=["3","1.5","1","0.8","0.4","0.2"])
 
-    rookie_factor = Column(Float, default=0.80)
-    auto_factor   = Column(Float, default=1.00)
-    mtgrade_factor = Column(Float, default=0.85)
+    rookie_factor    = Column(Float, default=0.80)
+    auto_factor      = Column(Float, default=1.00)
+    rookie_mt_factor = Column(Float, default=1.00)
+    mtgrade_factor   = Column(Float, default=0.85)
     exgrade_factor = Column(Float, default=0.75)
     vggrade_factor = Column(Float, default=0.60)
     gdgrade_factor = Column(Float, default=0.55)

@@ -113,14 +113,15 @@ class GlobalSettingsBase(BaseModel):
     def coerce_null_bool(cls, v):
         return False if v is None else v
 
-    rookie_factor: Optional[float] = .80
-    auto_factor: Optional[float] = 1.00
-    mtgrade_factor: Optional[float] = .85
-    exgrade_factor: Optional[float] = .75
-    vggrade_factor: Optional[float] = .60
-    gdgrade_factor: Optional[float] = .55
-    frgrade_factor: Optional[float] = .50
-    prgrade_factor: Optional[float] = .40
+    rookie_factor:    Optional[float] = .80
+    auto_factor:      Optional[float] = 1.00
+    rookie_mt_factor: Optional[float] = 1.00
+    mtgrade_factor:   Optional[float] = .85
+    exgrade_factor:   Optional[float] = .75
+    vggrade_factor:   Optional[float] = .60
+    gdgrade_factor:   Optional[float] = .55
+    frgrade_factor:   Optional[float] = .50
+    prgrade_factor:   Optional[float] = .40
 
     vintage_era_year: Optional[int] = 1970
     modern_era_year: Optional[int] = 1980
@@ -156,9 +157,10 @@ class GlobalSettingsUpdate(BaseModel):
     chatbot_enabled: Optional[bool] = None
     enable_image_ai: Optional[bool] = None
 
-    rookie_factor: Optional[float] = None
-    auto_factor: Optional[float] = None
-    mtgrade_factor: Optional[float] = None
+    rookie_factor:    Optional[float] = None
+    auto_factor:      Optional[float] = None
+    rookie_mt_factor: Optional[float] = None
+    mtgrade_factor:   Optional[float] = None
     exgrade_factor: Optional[float] = None
     vggrade_factor: Optional[float] = None
     gdgrade_factor: Optional[float] = None

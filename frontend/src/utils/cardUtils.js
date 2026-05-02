@@ -14,6 +14,7 @@ export function handleNameKeyDown(e, field, names, card, setCard) {
 export function calcCardValue(card, settings) {
   const isRookie =
     card.rookie === "*" || card.rookie === "1" || Number(card.rookie) === 1 || card.rookie === true;
+  const isAuto = !!(card.card_attributes?.autograph);
 
   const g = parseFloat(card.grade);
   let gradeClass = "grade-unknown";
@@ -38,7 +39,8 @@ export function calcCardValue(card, settings) {
     const avgBook = books.reduce((a, b) => a + b, 0) / books.length;
     let factor = null;
 
-    if (g === 3 && isRookie) factor = settings.auto_factor;
+    if (isAuto) factor = settings.auto_factor;
+    else if (g === 3 && isRookie) factor = settings.rookie_mt_factor ?? settings.auto_factor;
     else if (g === 3) factor = settings.mtgrade_factor;
     else if (isRookie) factor = settings.rookie_factor;
     else if (g === 1.5) factor = settings.exgrade_factor;

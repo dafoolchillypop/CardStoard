@@ -6,8 +6,9 @@ Valuation formula:   value = avg_book × grade × market_factor
 
 - avg_book      — mean of all non-null book_* fields (book_high through book_low)
 - grade         — the card's numeric condition value (3.0, 1.5, 1.0, 0.8, 0.4, 0.2)
-- market_factor — selected from GlobalSettings based on grade + rookie flag:
-                    Rookie + MT(3.0) → auto_factor
+- market_factor — selected from GlobalSettings based on attributes, grade + rookie flag:
+                    Autograph attr   → auto_factor      (highest priority)
+                    Rookie + MT(3.0) → rookie_mt_factor
                     MT only          → mtgrade_factor
                     Rookie only      → rookie_factor
                     EX(1.5)          → exgrade_factor
@@ -28,9 +29,13 @@ def calculate_market_factor(card, settings):
     """Return the appropriate market factor given a card and settings."""
     g = float(card.grade or 0)
     is_rookie = bool(card.rookie in ("*", "1", 1, True))
+    attrs = card.card_attributes or {}
+    is_auto = bool(attrs.get("autograph"))
 
-    if math.isclose(g, 3.0) and is_rookie:
+    if is_auto:
         return settings.auto_factor
+    elif math.isclose(g, 3.0) and is_rookie:
+        return getattr(settings, "rookie_mt_factor", settings.auto_factor)
     elif math.isclose(g, 3.0):
         return settings.mtgrade_factor
     elif is_rookie:

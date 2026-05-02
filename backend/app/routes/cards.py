@@ -1084,7 +1084,7 @@ def get_duplicate_count(
 #    except Exception as e:
 #        raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
 
-# Propagate book values to all duplicate cards (same player/brand/year/card_number)
+# Propagate book values to all duplicate cards (same player/brand/year/card_number + variant)
 @router.patch("/propagate-book-values")
 def propagate_book_values(
     first_name: str,
@@ -1097,10 +1097,14 @@ def propagate_book_values(
     book_mid: Optional[float] = None,
     book_low_mid: Optional[float] = None,
     book_low: Optional[float] = None,
+    attributes: Optional[str] = None,  # JSON-encoded card_attributes for variant matching
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ):
-    cards = db.query(models.Card).filter(
+    import json as _json
+    attrs = _json.loads(attributes) if attributes else {}
+
+    all_cards = db.query(models.Card).filter(
         models.Card.user_id == current.id,
         func.lower(models.Card.first_name) == first_name.lower().strip(),
         func.lower(models.Card.last_name) == last_name.lower().strip(),
@@ -1108,6 +1112,9 @@ def propagate_book_values(
         models.Card.year == year,
         models.Card.card_number == card_number,
     ).all()
+    # Only update cards with the same variant attributes — prevents overwriting
+    # parallel/refractor/autograph-specific pricing with base card values.
+    cards = [c for c in all_cards if (c.card_attributes or {}) == attrs]
 
     settings = db.query(models.GlobalSettings).filter(
         models.GlobalSettings.user_id == current.id
@@ -1133,7 +1140,7 @@ def propagate_book_values(
     return {"updated": len(cards), "cards": [schemas.Card.model_validate(c) for c in cards]}
 
 
-# Propagate card_attributes to all duplicate cards (same player/brand/year/card_number)
+# Propagate card_attributes to duplicate cards with the same current variant
 @router.patch("/propagate-attributes")
 def propagate_attributes(
     first_name: str,
@@ -1141,7 +1148,8 @@ def propagate_attributes(
     brand: str,
     year: int,
     card_number: str,
-    attributes: str,  # JSON-encoded dict passed as query param
+    attributes: str,       # JSON-encoded new card_attributes to apply
+    prev_attributes: Optional[str] = None,  # JSON-encoded current attributes for variant matching
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ):
@@ -1150,8 +1158,9 @@ def propagate_attributes(
         attrs = _json.loads(attributes)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid attributes JSON")
+    prev_attrs = _json.loads(prev_attributes) if prev_attributes else {}
 
-    cards = db.query(models.Card).filter(
+    all_cards = db.query(models.Card).filter(
         models.Card.user_id == current.id,
         func.lower(models.Card.first_name) == first_name.lower().strip(),
         func.lower(models.Card.last_name) == last_name.lower().strip(),
@@ -1159,6 +1168,8 @@ def propagate_attributes(
         models.Card.year == year,
         models.Card.card_number == card_number,
     ).all()
+    # Only update cards that currently share the same variant attributes.
+    cards = [c for c in all_cards if (c.card_attributes or {}) == prev_attrs]
 
     for card in cards:
         card.card_attributes = attrs

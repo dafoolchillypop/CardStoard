@@ -250,6 +250,13 @@ export default function ListCards() {
   }, [returnCardId]);
 
   const clearPin = () => { setReturnCardId(null); setPinnedCard(null); setHighlightCardId(null); };
+
+  // Auto-clear the return-from-detail highlight after 10 seconds
+  useEffect(() => {
+    if (!highlightCardId) return;
+    const t = setTimeout(() => setHighlightCardId(null), 10000);
+    return () => clearTimeout(t);
+  }, [highlightCardId]);
   const clearCloneAnchor = () => { setCloningCardId(null); setCloningParentId(null); setDisplaySnapshot(null); };
   const handlePinRow = (cardId) => {
     setPinnedRowId(prev => {
@@ -367,6 +374,7 @@ export default function ListCards() {
             const params = {
               first_name: editForm.first_name, last_name: editForm.last_name,
               brand: editForm.brand, year: editForm.year, card_number: editForm.card_number,
+              attributes: JSON.stringify(editForm.card_attributes || {}),
               ...(editForm.book_high     ? { book_high:     editForm.book_high }     : {}),
               ...(editForm.book_high_mid ? { book_high_mid: editForm.book_high_mid } : {}),
               ...(editForm.book_mid      ? { book_mid:      editForm.book_mid }      : {}),
@@ -421,18 +429,26 @@ export default function ListCards() {
 
   const saveVariant = async (cardId) => {
     try {
+      const card = cards.find(c => c.id === cardId);
+      const prevAttributes = card?.card_attributes || {};
       const res = await api.put(`/cards/${cardId}`, { card_attributes: variantForm });
       setCards(prev => prev.map(c => c.id === cardId ? res.data : c));
+      // Keep editForm in sync — if this card is open for inline editing, its
+      // card_attributes would be stale and the next save would revert the variant.
+      if (editingCardId === cardId) {
+        setEditForm(prev => ({ ...prev, card_attributes: variantForm }));
+      }
       closeVariant();
 
-      // Propagate attributes to all duplicate cards (same player/brand/year/card_number)
-      const card = cards.find(c => c.id === cardId);
+      // Propagate attributes to duplicates that currently share the same variant.
+      // prev_attributes scopes the update to matching variants only.
       if (card?.brand && card?.year && card?.card_number) {
         try {
           const params = {
             first_name: card.first_name, last_name: card.last_name,
             brand: card.brand, year: card.year, card_number: card.card_number,
             attributes: JSON.stringify(variantForm),
+            prev_attributes: JSON.stringify(prevAttributes),
           };
           const bulkRes = await api.patch("/cards/propagate-attributes", null, { params });
           if (bulkRes.data.updated > 1) {
