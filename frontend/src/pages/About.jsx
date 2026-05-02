@@ -137,12 +137,19 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.24</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.25</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.25 (May 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Book value propagation now scoped to matching card variants — base card prices no longer overwrite refractor or autograph duplicate pricing</li>
+            <li>Autograph attribute uses Auto Factor for valuation; new Rookie MT Factor separates Rookie+Mint grade valuation — both independently configurable in Admin</li>
+            <li>Return-from-detail yellow highlight now clears after 10 seconds</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.24 (April 2026)</p>
           <ul style={{ marginTop: 0 }}>
