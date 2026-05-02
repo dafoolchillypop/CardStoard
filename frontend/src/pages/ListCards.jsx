@@ -429,8 +429,6 @@ export default function ListCards() {
 
   const saveVariant = async (cardId) => {
     try {
-      const card = cards.find(c => c.id === cardId);
-      const prevAttributes = card?.card_attributes || {};
       const res = await api.put(`/cards/${cardId}`, { card_attributes: variantForm });
       setCards(prev => prev.map(c => c.id === cardId ? res.data : c));
       // Keep editForm in sync — if this card is open for inline editing, its
@@ -439,27 +437,6 @@ export default function ListCards() {
         setEditForm(prev => ({ ...prev, card_attributes: variantForm }));
       }
       closeVariant();
-
-      // Propagate attributes to duplicates that currently share the same variant.
-      // prev_attributes scopes the update to matching variants only.
-      if (card?.brand && card?.year && card?.card_number) {
-        try {
-          const params = {
-            first_name: card.first_name, last_name: card.last_name,
-            brand: card.brand, year: card.year, card_number: card.card_number,
-            attributes: JSON.stringify(variantForm),
-            prev_attributes: JSON.stringify(prevAttributes),
-          };
-          const bulkRes = await api.patch("/cards/propagate-attributes", null, { params });
-          if (bulkRes.data.updated > 1) {
-            showToast(`Attributes updated for all ${bulkRes.data.updated} matching cards`);
-            const byId = Object.fromEntries(bulkRes.data.cards.map(c => [c.id, c]));
-            setCards(prev => prev.map(c => byId[c.id] ?? c));
-          }
-        } catch (bulkErr) {
-          console.error("Attribute propagation failed:", bulkErr);
-        }
-      }
     } catch (err) {
       console.error("Variant save error:", err);
     }
