@@ -129,9 +129,9 @@ class GlobalSettingsBase(BaseModel):
     vintage_era_factor: Optional[float] = 1.00
     modern_era_factor: Optional[float] = 1.00
 
-    row_color_rookie: Optional[str] = "#fff3c4"
+    row_color_rookie: Optional[str] = "#b8d8f7"
     row_color_grade3: Optional[str] = "#e8dcff"
-    row_color_rookie_grade3: Optional[str] = "#b8d8f7"
+    row_color_rookie_grade3: Optional[str] = "#fff3c4"
 
     dark_mode: bool = False
     default_sort: Optional[list] = None
