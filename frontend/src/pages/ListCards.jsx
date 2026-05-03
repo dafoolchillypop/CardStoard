@@ -1096,8 +1096,8 @@ export default function ListCards() {
                           return { backgroundColor: "#6b7280", outline: "2px solid #374151" };
                         const isDark = document.documentElement.getAttribute("data-theme") === "dark";
                         const def = isDark
-                          ? { rg3: "#1d6090", g3: "#5f3d96", r: "#b8ad00" }
-                          : { rg3: "#b8d8f7", g3: "#e8dcff", r: "#fff3c4" };
+                          ? { rg3: "#b8ad00", g3: "#5f3d96", r: "#1d6090" }
+                          : { rg3: "#fff3c4", g3: "#e8dcff", r: "#b8d8f7" };
                         if (rookieVal && g === 3)
                           return { backgroundColor: isDark ? def.rg3 : (settings?.row_color_rookie_grade3 || def.rg3) };
                         if (g === 3)
@@ -1312,6 +1312,8 @@ export default function ListCards() {
                           const bHM = Number(card.book_high_mid)  || null;
                           const bM  = Number(card.book_mid)       || null;
                           const bLM = Number(card.book_low_mid)   || null;
+                          if (v === 0)
+                            return <span className="badge badge-value" style={{ backgroundColor: "#e5e7eb", color: "#9ca3af" }}>{fmtDollar(v)}</span>;
                           let valueClass = "book-low";
                           if (bH  && v > bH)   valueClass = "value-above-book";
                           else if (bH  && v >= bH)  valueClass = "book-high";
@@ -1367,7 +1369,7 @@ export default function ListCards() {
                             onMouseLeave={() => setHoverCard(null)}
                           />
                         ) : (
-                          <span style={{ color: "#aaa" }}>No Image</span>
+                          <span style={{ color: (rookieVal && g === 3) ? "#7c6500" : "#aaa" }}>No Image</span>
                         )}
                       </td>
 
