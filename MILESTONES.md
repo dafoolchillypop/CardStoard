@@ -4,6 +4,17 @@
 
 **<->**
 
+## v1.26 — Card List Visual Polish (May 2026)
+**Status:** Complete
+**Focus:** Row color scheme correction, muted $0 value chip, and legibility fix for no-image text on gold rows
+
+### Deliverables
+- **Row color scheme swap** — gold highlight now applied to Rookie+MT (grade 3.0) rows; blue highlight applied to other-grade rookie rows. Previously inverted. Migration 028 updates existing users whose colors were still at the old defaults.
+- **$0 value chip** — cards with a $0 computed value now render a grey/muted chip (`#e5e7eb` background, `#9ca3af` text) instead of a colored tier badge, clearly distinguishing unvalued cards from valued ones while still displaying `$0`.
+- **No Image legibility** — "No Image" placeholder text on gold (Rookie+MT) rows now renders in `#7c6500` (dark amber) instead of `#aaa` (light grey), which was nearly invisible against the gold background.
+
+---
+
 ## v1.25 — Variant-Aware Valuation (May 2026)
 **Status:** Complete
 **Focus:** Prevent book value propagation from overwriting variant-specific pricing, and split the autograph/rookie-MT valuation factors

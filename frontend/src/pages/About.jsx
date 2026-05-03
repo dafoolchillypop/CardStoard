@@ -137,12 +137,19 @@ export default function About() {
         {/* Version */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>📦 Current Version</h3>
-          <p style={{ margin: 0 }}><strong>CardStoard v1.25</strong></p>
+          <p style={{ margin: 0 }}><strong>CardStoard v1.26</strong></p>
         </div>
 
         {/* Recent Updates */}
         <div style={sectionStyle}>
           <h3 style={h3Style}>🆕 Recent Updates</h3>
+
+          <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.26 (May 2026)</p>
+          <ul style={{ marginTop: 0 }}>
+            <li>Row color scheme corrected — gold highlight now for Rookie+MT (grade 3.0), blue for other-grade rookies</li>
+            <li>$0 value cards show a grey/muted chip instead of a colored tier badge</li>
+            <li>"No Image" text darkened on gold rows for legibility</li>
+          </ul>
 
           <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>v1.25 (May 2026)</p>
           <ul style={{ marginTop: 0 }}>

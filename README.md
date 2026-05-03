@@ -1,4 +1,4 @@
-# 🧾 CardStoard — v1.25
+# 🧾 CardStoard — v1.26
 
 CardStoard is a full-stack web application for managing, tracking, and valuing a sports card collection.
 It combines a **FastAPI backend** with a **React frontend**, fully containerized with **Docker Compose** and deployed on **AWS EC2**.
@@ -253,6 +253,7 @@ Production URLs:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| **v1.26** | May 2026 | Row color scheme swap: gold highlight now for Rookie+MT (grade 3.0), blue for other-grade rookies; $0 value chip rendered grey/muted; "No Image" text darkened on gold rows for legibility; migration 028 updates existing users' row color defaults |
 | **v1.25** | May 2026 | Variant-aware price propagation: book values only propagate to duplicates with matching card attributes (base cards don't overwrite refractor/auto pricing); autograph attribute now uses auto_factor; new Rookie MT Factor (migration 027) separates Rookie+MT valuation from autograph factor; return-from-detail highlight clears after 10 seconds |
 | **v1.24** | Apr 2026 | Card list UX polish: book freshness indicator moved to left border of Book cell; delete confirmation replaced with inline modal; row above deleted card auto-pins on ✕ click; "Back to List" from Card Detail scrolls back to the card with yellow highlight |
 | **v1.23** | Apr 2026 | Badge color consistency: card value badges now use same darker=lower/brighter=higher green scale as book value badges; amber preserved for values above book-high; "Clear Book Value Timers" Admin action — nullifies all book freshness timestamps to flag every card as needing a price review |

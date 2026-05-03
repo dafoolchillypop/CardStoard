@@ -710,6 +710,7 @@ value     = round(avg_book × grade_factor × rookie_factor × era_factor)`}
           <p style={{ marginTop: 0 }}>
             Customise the highlight colours for Mint cards, Rookie cards, and the Rookie + Mint combination
             using the colour pickers. Click <strong>Restore Defaults</strong> to reset to the original colours.
+            Default scheme: <strong>gold</strong> = Rookie + Mint (grade 3.0), <strong>blue</strong> = other-grade rookies, <strong>lavender</strong> = Mint only.
           </p>
 
           <p style={h4Style}>Set visibility</p>
