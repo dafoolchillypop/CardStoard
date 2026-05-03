@@ -159,7 +159,31 @@ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 echo -e "\n${YELLOW}⏳ Waiting for services to initialize (10 seconds)...${NC}"
 sleep 10
 
-# --- 5b️⃣ Run DB migrations ---
+# --- 5b️⃣ Reset SERIAL sequences (prevents duplicate-key errors after volume-preserved restores) ---
+echo -e "\n${BLUE}🔧 Resetting SERIAL sequences...${NC}"
+docker exec stoardb psql -U postgres cardstoardb -c "
+DO \$\$
+DECLARE r RECORD;
+BEGIN
+  FOR r IN
+    SELECT sequencename,
+           regexp_replace(sequencename, '_id_seq\$', '') AS tblname
+    FROM pg_sequences
+    WHERE schemaname = 'public' AND sequencename LIKE '%_id_seq'
+  LOOP
+    BEGIN
+      EXECUTE format(
+        'SELECT setval(%L, COALESCE((SELECT MAX(id) FROM %I), 1))',
+        r.sequencename, r.tblname
+      );
+    EXCEPTION WHEN OTHERS THEN NULL;
+    END;
+  END LOOP;
+END;
+\$\$;
+" && echo -e "${GREEN}✅ Sequences reset.${NC}"
+
+# --- 5c️⃣ Run DB migrations ---
 echo -e "\n${BLUE}🗄️  Running database migrations...${NC}"
 docker exec stoarback python migrate.py
 echo -e "${GREEN}✅ Migrations complete.${NC}"
